@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Ilex\lib;
-
 
 /**
  * Class Validate
@@ -21,12 +19,20 @@ class Validate
         'email' => '/([a-z0-9]*[-_\.]?[a-z0-9]+)*@([a-z0-9]*[-_]?[a-z0-9]+)+[\.][a-z]{2,3}([\.][a-z]{2})?/i',
     );
 
+    /**
+     * @param array $value
+     * @param array $rulePackages
+     * @return mixed
+     */
     public static function batch(&$values, $rulePackages)
     {
         $errors = array();
         foreach ($rulePackages as $i => $rulePackage) {
             $name = isset($rulePackage['name']) ? $rulePackage['name'] : $i;
 
+            /**
+             * @todo what 
+             */
             if (!isset($values[$name])) {
                 if (isset($rulePackage['default'])) {
                     $values[$name] = $rulePackage['default'];
@@ -46,11 +52,16 @@ class Validate
         return count($errors) ? $errors : TRUE;
     }
 
+    /**
+     * @param mixed $value
+     * @param array $rulePackage
+     * @return mixed
+     */
     public static function package(&$value, $rulePackage)
     {
         $errors = array();
         foreach ($rulePackage as $ruleName => $rule) {
-            if (in_array($ruleName, array('name', 'require', 'default'))) {
+            if (in_array($ruleName, array('name', 'require', 'default'))) { // ignore some reserved names
                 continue;
             } elseif ($ruleName === 'all') {
                 foreach ($value as $valueItem) {
@@ -69,9 +80,16 @@ class Validate
         return count($errors) ? $errors : TRUE;
     }
 
+    /**
+     * @param mixed  $value
+     * @param string $ruleName
+     * @param array  $rule
+     * @param string $message
+     * @return mixed
+     */
     public static function rule(&$value, $ruleName, $rule, $message = FALSE)
     {
-        return static::$ruleName($value, $rule) ? TRUE : $message;
+        return static::$ruleName($value, $rule) ? TRUE : $message; // amazing!
     }
 
     /*
@@ -80,6 +98,10 @@ class Validate
      * ----------------------- -----------------------
      */
 
+    /**
+     * @param mixed $value
+     * @return boolean
+     */
     public static function is_int($value)
     {
         if (is_int($value)) {
@@ -91,6 +113,10 @@ class Validate
         }
     }
 
+    /**
+     * @param mixed $value
+     * @return boolean
+     */
     public static function is_float($value)
     {
         if (is_float($value) OR is_int($value)) {
@@ -108,19 +134,23 @@ class Validate
      * ----------------------- -----------------------
      */
 
+    /**
+     * @param mixed $value
+     * @return boolean
+     */
     public static function type(&$value, $rule)
     {
         switch ($rule['type']) {
             case 'int':
                 if (static::is_int($value)) {
-                    $value = intval($value);
+                    $value = intval($value); // convert to int!
                     return TRUE;
                 } else {
                     return FALSE;
                 }
             case 'float':
                 if (static::is_float($value)) {
-                    $value = floatval($value);
+                    $value = floatval($value); // convert to float!
                     return TRUE;
                 } else {
                     return FALSE;
@@ -132,6 +162,11 @@ class Validate
         }
     }
 
+    /**
+     * @param mixed $value
+     * @param array $rule
+     * @return boolean
+     */
     public static function re($value, $rule)
     {
         return preg_match(

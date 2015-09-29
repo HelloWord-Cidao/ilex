@@ -103,14 +103,13 @@ class Loader
             if ($className === FALSE) {
                 throw new \Exception(ucfirst($type) . ' ' . $path . ' not found.');
             }
-            $class = self::createInstance($className, $params); // TODO what
+            $class = self::createInstance($className, $params); // @todo what
             return self::letTo($type, $path, $class);
         }
     }
 
 
     /**
-     * TODO
      * Includes package and return its name, returns FALSE if fails.
      * Try APPPATH first and then ILEXPATH.
      * eg. $path = 'hw/Brain', $type = 'Model', 
@@ -129,7 +128,7 @@ class Loader
             ),
             'ilex' => array(
                 'path' => self::get('ILEXPATH') . 'Base/' . $type . '/' . $path . '.php',
-                'name' => '\\Ilex\\Base\\Model\\' . str_replace('/', '\\', $path) // TODO definitely Model?
+                'name' => '\\Ilex\\Base\\Model\\' . str_replace('/', '\\', $path) // @todo definitely Model?
             )
         ) as $item) {
             if (file_exists($item['path'])) {

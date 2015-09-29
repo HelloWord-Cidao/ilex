@@ -1,9 +1,11 @@
 <?php
 
-
 namespace Ilex\Core;
 
-
+/**
+ * Class Constant
+ * @package Ilex\Core
+ */
 class Constant
 {
     public static function initialize()
@@ -34,7 +36,7 @@ class Constant
             'SVR_MONGO_DB'          => 'test',
             'SVR_MONGO_TIMEOUT'     => 2000,
         );
-        include_once(Loader::APPPATH() . 'config/const.php');
+        include_once(Loader::APPPATH() . 'config/const.php'); // lower case!
         foreach ($constants as $name => $value) {
             if (!defined($name)) {
                 define($name, $value);

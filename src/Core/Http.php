@@ -2,9 +2,17 @@
 
 namespace Ilex\Core;
 
-
+/**
+ * Class Http
+ * @package Ilex\Core
+ */
 class Http
 {
+
+    /**
+     * @uses ENVIRONMENT
+     * @param string $url
+     */
     public static function redirect($url)
     {
         if (ENVIRONMENT !== 'TEST') {
@@ -12,6 +20,9 @@ class Http
         }
     }
 
+    /**
+     * @param mixed $data
+     */
     public static function json($data)
     {
         echo(json_encode($data));

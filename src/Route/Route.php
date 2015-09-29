@@ -2,9 +2,7 @@
 
 namespace Ilex\Route;
 
-
 use Ilex\Core\Loader;
-
 
 /**
  * Class RouteLib
@@ -12,6 +10,10 @@ use Ilex\Core\Loader;
  */
 class RouteLib
 {
+    /**
+     * @param string $description
+     * @return string
+     */
     public static function getPattern($description)
     {
         foreach (array(
@@ -25,7 +27,7 @@ class RouteLib
     }
 
     /**
-     * @param $uri
+     * @param string $uri eg. '/mission/page/12'
      * @return array|string Return [$function, $params] if parameters found.
      */
     public static function getFunction($uri)
@@ -57,7 +59,7 @@ class RouteLib
             }
         }
         if ($function === '') {
-            $function = 'index';
+            $function = 'index'; // index.php
         }
         return count($params) ? array($function, $params) : $function;
     }
@@ -88,8 +90,17 @@ class Route
         $this->uri = $uri;
     }
 
+    /**
+     * @return mixed
+     */
     public function result() { return $this->result; }
 
+    /**
+     * @todo what
+     * @param string $name
+     * @param mixed  $arguments
+     * @return mixed
+     */
     public function __call($name, $arguments)
     {
         if (!$this->settled AND (strtoupper($name) === $this->method OR $name === 'any')) {
@@ -99,14 +110,32 @@ class Route
         }
     }
 
+    /**
+     * @todo what
+     * @param string $description
+     * @param mixed  $handler
+     */
     public function controller($description, $handler) { $this->settled OR $this->fitController($description, $handler); }
+
+    /**
+     * @todo what
+     * @param string $description
+     * @param mixed  $handler
+     */
     public function group($description, $handler) { $this->settled OR $this->fitGroup($description, $handler); }
 
+    /**
+     * @param array $var
+     */
     public function merge($vars)
     {
         $this->params = array_merge($this->params, $vars);
     }
 
+    /**
+     * @todo what
+     * @param mixed $result
+     */
     private function end($result)
     {
         if ($this->cancelled) {
@@ -117,6 +146,13 @@ class Route
         }
     }
 
+    /**
+     * @todo what
+     * @param string $description
+     * @param mixed  $handler
+     * @param mixed  $function
+     * @return boolean
+     */
     private function fit($description, $handler, $function = NULL)
     {
         if (preg_match(RouteLib::getPattern($description), $this->uri, $matches)) {
@@ -129,6 +165,11 @@ class Route
         }
     }
 
+    /**
+     * @todo what
+     * @param mixed $handler
+     * @param mixed $function
+     */
     private function handle($handler, $function)
     {
         if (is_string($handler) OR !($handler instanceof \Closure)) {
@@ -145,6 +186,11 @@ class Route
         }
     }
 
+    /**
+     * @todo what
+     * @param string $description
+     * @return boolean
+     */
     private function getRestURI($description)
     {
         $length = strlen($description);
@@ -159,6 +205,10 @@ class Route
         }
     }
 
+    /**
+     * @todo what
+     * @return boolean
+     */
     public function back()
     {
         if ($this->settled) {

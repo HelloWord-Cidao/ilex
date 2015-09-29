@@ -16,7 +16,7 @@ use Ilex\Core\Loader;
 class Base extends \Ilex\Base\Model\Base
 {
     protected $collectionName;
-    public $collection; // todo: Do NOT expose this
+    public $collection; // @todo: Do NOT expose this
 
     public function __construct()
     {
