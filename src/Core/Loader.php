@@ -30,13 +30,14 @@ class Loader
     public static function RUNTIMEPATH() { return self::get('RUNTIMEPATH'); }
 
     /**
-     * @return \MongoDB
+     * @return object \MongoDB
      */
     public static function db()
     {
         if (self::has('db')) {
             return self::get('db');
         } else {
+            // should include these CONST first? when?
             $mongo = new \MongoClient(SVR_MONGO_HOST . ':' . SVR_MONGO_PORT, array(
                 'username'          => SVR_MONGO_USER,
                 'password'          => SVR_MONGO_PASS,
@@ -47,20 +48,53 @@ class Loader
         }
     }
 
-    public static function controller($path) { return self::loadWithBase($path, 'Controller'); }
-    public static function      model($path, $params = array()) { return self::loadWithBase($path,      'Model', $params); }
+    /**
+     * @param string $path
+     * @return object
+     */
+    public static function controller($path) {
+        return self::loadWithBase($path, 'Controller');
+    }
 
-    public static function isModelLoaded($path) { return self::isLoadedWithBase($path, 'Model'); }
+    /**
+     * @param string $path
+     * @param array $params
+     * @return 
+     */
+    public static function model($path, $params = array()) {
+        return self::loadWithBase($path, 'Model', $params);
+    }
 
+    /**
+     * @param string $path
+     * @return boolean
+     */
+    public static function isModelLoaded($path) {
+        return self::isLoadedWithBase($path, 'Model');
+    }
+
+    /**
+     * @param string $path
+     * @param string $type
+     * @return boolean
+     */
     private static function isLoadedWithBase($path, $type)
     {
         $typeEntities = self::get($type);
         return isset($typeEntities[$path]);
     }
 
+     /**
+      * Returns a loaded class, if it is not already loaded, 
+      * then load it and save it into $container.
+      * The function ensures that for each model only one entity is loaded.
+      * @param string $path
+      * @param string $type
+      * @param array  $params
+      * @return object
+      */
     private static function loadWithBase($path, $type, $params = array())
     {
-        // Ensure that for each model only one entity is loaded.
         $typeEntities = self::get($type);
         if (isset($typeEntities[$path])) {
             return $typeEntities[$path];
@@ -69,11 +103,23 @@ class Loader
             if ($className === FALSE) {
                 throw new \Exception(ucfirst($type) . ' ' . $path . ' not found.');
             }
-            $class = self::createInstance($className, $params);
+            $class = self::createInstance($className, $params); // TODO what
             return self::letTo($type, $path, $class);
         }
     }
 
+
+    /**
+     * TODO
+     * Includes package and return its name, returns FALSE if fails.
+     * Try APPPATH first and then ILEXPATH.
+     * eg. $path = 'hw/Brain', $type = 'Model', 
+     *     this function will includes 'APPPATH/Model/hw/BrainModel.php', 
+     *     and returns 'BrainModel'
+     * @param string $path etc. 'hw/Brain' ?
+     * @param string $type etc. 'config', 'Model', 'Controller', 'view' ?
+     * @return string
+     */
     private static function load($path, $type)
     {
         foreach (array(
@@ -83,7 +129,7 @@ class Loader
             ),
             'ilex' => array(
                 'path' => self::get('ILEXPATH') . 'Base/' . $type . '/' . $path . '.php',
-                'name' => '\\Ilex\\Base\\Model\\' . str_replace('/', '\\', $path)
+                'name' => '\\Ilex\\Base\\Model\\' . str_replace('/', '\\', $path) // TODO definitely Model?
             )
         ) as $item) {
             if (file_exists($item['path'])) {
@@ -94,12 +140,21 @@ class Loader
         return FALSE;
     }
 
+    /**
+     * 'hw/Brain' => 'Brain'
+     * @return string
+     */
     public static function getHandlerFromPath($path)
     {
         $handler = strrchr($path, '/');
         return $handler === FALSE ? $path : substr($handler, 1);
     }
 
+    /**
+     * @param string $class
+     * @param array $params
+     * @return object
+     */
     private static function createInstance($class, $params) {
         $reflection_class = new ReflectionClass($class);
         return $reflection_class->newInstanceArgs($params);
