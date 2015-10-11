@@ -3,6 +3,8 @@
 *.sublime-workspace
 sftp-config.json
 
+vendor/
+
 # OS X
 .DS_Store
 
