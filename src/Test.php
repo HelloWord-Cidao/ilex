@@ -41,9 +41,6 @@ class Test
     {
         self::$Input->clear()->merge('post', $post)->merge('get', $get);
         $_SERVER['REQUEST_URI'] =  ENV_HOST . '/' . $url;
-        ob_start();
-        // @todo: echo?
-        Autoloader::resolve($method, $url);
-        return ob_get_clean();
+        return Autoloader::resolve($method, $url);
     }
 }

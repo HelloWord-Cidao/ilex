@@ -24,12 +24,12 @@ class RouteTest extends PHPUnit_Framework_TestCase
 
     public function testControllerIndex()
     {
-        $this->assertEquals('about', Test::run('/about'));
-        $this->assertEquals('about', Test::run('/about/'));
-        $this->assertEquals('about', Test::run('/about//'));
-        $this->assertEquals('about', Test::run('/about/index'));
-        $this->assertEquals('about', Test::run('/about/index/'));
-        $this->assertEquals('about', Test::run('/about/index//'));
+        $this->assertEquals('about', Test::run('/about'), 'testControllerIndex fails.');
+        $this->assertEquals('about', Test::run('/about/'), 'testControllerIndex fails.');
+        $this->assertEquals('about', Test::run('/about//'), 'testControllerIndex fails.');
+        $this->assertEquals('about', Test::run('/about/index'), 'testControllerIndex fails.');
+        $this->assertEquals('about', Test::run('/about/index/'), 'testControllerIndex fails.');
+        $this->assertEquals('about', Test::run('/about/index//'), 'testControllerIndex fails.');
     }
 
     public function testControllerFunction()

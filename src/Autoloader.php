@@ -66,8 +66,10 @@ class Autoloader
      */
     public static function resolve($method, $url)
     {
+        // ob_start();
         $Route = new Route($method, $url);
         include(Loader::APPPATH() . 'config/route.php');
+        // return ob_get_clean();
         return $Route->result();
     }
 

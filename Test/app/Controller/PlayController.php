@@ -14,7 +14,7 @@ class PlayController extends \Ilex\Base\Controller\Base
     public function resolve($Route)
     {
         $Route->get('/', function () {
-            echo('Come and play!');
+            return ('Come and play!');
         });
         $Route->get('/(num)', $this, 'view');
 
@@ -28,7 +28,7 @@ class PlayController extends \Ilex\Base\Controller\Base
         $Route->group('/no-back', function ($Route) {
             /** @var \Ilex\Core\Route $Route */
             $Route->get('/', function () {
-                echo('No back here...');
+                return ('No back here...');
             });
             /*
              * 404 should be handled manually here.
@@ -38,7 +38,7 @@ class PlayController extends \Ilex\Base\Controller\Base
         });
 
         $Route->get('(all)', function ($url) {
-            echo('Sorry but "' . substr($url, 1) . '" is not here. 404.');
+            return ('Sorry but "' . substr($url, 1) . '" is not here. 404.');
         });
     }
 
@@ -47,6 +47,6 @@ class PlayController extends \Ilex\Base\Controller\Base
      */
     public function view($id)
     {
-        echo('Play No.' . $id . '?');
+        return ('Play No.' . $id . '?');
     }
 }

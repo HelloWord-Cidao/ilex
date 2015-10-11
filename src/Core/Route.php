@@ -226,7 +226,6 @@ class Route
         } else {
             $params = [];
         }
-
         $controller = Loader::controller($handler); // eg. \AboutController
 
         if (method_exists($controller, $this->method . $function)) {
@@ -246,7 +245,13 @@ class Route
             // eg. $this->uris : []
             return FALSE;
         }
-
+        // var_dump('hello');
+        // var_dump($this->uri);
+        // var_dump($function);
+        // var_dump($params);
+        // var_dump($fn);
+        // var_dump('word');
+        // var_dump($params instanceof object);
         $this->end(call_user_func_array([$controller, $fn], $params));
         return TRUE;
     }

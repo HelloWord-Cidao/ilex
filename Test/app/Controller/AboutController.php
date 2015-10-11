@@ -15,7 +15,7 @@ class AboutController extends \Ilex\Base\Controller\Base
 
     public function index()
     {
-        echo('about');
+        return ('about');
     }
 
     /**
@@ -23,7 +23,7 @@ class AboutController extends \Ilex\Base\Controller\Base
      */
     public function join($group = 'tech')
     {
-        echo('Join ' . $group . '!');
+        return ('Join ' . $group . '!');
     }
 
     /**
@@ -32,6 +32,6 @@ class AboutController extends \Ilex\Base\Controller\Base
     public function postJoin($group = 'tech')
     {
         $this->load_model('sys/Input');
-        echo('Welcome to ' . $group . ', ' . $this->Input->post('name', 'Jack') . '!');
+        return ('Welcome to ' . $group . ', ' . $this->Input->post('name', 'Jack') . '!');
     }
 }
