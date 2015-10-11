@@ -1,78 +1,183 @@
 <?php
 
-
 namespace Ilex\Base\Model\sys;
 
 use Ilex\Base\Model\Base;
-use Ilex\Core;
-
+use Ilex\Lib\Container;
 
 /**
  * Class Session
+ * Encapsulation of session.
  * @package Ilex\Base\Model\sys
- *
- * @property string sid
- * @property string uid
- * @property string username
- * @property bool login
- *
- * @todo Should I remove this model?......
+ * 
+ * @property private boolean $booted
+ * @property private array   $fakeSession
+ * 
+ * @method public            __construct()
+ * @method public            boot()
+ * @method public            forget()
+ * @method protected         start()
+ * @method public    string  newSid()
+ * @method public            makeGuest()
+ * @method public            assign(array $vars)
+ * @method public    boolean has(string $key)
+ * @method public    mixed   __get(string $key)
+ * @method public    mixed   get(string|boolean $key = FALSE, mixed $default = FALSE)
+ * @method public    mixed   __set(string $key, mixed $value)
+ * @method public    mixed   let(string $key, mixed $value)
  */
 class Session extends Base
 {
-    const SID       = Core\Session::SID;
-    const UID       = Core\Session::UID;
-    const USERNAME  = Core\Session::USERNAME;
-    const LOGIN     = Core\Session::LOGIN;
+    const SID      = 'sid';
+    const UID      = 'uid';
+    const USERNAME = 'username';
+    const LOGIN    = 'login';
+
+    private $booted = FALSE;
+    private $fakeSession; // @todo: use \Ilex\Lib\Container
 
     public function __construct()
     {
-        Core\Session::boot();
+        $this->boot();
     }
 
-    protected function start()
+    /**
+     * @uses ENVIRONMENT
+     */
+    public function boot()
     {
-        Core\Session::start();
+        if (!$this->booted) {
+            $this->start();
+            $this->booted = TRUE;
+            if (ENVIRONMENT !== 'TEST') {
+                $this->fakeSession = &$_SESSION;
+            } else {
+                $this->fakeSession = [];
+            }
+            if (!$this->has($this->SID)) {
+                $this->newSid();
+            }
+            if (!$this->has($this->UID)) {
+                $this->makeGuest();
+            }
+        }
     }
 
+    /**
+     * Resets status.
+     * @uses ENVIRONMENT
+     */
     public function forget()
     {
-        Core\Session::forget();
+        if (ENVIRONMENT !== 'TEST') {
+            session_unset();
+            session_destroy();
+        }
+        $this->start();
+        $this->newSid();
+        $this->makeGuest();
     }
 
-    public function makeGuest()
+    /**
+     * @todo protected?
+     * Starts the session.
+     * @uses ENVIRONMENT, SYS_SESSNAME
+     */
+    protected function start()
     {
-        Core\Session::makeGuest();
+        if (ENVIRONMENT !== 'TEST') {
+            session_name(SYS_SESSNAME); // defined in \Ilex\Core\Constant
+            session_start();
+        }
     }
 
+    /**
+     * Generates new sid.
+     * @return string
+     */
     public function newSid()
     {
-        return Core\Session::newSid();
+        return $this->let($this->SID, sha1(uniqid() . mt_rand()));
     }
 
+    /**
+     * Sets guest status.
+     * @uses UID, USERNAME, LOGIN
+     */
+    public function makeGuest()
+    {
+        $this->let($this->UID, 0);
+        $this->let($this->USERNAME, 'Guest');
+        $this->let($this->LOGIN, FALSE);
+    }
+
+    /**
+     * Assigns $vars to $_SESSION or $fakeSession.
+     * @uses ENVIRONMENT
+     * @param array $vars
+     */
     public function assign($vars)
     {
-        Core\Session::assign($vars);
+        $tmp = array_merge($this->fakeSession, $vars);
+        if (ENVIRONMENT !== 'TEST') {
+            $_SESSION = $tmp;
+            $this->fakeSession = &$_SESSION;
+        } else {
+            $this->fakeSession = $tmp;
+        }
     }
 
+    /**
+     * Checks $key in $fakeSession.
+     * @param string $key
+     * @return boolean
+     */
     public function has($key)
     {
-        return Core\Session::has($key);
+        return isset($this->fakeSession[$key]);
     }
 
+    /**
+     * @param string $key
+     * @return mixed
+     */
     public function __get($key)
     {
         return $this->get($key);
     }
 
+    /**
+     * Gets value from $fakeSession.
+     * @param string|boolean $key
+     * @param mixed          $default
+     * @return $mixed
+     */
     public function get($key = FALSE, $default = FALSE)
     {
-        return Core\Session::get($key, $default);
+        return $key ?
+            (isset($this->fakeSession[$key]) ? $this->fakeSession[$key] : $default) :
+            $this->fakeSession;
     }
 
+    /**
+     * @param string $key
+     * @param mixed  $value
+     * @return mixed
+     */
     public function __set($key, $value)
     {
-        return Core\Session::let($key, $value);
+        return $this->let($key, $value);
+    }
+
+    /**
+     * Sets value into $fakeSession.
+     * @param string $key
+     * @param mixed  $value
+     * @return mixed
+     */
+    public function let($key, $value)
+    {
+        return $this->fakeSession[$key] = $value;
     }
 
 }

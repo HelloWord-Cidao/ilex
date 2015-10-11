@@ -1,8 +1,6 @@
 <?php
 
-
 use \Ilex\Test;
-
 
 class RouteTest extends PHPUnit_Framework_TestCase
 {
@@ -14,7 +12,7 @@ class RouteTest extends PHPUnit_Framework_TestCase
     public function testPost()
     {
         $this->assertEquals('Hello Guest Someone!', Test::run('/user/Someone', 'POST'), 'Post with default fails.');
-        $this->assertEquals('Hello Mr. Someone!', Test::run('/user/Someone', 'POST', array('title' => 'Mr.')), 'Post fails.');
+        $this->assertEquals('Hello Mr. Someone!', Test::run('/user/Someone', 'POST', ['title' => 'Mr.']), 'Post fails.');
     }
 
     public function testCallingController()
@@ -41,8 +39,9 @@ class RouteTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('Join whatever!', Test::run('/about/join/whatever'));
         $this->assertEquals('Join whatever!', Test::run('/about/join/whatever/'));
         $this->assertEquals('Join whatever!', Test::run('/about/join/whatever//'));
+        // the default 'GET' method will go wrong!
         $this->assertEquals('Welcome to whatever, Jack!', Test::run('/about/join/whatever/', 'POST'));
-        $this->assertEquals('Welcome to whatever, John!', Test::run('/about/join/whatever/', 'POST', array('name' => 'John')));
+        $this->assertEquals('Welcome to whatever, John!', Test::run('/about/join/whatever/', 'POST', ['name' => 'John']));
     }
 
     public function testControllerResolve()

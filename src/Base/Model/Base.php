@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Ilex\Base\Model;
-
 
 /**
  * Class Base

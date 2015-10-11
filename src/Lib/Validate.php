@@ -4,47 +4,61 @@ namespace Ilex\lib;
 
 /**
  * Class Validate
+ * A tool used to validate data efficiently.
  * @package Ilex\lib
+ * 
+ * @property public static array $patterns
+ *
+ * @method public static array|boolean  batch(array &$values, array $rulePackages)
+ * @method public static array|boolean  package(mixed &$value, array $rulePackage)
+ * @method public static boolean|string rule(mixed &$value, string $ruleName, array $rule, string|boolean $message = FALSE)
+ * 
+ * @method public static boolean        type(mixed &$value, array $rule)
+ * @method public static boolean        re(mixed $value, array $rule)
+ * More methods ignored.
+ * 
+ * @method public static boolean        is_int(mixed $value)
+ * @method public static boolean        is_float(mixed $value)
  */
 class Validate
 {
-    public static $patterns = array(
-        'alpha' => '/^[\pL\pM]+$/u',
+    public static $patterns = [
+        'alpha'     => '/^[\pL\pM]+$/u',
         'alpha_num' => '/^[\pL\pM\pN]+$/u',
-        'aA' => '/^[a-z]+$/i',
-        'aA0' => '/^[a-z0-9]+$/i',
-        'chinese' => '/^[\x{4e00}-\x{9fa5}]+$/u',
-        'captcha' => '/^[a-z0-9]{4}$/i',
-        'mobile' => '/^1[3-9][0-9]{9}$/',
-        'email' => '/([a-z0-9]*[-_\.]?[a-z0-9]+)*@([a-z0-9]*[-_]?[a-z0-9]+)+[\.][a-z]{2,3}([\.][a-z]{2})?/i',
-    );
+        'aA'        => '/^[a-z]+$/i',
+        'aA0'       => '/^[a-z0-9]+$/i',
+        'chinese'   => '/^[\x{4e00}-\x{9fa5}]+$/u',
+        'captcha'   => '/^[a-z0-9]{4}$/i',
+        'mobile'    => '/^1[3-9][0-9]{9}$/',
+        'email'     => '/([a-z0-9]*[-_\.]?[a-z0-9]+)*@([a-z0-9]*[-_]?[a-z0-9]+)+[\.][a-z]{2,3}([\.][a-z]{2})?/i',
+    ];
 
     /**
      * @param array $value
      * @param array $rulePackages
-     * @return mixed
+     * @return array|boolean
      */
     public static function batch(&$values, $rulePackages)
     {
-        $errors = array();
+        $errors = [];
         foreach ($rulePackages as $i => $rulePackage) {
             $name = isset($rulePackage['name']) ? $rulePackage['name'] : $i;
 
             /**
-             * @todo what 
+             * @todo: what?
              */
             if (!isset($values[$name])) {
                 if (isset($rulePackage['default'])) {
                     $values[$name] = $rulePackage['default'];
                 } else {
                     if (isset($rulePackage['require'])) {
-                        $errors[$name] = array($rulePackage['require']['message']);
+                        $errors[$name] = [$rulePackage['require']['message']];
                     }
                 }
                 continue;
             }
 
-            $results = static::package($values[$name], $rulePackage);
+            $results = self::package($values[$name], $rulePackage);
             if ($results !== TRUE) {
                 $errors[$name] = $results;
             }
@@ -55,23 +69,23 @@ class Validate
     /**
      * @param mixed $value
      * @param array $rulePackage
-     * @return mixed
+     * @return array|boolean
      */
     public static function package(&$value, $rulePackage)
     {
-        $errors = array();
+        $errors = [];
         foreach ($rulePackage as $ruleName => $rule) {
-            if (in_array($ruleName, array('name', 'require', 'default'))) { // ignore some reserved names
+            if (in_array($ruleName, ['name', 'require', 'default'])) { // ignore some reserved names
                 continue;
             } elseif ($ruleName === 'all') {
                 foreach ($value as $valueItem) {
-                    $result = static::package($valueItem, $rule);
+                    $result = self::package($valueItem, $rule);
                     if ($result !== TRUE) {
                         $errors += $result;
                     }
                 }
             } else {
-                $result = static::rule($value, $ruleName, $rule, $rule['message']);
+                $result = self::rule($value, $ruleName, $rule, $rule['message']);
                 if ($result !== TRUE) {
                     $errors[] = $result;
                 }
@@ -81,51 +95,15 @@ class Validate
     }
 
     /**
-     * @param mixed  $value
-     * @param string $ruleName
-     * @param array  $rule
-     * @param string $message
-     * @return mixed
+     * @param mixed          $value
+     * @param string         $ruleName
+     * @param array          $rule
+     * @param string|boolean $message
+     * @return boolean|string
      */
     public static function rule(&$value, $ruleName, $rule, $message = FALSE)
     {
-        return static::$ruleName($value, $rule) ? TRUE : $message; // amazing!
-    }
-
-    /*
-     * ----------------------- -----------------------
-     * Kit
-     * ----------------------- -----------------------
-     */
-
-    /**
-     * @param mixed $value
-     * @return boolean
-     */
-    public static function is_int($value)
-    {
-        if (is_int($value)) {
-            return TRUE;
-        } elseif (preg_match('@^\d+$@', $value) === 1) {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
-    }
-
-    /**
-     * @param mixed $value
-     * @return boolean
-     */
-    public static function is_float($value)
-    {
-        if (is_float($value) OR is_int($value)) {
-            return TRUE;
-        } elseif (preg_match('@^(\d+(\.\d*)?|\.\d+)$@', $value) === 1) {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
+        return self::$ruleName($value, $rule) ? TRUE : $message;
     }
 
     /*
@@ -136,20 +114,21 @@ class Validate
 
     /**
      * @param mixed $value
+     * @param array $rule
      * @return boolean
      */
     public static function type(&$value, $rule)
     {
         switch ($rule['type']) {
             case 'int':
-                if (static::is_int($value)) {
+                if (self::is_int($value)) {
                     $value = intval($value); // convert to int!
                     return TRUE;
                 } else {
                     return FALSE;
                 }
             case 'float':
-                if (static::is_float($value)) {
+                if (self::is_float($value)) {
                     $value = floatval($value); // convert to float!
                     return TRUE;
                 } else {
@@ -170,7 +149,7 @@ class Validate
     public static function re($value, $rule)
     {
         return preg_match(
-            isset($rule['pattern']) ? $rule['pattern'] : static::$patterns[$rule['type']],
+            isset($rule['pattern']) ? $rule['pattern'] : self::$patterns[$rule['type']],
             $value
         ) === 1;
     }
@@ -212,4 +191,39 @@ class Validate
     public static function mb_length_le($value, $rule) { return mb_strlen($value) <= $rule['value']; }
     public static function mb_length_eq($value, $rule) { return mb_strlen($value) === $rule['value']; }
 
+    /*
+     * ----------------------- -----------------------
+     * Kit
+     * ----------------------- -----------------------
+     */
+
+    /**
+     * @param mixed $value
+     * @return boolean
+     */
+    public static function is_int($value)
+    {
+        if (is_int($value)) {
+            return TRUE;
+        } elseif (preg_match('@^\d+$@', $value) === 1) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    }
+
+    /**
+     * @param mixed $value
+     * @return boolean
+     */
+    public static function is_float($value)
+    {
+        if (is_float($value) OR is_int($value)) {
+            return TRUE;
+        } elseif (preg_match('@^(\d+(\.\d*)?|\.\d+)$@', $value) === 1) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    }
 }

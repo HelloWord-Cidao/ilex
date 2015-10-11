@@ -1,16 +1,25 @@
 <?php
 
-
 namespace Ilex\Base;
 
 use Ilex\Core\Loader;
 
-
+/**
+ * Class Base
+ * @package Ilex\Base
+ * 
+ * @method protected object load_model()
+ */
 class Base
 {
+    /**
+     * @todo: what?
+     * Protected method that can be called by the controllers in APPPATH/Controller.
+     * @return object
+     */
     protected function load_model()
     {
-        $params = array();
+        $params = [];
         foreach (func_get_args() as $index => $n) {
             if ($index == 0) {
                 $path = $n;

@@ -1,10 +1,15 @@
 <?php
 
-
+/**
+ * Class PlayController
+ * 
+ * @method public resolve(\Ilex\Core\Route $Route)
+ * @method public view(string $id)
+ */
 class PlayController extends \Ilex\Base\Controller\Base
 {
     /**
-     * @param \Ilex\Route\Route $Route
+     * @param \Ilex\Core\Route $Route
      */
     public function resolve($Route)
     {
@@ -15,13 +20,13 @@ class PlayController extends \Ilex\Base\Controller\Base
 
         // Just a test for `group` inside a controller's `resolve`...
         $Route->group('/play', function ($Route) {
-            /** @var \Ilex\Route\Route $Route */
+            /** @var \Ilex\Core\Route $Route */
             $Route->get('/(num)', $this, 'view');
             $Route->back();
         });
 
         $Route->group('/no-back', function ($Route) {
-            /** @var \Ilex\Route\Route $Route */
+            /** @var \Ilex\Core\Route $Route */
             $Route->get('/', function () {
                 echo('No back here...');
             });
@@ -37,6 +42,9 @@ class PlayController extends \Ilex\Base\Controller\Base
         });
     }
 
+    /**
+     * @param string $id
+     */
     public function view($id)
     {
         echo('Play No.' . $id . '?');

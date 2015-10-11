@@ -1,6 +1,7 @@
 #sublime
 *.sublime-project
 *.sublime-workspace
+sftp-config.json
 
 # OS X
 .DS_Store
