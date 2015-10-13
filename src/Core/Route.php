@@ -2,6 +2,8 @@
 
 namespace Ilex\Core;
 
+use \Ilex\Core\Loader;
+
 /**
  * Class Route
  * The class in charge of routing requests.

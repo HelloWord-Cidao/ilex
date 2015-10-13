@@ -2,10 +2,11 @@
 
 namespace Ilex;
 
+use \Ilex\Autoloader;
 use \Ilex\Core\Loader;
 
 /**
- * Class Test
+ * Class Tester
  * @package Ilex
  * 
  * @property public static \Ilex\Base\Model\sys\Input $Input
@@ -13,7 +14,7 @@ use \Ilex\Core\Loader;
  * @method public static        boot($APPPATH, $RUNTIMEPATH)
  * @method public static string run($url = '/', $method = 'GET', $post = [], $get = [])
  */
-class Test
+class Tester
 {
     public static $Input;
     public static $Session;
