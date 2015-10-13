@@ -1,7 +1,15 @@
 <?php
 
+namespace Ilex\Test;
+
 use \Ilex\Lib\Validate;
 
+/**
+ * Class ValidateTest
+ * @package Ilex\Test
+ *
+ * @method public testValidate()
+ */
 class ValidateTest extends PHPUnit_Framework_TestCase
 {
     public function testValidate()

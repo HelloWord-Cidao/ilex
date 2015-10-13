@@ -1,5 +1,7 @@
 <?php
 
+namespace Ilex\Test\app\config;
+
 /**
  * The following code will be included by Autoloader::resolve()
  * Whenever $Route::end() is invoked, $Route->settled will be TRUE,

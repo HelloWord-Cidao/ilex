@@ -1,7 +1,10 @@
 <?php
 
+namespace Ilex\Test\app\Controller;
+
 /**
  * Class PlayController
+ * @package Ilex\Test\app\Controller
  * 
  * @method public resolve(\Ilex\Core\Route $Route)
  * @method public view(string $id)
