@@ -1,7 +1,10 @@
 <?php
 
+namespace Ilex\Test\app\Controller;
+
 /**
  * Class AboutController
+ * @package Ilex\Test\app\Controller
  *
  * @property \Ilex\Base\Model\sys\Input $Input
  * 

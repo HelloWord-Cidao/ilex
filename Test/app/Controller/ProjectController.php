@@ -1,7 +1,10 @@
 <?php
 
+namespace Ilex\Test\app\Controller;
+
 /**
  * Class ProjectController
+ * @package Ilex\Test\app\Controller
  *
  * @method public index()
  * @method public view(mixed $id)
