@@ -1,3 +1,3 @@
 <?php
 
-namespace Ilex\Test\app\config;
+namespace app\config;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Ilex\Test\app\Controller;
+namespace app\Controller;
 
 /**
  * Class AboutController
@@ -34,7 +34,7 @@ class AboutController extends \Ilex\Base\Controller\Base
      */
     public function postJoin($group = 'tech')
     {
-        $this->load_model('sys/Input');
+        $this->loadModel('sys/Input');
         return ('Welcome to ' . $group . ', ' . $this->Input->post('name', 'Jack') . '!');
     }
 }

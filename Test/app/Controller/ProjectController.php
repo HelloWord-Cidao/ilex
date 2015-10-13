@@ -1,6 +1,6 @@
 <?php
 
-namespace Ilex\Test\app\Controller;
+namespace app\Controller;
 
 /**
  * Class ProjectController

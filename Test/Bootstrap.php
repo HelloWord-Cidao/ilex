@@ -1,22 +1,23 @@
 <?php
 
-namespace Ilex\Test;
-
-use \Ilex\Tester;
-use \Ilex\RouteTest;
+// namespace Ilex\Test;
 
 require_once(__DIR__ . '/../vendor/autoload.php');
+
+use \Ilex\Tester;
 
 Tester::boot(__DIR__ . '/../Test/app', __DIR__ . '/../Test/runtime');
 
 include(__DIR__ . '/RouteTest.php');
 
+use \Ilex\Test\RouteTest;
+
 $RouteTest = new RouteTest();
-$RouteTest->testHelloWorld();
-$RouteTest->testPost();
+// $RouteTest->testHelloWorld();
+// $RouteTest->testPost();
 $RouteTest->testCallingController();
-$RouteTest->testControllerIndex();
-$RouteTest->testControllerFunction();
-$RouteTest->testControllerResolve();
-$RouteTest->testGroup();
-var_dump('OK');
+// $RouteTest->testControllerIndex();
+// $RouteTest->testControllerFunction();
+// $RouteTest->testControllerResolve();
+// $RouteTest->testGroup();
+echo 'OK';
