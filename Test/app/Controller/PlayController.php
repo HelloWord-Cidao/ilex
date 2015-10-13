@@ -4,7 +4,7 @@ namespace app\Controller;
 
 /**
  * Class PlayController
- * @package Ilex\Test\app\Controller
+ * @package app\Controller
  * 
  * @method public resolve(\Ilex\Core\Route $Route)
  * @method public view(string $id)

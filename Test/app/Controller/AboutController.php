@@ -4,7 +4,7 @@ namespace app\Controller;
 
 /**
  * Class AboutController
- * @package Ilex\Test\app\Controller
+ * @package app\Controller
  *
  * @property \Ilex\Base\Model\sys\Input $Input
  * 

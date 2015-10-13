@@ -2,6 +2,7 @@
 
 namespace Ilex\Test;
 
+use PHPUnit_Framework_TestCase;
 use \Ilex\Lib\Validate;
 
 /**

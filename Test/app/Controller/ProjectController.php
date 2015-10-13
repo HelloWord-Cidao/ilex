@@ -4,7 +4,7 @@ namespace app\Controller;
 
 /**
  * Class ProjectController
- * @package Ilex\Test\app\Controller
+ * @package app\Controller
  *
  * @method public index()
  * @method public view(mixed $id)

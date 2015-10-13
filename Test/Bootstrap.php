@@ -1,6 +1,6 @@
 <?php
 
-// namespace Ilex\Test;
+namespace Ilex\Test;
 
 require_once(__DIR__ . '/../vendor/autoload.php');
 
