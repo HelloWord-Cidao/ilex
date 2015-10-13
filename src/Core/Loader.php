@@ -3,6 +3,7 @@
 namespace Ilex\Core;
 
 use ReflectionClass;
+// use \Ilex\Lib\Kit;
 
 /**
  * Class Loader
@@ -200,12 +201,12 @@ class Loader
         foreach ([
             'app' => [
                 'path' => self::get('APPPATH') . $type . '/' . $path . $type . '.php',
-                'name' => self::getHandlerFromPath($path) . $type
+                'name' => 'app\\' . $type . '\\' . $path . $type
             ],
             'ilex' => [
                 'path' => self::get('ILEXPATH') . 'Base/' . $type . '/' . $path . '.php',
                 // @todo: Be sure that it is definitely Model? No suffix: $type?
-                'name' => '\\Ilex\\Base\\Model\\' . str_replace('/', '\\', $path)
+                'name' => '\\Ilex\\Base\\' . $type . '\\' . str_replace('/', '\\', $path)
             ]
         ] as $item) {
             if (file_exists($item['path'])) {

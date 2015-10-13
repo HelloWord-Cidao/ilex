@@ -1,11 +1,11 @@
 <?php
 
-namespace Ilex\lib;
+namespace Ilex\Lib;
 
 /**
  * Class Validate
  * A tool used to validate data efficiently.
- * @package Ilex\lib
+ * @package Ilex\Lib
  * 
  * @property public static array $patterns
  *

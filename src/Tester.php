@@ -4,6 +4,7 @@ namespace Ilex;
 
 use \Ilex\Autoloader;
 use \Ilex\Core\Loader;
+use \Ilex\Lib\Kit;
 
 /**
  * Class Tester
@@ -12,7 +13,7 @@ use \Ilex\Core\Loader;
  * @property public static \Ilex\Base\Model\sys\Input $Input
  * 
  * @method public static        boot($APPPATH, $RUNTIMEPATH)
- * @method public static string run($url = '/', $method = 'GET', $post = [], $get = [])
+ * @method public static string run($url = '/', $method = 'GET', $postData = [], $getData = [])
  */
 class Tester
 {
@@ -34,13 +35,20 @@ class Tester
     /**
      * @param string $url
      * @param string $method
-     * @param array  $post
-     * @param array  $get
+     * @param array  $postData
+     * @param array  $getData
      * @return string
      */
-    public static function run($url = '/', $method = 'GET', $post = [], $get = [])
+    public static function run($url = '/', $method = 'GET', $postData = [], $getData = [])
     {
-        self::$Input->clear()->merge('post', $post)->merge('get', $get);
+        Kit::log([__METHOD__, [
+            'url'      => $url,
+            'method'   => $method,
+            'postData' => $postData,
+            'getData'  => $getData
+        ]]);
+        self::$Input->clear()->merge('post', $postData)->merge('get', $getData);
+        Kit::log([__METHOD__, ['self::$Input' => self::$Input]]);
         $_SERVER['REQUEST_URI'] =  ENV_HOST . '/' . $url;
         return Autoloader::resolve($method, $url);
     }

@@ -2,7 +2,7 @@
 
 namespace Ilex\Base\Model\db;
 
-use Ilex\Core\Loader;
+use \Ilex\Core\Loader;
 
 /**
  * Class Base
@@ -70,5 +70,4 @@ class Base extends \Ilex\Base\Model\Base
             return $id;
         }
     }
-
 }

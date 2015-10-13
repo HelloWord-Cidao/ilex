@@ -2,6 +2,8 @@
 
 namespace Ilex\Lib;
 
+use \Ilex\Lib\Kit;
+
 /**
  * Class Container
  * Implementation of an abstract container.
@@ -10,6 +12,7 @@ namespace Ilex\Lib;
  * @property private array $data
  * 
  * @method public         __construct(array $data)
+ * @method public string  __toString()
  * @method public boolean has()
  * @method public mixed   __get(mixed $key)
  * @method public mixed   get(mixed $key, mixed $default)
@@ -28,6 +31,14 @@ class Container
     public function __construct($data)
     {
         $this->assign($data);
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return Kit::toString($this->data);
     }
 
     /**

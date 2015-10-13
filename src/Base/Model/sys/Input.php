@@ -2,8 +2,9 @@
 
 namespace Ilex\Base\Model\sys;
 
-use Ilex\Base\Model\Base;
-use Ilex\Lib\Container;
+use \Ilex\Base\Model\Base;
+use \Ilex\Lib\Container;
+use \Ilex\Lib\Kit;
 
 /**
  * Class Input
@@ -14,6 +15,7 @@ use Ilex\Lib\Container;
  * @property private \Ilex\Lib\Container $post
  * 
  * @method public                            __construct()
+ * @method public string                     __toString()
  * @method public \Ilex\Base\Model\sys\Input merge(string $name, array $data = [])
  * @method public \Ilex\Base\Model\sys\Input clear(string $name = '')
  * @method public mixed                      get(string $key = NULL, mixed $default = NULL)
@@ -32,6 +34,17 @@ class Input extends Base
     {
         $this->get = new Container($_GET);
         $this->post = new Container($_POST);
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return Kit::toString([
+            'get'  => $this->get,
+            'post' => $this->post
+        ]);
     }
 
     /**

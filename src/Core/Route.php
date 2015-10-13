@@ -3,14 +3,15 @@
 namespace Ilex\Core;
 
 use \Ilex\Core\Loader;
+use \Ilex\Lib\Kit;
 
 /**
  * Class Route
  * The class in charge of routing requests.
  * @package Ilex\Core
  * 
- * @property private         $method
- * @property private         $uri
+ * @property private string  $method
+ * @property private string  $uri
  * @property private array   $uris
  * @property private array   $params
  * @property private boolean $settled
@@ -18,10 +19,11 @@ use \Ilex\Core\Loader;
  * @property private         $result
  * 
  * @method public               __construct(string $method, string $uri)
- * @method public  boolean      __call(string $name, array $arguments)
- * @method public  mixed        result()
+ * @method public  string       __string()
+ * @method public               __call(string $name, array $arguments)
  * @method public               controller(string $description, string $handler)
  * @method public               group(string $description, callable $handler)
+ * @method public  mixed        result()
  * @method public  boolean      back()
  * @method private boolean      fitGeneral(string $description, mixed $handler, string $function = NULL)
  * @method private string       getPattern(string $description)
@@ -63,17 +65,77 @@ class Route
     }
 
     /**
+     * @return string
+     */
+    public function __toString()
+    {
+        $result  = PHP_EOL . '\Route {' . PHP_EOL;
+        $result .= "\tsettled   : " . Kit::toString($this->settled)   . PHP_EOL;
+        $result .= "\tcancelled : " . Kit::toString($this->cancelled) . PHP_EOL;
+        $result .= "\tmethod    : " . Kit::toString($this->method)    . PHP_EOL;
+        $result .= "\turi       : " . Kit::toString($this->uri)       . PHP_EOL;
+        $result .= "\turis      : " . Kit::toString($this->uris)      . PHP_EOL;
+        $result .= "\tparams    : " . Kit::toString($this->params)    . PHP_EOL;
+        $result .= "\tresult    : " . Kit::toString($this->result)    . PHP_EOL;
+        $result .= '}';
+        return $result;
+    }
+
+    /**
      * Checks the method and then calls self::fitGeneral().
      * @param string $name      eg. 'get' | 'post' | 'any' ?
      * @param array  $arguments eg. ['/project/(num)', 'Project', 'view']
-     * @return boolean
      */
     public function __call($name, $arguments)
     {
-        if (!$this->settled AND (strtoupper($name) === $this->method OR $name === 'any')) {
-            return call_user_func_array([$this, 'fitGeneral'], $arguments);
-        } else {
-            return FALSE;
+        if (!$this->settled
+            AND (strtoupper($name) === strtoupper($this->method)
+                OR strtoupper($name) === 'ANY')) {
+            Kit::log([__METHOD__, [
+                'settled' => $this->settled,
+                'method'  => $this->method,
+                'name'    => $name,
+                'args'    => $arguments
+            ]]);
+            Kit::log([__METHOD__, 'call fitGeneral'], FALSE);
+            call_user_func_array([$this, 'fitGeneral'], $arguments);
+        }
+    }
+
+    /**
+     * Try to fit controller route.
+     * @param string $description eg. '/about'
+     * @param string $handler     eg. 'About'
+     */
+    public function controller($description, $handler)
+    {
+        if (!$this->settled) {
+            Kit::log([__METHOD__, [
+                'settled' => $this->settled,
+                'desc'    => $description,
+                'handler' => $handler
+            ]]);
+            Kit::log([__METHOD__, 'call fitController'], FALSE);
+            $this->fitController($description, $handler);
+        }
+    }
+
+    /**
+     * Try to fit group route.
+     * @todo Group routes should implemented in order!!!
+     * @param string   $description eg. '/whatever'
+     * @param callable $handler     eg. an anonymous function usually with an argument: $Route
+     */
+    public function group($description, $handler)
+    {
+        if (!$this->settled) {
+            Kit::log([__METHOD__, [
+                'settled' => $this->settled,
+                'desc'    => $description,
+                'handler' => $handler
+            ]]);
+            Kit::log([__METHOD__, 'call fitGroup'], FALSE);
+            $this->fitGroup($description, $handler);
         }
     }
 
@@ -87,42 +149,20 @@ class Route
     }
 
     /**
-     * Try to fit controller route.
-     * @param string $description eg. '/about'
-     * @param string $handler     eg. 'About'
-     */
-    public function controller($description, $handler)
-    {
-        if (!$this->settled) {
-            $this->fitController($description, $handler);
-        }
-    }
-
-    /**
-     * Try to fit group route.
-     * @todo Group routes should implemented in order!!!
-     * @param string   $description eg. '/whatever'
-     * @param callable $handler     eg. an anonymous function($Route)
-     */
-    public function group($description, $handler)
-    {
-        if (!$this->settled) {
-            $this->fitGroup($description, $handler);
-        }
-    }
-
-    /**
      * @todo what?
      * Cancels something?
      * @return boolean
      */
     public function back()
     {
+        Kit::log([__METHOD__]);
         if ($this->settled) {
+            Kit::log([__METHOD__, 'return FALSE'], FALSE);
             return FALSE;
         } else {
             $this->pop();
             $this->cancelled = TRUE;
+            Kit::log([__METHOD__, 'pop()', 'cancelled = TRUE', 'return TRUE'], FALSE);
             return TRUE;
         }
     }
@@ -142,18 +182,30 @@ class Route
     {
         /**
          * eg. $description  : '/project/(num)' => '/project/([0-9]+?)'
-         * eg. $this->uri    : 'http://www.test.com/project/12' or '/project/12'?
-         * eg. $this->params : []
-         * eg. $matches      : ['/project/12', '12']
+         *     $this->uri    : 'http://www.test.com/project/12' or '/project/12'?
+         *     $this->params : []
+         *     $matches      : ['/project/12', '12']
          */
+        Kit::log([__METHOD__, [
+            'desc'    => $description,
+            'handler' => $handler,
+            'func'    => $function
+        ]]);
+        Kit::log([__METHOD__, ['this' => $this]]);
         if (preg_match(self::getPattern($description), $this->uri, $matches)) {
             unset($matches[0]);
-            // This will update $this->params.
-            $this->merge($matches);
+            $this->merge($matches); // $this->params updated
+            Kit::log([__METHOD__, 'after merge', ['params' => $this->params]]);
             // eg. $this->params : ['12']
             
             if (is_string($handler) OR !($handler instanceof \Closure)) {
-            // $handler is a string or is NOT an anonymous function(that is, an instance)
+            // $handler is a string or is NOT an anonymous function, i.e., an instance
+                Kit::log([__METHOD__, '$handler is a string or is NOT an anonymous function, i.e., an instance'], FALSE);
+                Kit::log([__METHOD__, 'call end', [
+                    'handler'  => is_string($handler) ? Loader::controller($handler) : $handler,
+                    'function' => is_null($function) ? 'index' : $function,
+                    'params'   => $this->params
+                ]]);
                 $this->end(
                     call_user_func_array([
                         is_string($handler) ? Loader::controller($handler) : $handler,
@@ -162,13 +214,20 @@ class Route
                 );
             } elseif (is_callable($handler)) {
             // $handler is an anonymous function
+                Kit::log([__METHOD__, '$handler is an anonymous function'], FALSE);
+                Kit::log([__METHOD__, 'call end', [
+                    'handler' => $handler,
+                    'params'  => $this->params
+                ]]);
                 $this->end(
                     call_user_func_array($handler, $this->params)
                 );
             }
+            Kit::log([__METHOD__, 'return TRUE'], FALSE);
             return TRUE;
         } else {
             // CAN NOT FIT!
+            Kit::log([__METHOD__, 'return FALSE', 'CAN NOT FIT!'], FALSE);
             return FALSE;
         }
     }
@@ -211,9 +270,9 @@ class Route
     {
         /**
          * eg. $this->uri    : '/about/join/whatever'
-         * eg. $description  : '/about' 
-         * eg. $handler      : 'About' 
-         * eg. $this->method : 'POST' 
+         *     $description  : '/about' 
+         *     $handler      : 'About' 
+         *     $this->method : 'POST' 
          */
         if (!$this->getRestURI($description)) {
         // $description is NOT a prefix of $this->uri, CAN NOT FIT!
@@ -231,7 +290,8 @@ class Route
         $controller = Loader::controller($handler); // eg. \AboutController
 
         if (method_exists($controller, $this->method . $function)) {
-            // eg. AboutController::POSTjoin(). Should strtolower()?
+            // eg. AboutController::POSTjoin().
+            // @todo: Should strtolower()?
             $fn = $this->method . $function; // eg. 'POSTjoin'
         } elseif (method_exists($controller, $function)) {
             // eg. AboutController::join()
@@ -304,16 +364,16 @@ class Route
     /**
      * @todo what?
      * @param string   $description eg. '/about' 
-     * @param callable $handler     eg. an anonymous function($Route) 
+     * @param callable $handler     eg. an anonymous function usually with an argument: $Route 
      * @return boolean
      */
     private function fitGroup($description, $handler)
     {
         /**
          * eg. $this->uri    : '/about/join/whatever'
-         * eg. $description  : '/about' 
-         * eg. $handler      : 'About' 
-         * eg. $this->method : 'POST' 
+         *     $description  : '/about' 
+         *     $handler      : 'About' 
+         *     $this->method : 'POST' 
          */
         if (!$this->getRestURI($description)) {
         // $description is NOT a prefix of $this->uri, CAN NOT FIT!
@@ -332,7 +392,7 @@ class Route
      * and extracts the rest uri from $this->uri,
      * and updates it and returns TRUE,
      * else returns FALSE.
-     * '/about'
+     * '/about/join/whatever' => '/join/whatever'
      * @param string $description eg. '/about'
      * @return boolean
      */
@@ -361,12 +421,14 @@ class Route
      */
     private function end($result)
     {
+        Kit::log([__METHOD__, ['result' => $result]]);
         if ($this->cancelled) {
             $this->cancelled = FALSE;
         } else {
             $this->settled = TRUE;
             $this->result = $result;
         }
+        Kit::log([__METHOD__, ['this' => $this]]);
     }
 
     private function pop()
@@ -375,5 +437,4 @@ class Route
         // the first of two places where $this->uris is updated
         $this->uri = array_pop($this->uris);
     }
-
 }

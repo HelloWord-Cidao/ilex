@@ -2,9 +2,10 @@
 
 namespace Ilex;
 
-use Ilex\Core\Constant;
-use Ilex\Core\Loader;
-use Ilex\Core\Route;
+use \Ilex\Core\Constant;
+use \Ilex\Core\Loader;
+use \Ilex\Core\Route;
+use \Ilex\Lib\Kit;
 
 /**
  * Class Autoloader
@@ -66,9 +67,14 @@ class Autoloader
      */
     public static function resolve($method, $url)
     {
+        Kit::log([__METHOD__, [
+            'method' => $method,
+            'url'    => $url
+        ]]);
         // ob_start();
         $Route = new Route($method, $url);
         include(Loader::APPPATH() . 'config/route.php');
+        Kit::log([__METHOD__, ['$Route' => $Route]]);
         // return ob_get_clean();
         return $Route->result();
     }

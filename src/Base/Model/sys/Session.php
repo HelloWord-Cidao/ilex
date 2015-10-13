@@ -2,8 +2,9 @@
 
 namespace Ilex\Base\Model\sys;
 
-use Ilex\Base\Model\Base;
-use Ilex\Lib\Container;
+use \Ilex\Base\Model\Base;
+use \Ilex\Lib\Container;
+use \Ilex\Lib\Kit;
 
 /**
  * Class Session
@@ -14,6 +15,7 @@ use Ilex\Lib\Container;
  * @property private array   $fakeSession
  * 
  * @method public            __construct()
+ * @method public    string  __toString()
  * @method public            boot()
  * @method public            forget()
  * @method protected         start()
@@ -39,6 +41,17 @@ class Session extends Base
     public function __construct()
     {
         $this->boot();
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return Kit::toString([
+            'booted'      => $this->booted,
+            'fakeSession' => $this->fakeSession
+        ]);
     }
 
     /**
@@ -179,5 +192,4 @@ class Session extends Base
     {
         return $this->fakeSession[$key] = $value;
     }
-
 }
