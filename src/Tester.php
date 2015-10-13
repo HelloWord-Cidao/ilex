@@ -26,7 +26,6 @@ class Tester
      */
     public static function boot($APPPATH, $RUNTIMEPATH)
     {
-        define('ENVIRONMENT', 'TEST');
         Autoloader::initialize($APPPATH, $RUNTIMEPATH);
         self::$Input   = Loader::model('sys/Input');
         self::$Session = Loader::model('sys/Session');

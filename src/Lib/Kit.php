@@ -105,7 +105,8 @@ class Kit
         }
             
         else if ($data instanceof \Closure) return '\Closure';
-        else if (is_object($data) AND !method_exists($data, '__toString')) return '\Object';
+        else if (is_object($data) AND !method_exists($data, '__toString'))
+            return '\Object' . '(' . get_class($data) . ')';
         else if (is_bool($data)) return $data ? 'TRUE' : 'FALSE';
         else if (is_null($data)) return 'NULL';
         else if (is_string($data)) return $quotationMarks ? ('\'' . $data . '\'') : $data;

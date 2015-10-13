@@ -206,6 +206,7 @@ class Route
                     'function' => is_null($function) ? 'index' : $function,
                     'params'   => $this->params
                 ]]);
+                // @todo: definitely Loader::controller()? not Loader::model()?
                 $this->end(
                     call_user_func_array([
                         is_string($handler) ? Loader::controller($handler) : $handler,
@@ -289,6 +290,7 @@ class Route
         }
         $controller = Loader::controller($handler); // eg. \AboutController
 
+        // @todo: possibly conflict!?
         if (method_exists($controller, $this->method . $function)) {
             // eg. AboutController::POSTjoin().
             // @todo: Should strtolower()?
