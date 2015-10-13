@@ -24,7 +24,7 @@ $Route->post('/user/(any)', function ($name) {
      * Model 'sys/Input' has already been loaded in \Ilex\Tester::boot(),
      * and been updated in \Ilex\Tester::run(),
      * with the POST and data given by \Ilex\Test\RouteTest,
-     * because the data and methods of \Ilex\Core\Loader are all static,
+     * because the properties and methods of \Ilex\Core\Loader are all static,
      * and it is ensured that for each model only one entity is loaded.
      * Thus, the following assignment of $Input will not reload the model,
      * but just take out the loaded model from \Ilex\Core\Loader::container,
