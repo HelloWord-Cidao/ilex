@@ -186,7 +186,7 @@ class Router
             'handler'  => $handler,
             'function' => $function
         ]]);
-        // Kit::log([__METHOD__, ['this' => $this]]);
+        Kit::log([__METHOD__, ['this' => $this]]);
         /**
          * eg. $description  : '/project/(num)' => '/project/([0-9]+?)'
          *     $this->uri    : 'http://www.test.com/project/12' or '/project/12'?
@@ -326,6 +326,7 @@ class Router
             'params'   => $params
         ]]);
         $this->end(call_user_func_array([$controller, $fn], $params));
+        Kit::log([__METHOD__, 'CAN FIT!'], FALSE);
         return TRUE;
     }
 
@@ -374,7 +375,10 @@ class Router
      * If $description IS a prefix of $this->uri, then pushes $this->uri into $this->uris,
      * and extracts the rest uri from $this->uri, and updates it and returns TRUE,
      * else returns FALSE.
-     * '/about/join/whatever' => '/join/whatever'
+     * If $description is same as $this->uri, then '/' will be returned.
+     * eg. $description : '/about'
+     *     $this->uri   : '/about/join/whatever' => '/join/whatever'
+     *     $this->uri   : '/about' => '/'
      * @param string $description eg. '/about'
      * @return boolean
      */
@@ -389,7 +393,6 @@ class Router
             // The first of two places where $this->uris is updated.
             $this->uris[] = $this->uri;
             // The second of three places where $this->uri is assigned.
-            // Extracts the rest uri, eg. '/join/whatever'.
             $this->uri = (
                 ($uri = substr($this->uri, $length)) === FALSE ? '/' : $uri
             );
