@@ -65,7 +65,6 @@ class Kit
      */
     public static function log($data, $quotationMarks = TRUE, $env = 'TEST')
     {
-        // print_r($data); echo PHP_EOL;
         if (ENVIRONMENT === $env) {
             $result = '';
             if (is_array($data)) {
@@ -89,19 +88,14 @@ class Kit
      */
     public static function toString($data, $quotationMarks = TRUE)
     {
-        // print_r($data); echo PHP_EOL . gettype($data) . PHP_EOL;
         if (is_array($data)) {
             array_walk(
                 $data,
                 function(&$datum, $index, $quotationMarks) {
                     $datum = self::toString($datum, $quotationMarks);
-                    // echo $index . ' ' . $datum . PHP_EOL;
                 },
                 $quotationMarks
             );
-            // echo 'array_walk : ' . PHP_EOL;
-            // print_r($data);
-            // echo 'done.' . PHP_EOL;
         }
         if (self::isList($data)) {
             if (count($data) === 0) return '[]';

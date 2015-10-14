@@ -11,7 +11,7 @@ use \Ilex\Lib\Container;
  * The class in charge of loading app interblocks.
  * @package Ilex\Core
  * 
- * @property private static array $container
+ * @property private static \Ilex\Lib\Container $container
  * 
  * @method public  static                initialize(string $ILEXPATH, string $APPPATH, string $RUNTIMEPATH)
  * @method public  static string         ILEXPATH()
@@ -34,10 +34,8 @@ use \Ilex\Lib\Container;
  */
 class Loader
 {
-    /**
-     * structure: type('Controller'|'Model') => path(eg. 'sys/Input') => class object
-     */
-    private static $container = new Container();
+    // Structure: type('Controller'|'Model') => path(eg. 'sys/Input') => class object
+    private static $container;
 
     /**
      * @param string $ILEXPATH
@@ -46,6 +44,7 @@ class Loader
      */
     public static function initialize($ILEXPATH, $APPPATH, $RUNTIMEPATH)
     {
+        self::$container = new Container();
         self::set('ILEXPATH',    $ILEXPATH);
         self::set('APPPATH',     $APPPATH);
         self::set('RUNTIMEPATH', $RUNTIMEPATH);
@@ -172,7 +171,7 @@ class Loader
         // If $type is not 'Controller' or 'Model', it will throw an exception.
         $typeEntities = self::get($type);
         if ($typeEntities->has($path)) {
-            return $typeEntities->get($path;
+            return $typeEntities->get($path);
         } else {
             $className = self::load($path, $type);
             if ($className === FALSE) {

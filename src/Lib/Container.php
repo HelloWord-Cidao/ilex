@@ -15,7 +15,7 @@ use \Ilex\Lib\Kit;
  * @method public string              __toString()
  * @method public boolean             has()
  * @method public mixed               __get(mixed $key)
- * @method public mixed               get(mixed $key, mixed $default)
+ * @method public mixed               get(mixed $key, mixed $default = NULL)
  * @method public mixed               __set(mixed $key, mixed $value)
  * @method public mixed               set(mixed $key, mixed $value)
  * @method public \Ilex\Lib\Container merge(array $data)
@@ -68,7 +68,7 @@ class Container
      * @param mixed $default
      * @return mixed
      */
-    public function get($key, $default)
+    public function get($key, $default = NULL)
     {
         return is_null($key) ?
             $this->data :

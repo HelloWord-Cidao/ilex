@@ -122,14 +122,14 @@ class Validate
         switch ($rule['type']) {
             case 'int':
                 if (self::is_int($value)) {
-                    $value = intval($value); // convert to int!
+                    $value = intval($value); // Convert to int!
                     return TRUE;
                 } else {
                     return FALSE;
                 }
             case 'float':
                 if (self::is_float($value)) {
-                    $value = floatval($value); // convert to float!
+                    $value = floatval($value); // Convert to float!
                     return TRUE;
                 } else {
                     return FALSE;

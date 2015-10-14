@@ -36,10 +36,10 @@ $Router->post('/user/(any)', function ($name) {
 });
 
 Kit::log('#3 get /projects');
-$Router->get('/projects', 'Project'); // invoke ProjectController::index()
+$Router->get('/projects', 'Project'); // This will invoke ProjectController::index().
 
 Kit::log('#4 get /project/(num)');
-$Router->get('/project/(num)', 'Project', 'view'); // invoke ProjectController::view(num)
+$Router->get('/project/(num)', 'Project', 'view'); // This will invoke ProjectController::view(num).
 
 Kit::log('#5 group /planet');
 $Router->group('/planet', function ($Router) {

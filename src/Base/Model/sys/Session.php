@@ -187,7 +187,7 @@ class Session extends Base
     private function start()
     {
         if (ENVIRONMENT !== 'TEST') {
-            session_name(SYS_SESSNAME); // defined in \Ilex\Core\Constant
+            session_name(SYS_SESSNAME); // Defined in \Ilex\Core\Constant.
             session_start();
         }
     }

@@ -28,7 +28,7 @@ class Tester
     public static function boot($APPPATH, $RUNTIMEPATH)
     {
         Autoloader::initialize($APPPATH, $RUNTIMEPATH);
-        // now Loader has been initialized by Autoloader::initialize()
+        // Now Loader has been initialized by Autoloader::initialize().
         self::$Input   = Loader::model('sys/Input');
         self::$Session = Loader::model('sys/Session');
     }

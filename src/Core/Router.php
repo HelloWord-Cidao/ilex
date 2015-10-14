@@ -58,9 +58,9 @@ class Router
      */
     public function __construct($method, $uri)
     {
-        // the only place where $method is assigned
+        // The only place where $method is assigned.
         $this->method = $method;
-        // the first of three places where $this->uri is assigned
+        // The first of three places where $this->uri is assigned.
         $this->uri    = $uri;
     }
 
@@ -191,16 +191,16 @@ class Router
             'handler' => $handler,
             'func'    => $function
         ]]);
-        Kit::log([__METHOD__, ['this' => $this]]);
+        // Kit::log([__METHOD__, ['this' => $this]]);
         if (preg_match(self::getPattern($description), $this->uri, $matches)) {
             unset($matches[0]);
-            $this->merge($matches); // $this->params updated
+            $this->merge($matches); // $this->params updated.
             Kit::log([__METHOD__, 'after merge', ['params' => $this->params]]);
             // eg. $this->params : ['12']
             
             if (is_string($handler) OR !($handler instanceof \Closure)) {
-            // $handler is a string or is NOT an anonymous function, i.e., an instance
-                Kit::log([__METHOD__, '$handler is a string or is NOT an anonymous function, i.e., an instance'], FALSE);
+            // $handler is a string or is NOT an anonymous function, i.e., an instance.
+                Kit::log([__METHOD__, '$handler is a string or is NOT an anonymous function, i.e., an instance.'], FALSE);
                 Kit::log([__METHOD__, 'call end', [
                     'handler'  => is_string($handler) ? Loader::controller($handler) : $handler,
                     'function' => is_null($function) ? 'index' : $function,
@@ -210,12 +210,12 @@ class Router
                 $this->end(
                     call_user_func_array([
                         is_string($handler) ? Loader::controller($handler) : $handler,
-                        is_null($function) ? 'index' : $function // default: `index` method!
+                        is_null($function) ? 'index' : $function // The default function is method 'index' of the handler.
                     ], $this->params)
                 );
             } elseif (is_callable($handler)) {
-            // $handler is an anonymous function
-                Kit::log([__METHOD__, '$handler is an anonymous function'], FALSE);
+            // $handler is an anonymous function.
+                Kit::log([__METHOD__, '$handler is an anonymous function.'], FALSE);
                 Kit::log([__METHOD__, 'call end', [
                     'handler' => $handler,
                     'params'  => $this->params
@@ -254,7 +254,7 @@ class Router
      */
     private function merge($vars)
     {
-        // the only place where $this->params is updated
+        // The only place where $this->params is updated.
         $this->params = array_merge($this->params, $vars);
     }
 
@@ -279,43 +279,38 @@ class Router
         // $description is NOT a prefix of $this->uri, CAN NOT FIT!
             return FALSE;
         }
-        // eg. $this->uri  : '/join/whatever'
-        // eg. $this->uris : ['/about/join/whatever']
-        $function = self::getFunction($this->uri); // eg. ['join', ['whatever']]
+
+        $function = self::getFunction($this->uri);
+        /**
+         * eg. $this->uri  : '/join/whatever'
+         *     $this->uris : ['/about/join/whatever']
+         *     $function   : ['join', ['whatever']], then 'join'
+         *     $params     : ['whatever']
+         */
         if (is_array($function)) {
-            $function = $function[0]; // eg. 'join'
-            $params = $function[1];   // eg. ['whatever']
+            $function = $function[0];
+            $params = $function[1];
         } else {
             $params = [];
         }
         $controller = Loader::controller($handler); // eg. \AboutController
 
         // @todo: possibly conflict!?
-        if (method_exists($controller, $this->method . $function)) {
-            // eg. AboutController::POSTjoin().
+        if (method_exists($controller, $this->method . $function)) { // eg. AboutController::POSTjoin().
             // @todo: Should strtolower()?
             $fn = $this->method . $function; // eg. 'POSTjoin'
-        } elseif (method_exists($controller, $function)) {
-            // eg. AboutController::join()
+        } elseif (method_exists($controller, $function)) { // eg. AboutController::join()
             $fn = $function; // eg. 'join'
-        } elseif (method_exists($controller, 'resolve')) {
-            // eg. AboutController::resolve()
+        } elseif (method_exists($controller, 'resolve')) { // eg. AboutController::resolve()
             $fn = 'resolve';
             $params = [$this];
         } else {
             // CAN NOT FIT! Rollback!
             $this->pop();
             // eg. $this->uri  : '/about/join/whatever'
-            // eg. $this->uris : []
+            //     $this->uris : []
             return FALSE;
         }
-        // var_dump('hello');
-        // var_dump($this->uri);
-        // var_dump($function);
-        // var_dump($params);
-        // var_dump($fn);
-        // var_dump('word');
-        // var_dump($params instanceof object);
         $this->end(call_user_func_array([$controller, $fn], $params));
         return TRUE;
     }
@@ -327,9 +322,12 @@ class Router
      */
     private function getFunction($uri)
     {
-        // Search for the first '/' in $uri.
-        // eg. '/user/page/12'
-        $index = strpos($uri, '/'); // eg. 0
+        /**
+         * Search for the first '/' in $uri.
+         * eg. $uri   : '/user/page/12'
+         *     $index : 0
+         */
+        $index = strpos($uri, '/');
         if ($index === 0) {
         // $uri begins with '/'.
             if (($uri = substr($uri, 1)) === FALSE) {
@@ -337,17 +335,21 @@ class Router
                 $uri = '';
                 $index = FALSE;
             } else {
-                // Now the first '/' is excluded. Search for the second '/' in $uri.
-                // eg. 'user/page/12'
-                $index = strpos($uri, '/'); // eg. 7
+                /**
+                 * Now the first '/' is excluded. Search for the second '/' in $uri.
+                 * eg. $uri   : 'user/page/12'
+                 *     $index : 7
+                 */
+                $index = strpos($uri, '/');
             }
         }
+        // @todo: tidy the comments below
         if ($index === FALSE) {
-        // '/' NOT found
+        // '/' NOT found.
             $function = $uri; // It will be '' if $uri was '/' at the beginning!
-            $params = []; // eg. '/user' => 'user' with no params
+            $params   = [];   // eg. '/user' => 'user' with no params
         } else {
-        // '/' found
+        // '/' found.
             $function = substr($uri, 0, $index); // eg. 'user'
             if (($paramRaw = substr($uri, $index + 1)) === FALSE) {
                 $params = []; // eg. '/user/' => 'user/' with no params
@@ -357,7 +359,7 @@ class Router
             }
         }
         if ($function === '') {
-            $function = 'index'; // $uri was '/' at the beginning
+            $function = 'index'; // $uri was '/' at the beginning.
         }
         // eg. ['user', ['page', '12']]
         return count($params) ? [$function, $params] : $function;
@@ -377,22 +379,32 @@ class Router
          *     $handler      : 'About' 
          *     $this->method : 'POST' 
          */
+        Kit::log([__METHOD__, [
+            'desc'    => $description,
+            'handler' => $handler
+        ]]);
+        Kit::log([__METHOD__, ['this' => $this]]);
         if (!$this->resolveRestURI($description)) {
         // $description is NOT a prefix of $this->uri, CAN NOT FIT!
+            Kit::log([__METHOD__, 'after resolveRestURI == FALSE', 'return FALSE', ['this' => $this]]);
             return FALSE;
         }
+        Kit::log([__METHOD__, 'after resolveRestURI == TRUE', ['this' => $this]]);
         // eg. $this->uri  : '/join/whatever'
-        // eg. $this->uris : ['/about/join/whatever']
+        //     $this->uris : ['/about/join/whatever']
         
+        Kit::log([__METHOD__, 'call end', [
+            'handler' => $handler,
+            'params'  => $this
+        ]]);
         $this->end(call_user_func($handler, $this));
+        Kit::log([__METHOD__, 'return TRUE']);
         return TRUE;
     }
 
     /**
-     * If $description is a prefix of $this->uri,
-     * then pushes $this->uri into $this->uris,
-     * and extracts the rest uri from $this->uri,
-     * and updates it and returns TRUE,
+     * If $description is a prefix of $this->uri, then pushes $this->uri into $this->uris,
+     * and extracts the rest uri from $this->uri, and updates it and returns TRUE,
      * else returns FALSE.
      * '/about/join/whatever' => '/join/whatever'
      * @param string $description eg. '/about'
@@ -402,14 +414,14 @@ class Router
     {
         $length = strlen($description);
         if (substr($this->uri, 0, $length) !== $description) {
-        // $description is NOT a prefix of $this->uri
+        // $description is NOT a prefix of $this->uri.
             return FALSE;
         } else {
-        // $description is a prefix of $this->uri, eg. '/about/join/whatever'
-            // the second of two places where $this->uris is updated
+        // $description is a prefix of $this->uri, eg. '/about/join/whatever'.
+            // The first of two places where $this->uris is updated.
             $this->uris[] = $this->uri;
-            // the third of three places where $this->uri is assigned
-            // extracts the rest uri, eg. '/join/whatever'
+            // The second of three places where $this->uri is assigned.
+            // Extracts the rest uri, eg. '/join/whatever'.
             $this->uri = (
                 ($uri = substr($this->uri, $length)) === FALSE ? '/' : $uri
             );
@@ -435,8 +447,8 @@ class Router
 
     private function pop()
     {
-        // the second of three places where $this->uri is assigned
-        // the first of two places where $this->uris is updated
+        // The last of three places where $this->uri is assigned.
+        // The last of two places where $this->uris is updated.
         $this->uri = array_pop($this->uris);
     }
 }
