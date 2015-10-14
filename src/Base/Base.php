@@ -13,7 +13,7 @@ use \Ilex\Core\Loader;
 class Base
 {
     /**
-     * @todo what?
+     * @todo check use of this method in other project!
      * Protected method that can be called by the controllers in APPPATH/Controller.
      * @return object
      */

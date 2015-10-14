@@ -27,7 +27,7 @@ class Autoloader
     public static function run($APPPATH, $RUNTIMEPATH)
     {
         static::initialize($APPPATH, $RUNTIMEPATH);
-        // @todo: how to handle the return value?
+        // @todo: how to handle the return value? check other project.
         return static::resolve(
             $_SERVER['REQUEST_METHOD'], // i.e.  'GET' | 'HEAD' | 'POST' | 'PUT'
             isset($_GET['_url']) ? $_GET['_url'] : '/'

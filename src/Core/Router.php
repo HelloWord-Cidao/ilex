@@ -45,8 +45,8 @@ class Router
     private $uri;
     private $uris      = [];
     private $params    = [];
-    private $settled   = FALSE; // @todo: what?
-    private $cancelled = FALSE; // @todo: what?
+    private $settled   = FALSE;
+    private $cancelled = FALSE; // @TODO: what?
     private $result    = NULL;
 
     /**
@@ -127,7 +127,7 @@ class Router
                 }
             
                 if ($name === 'group') {
-                // @todo: Group routes should implemented in order!!!
+                // Group routes should implemented in order!!!
                     // eg. $description : '/whatever'
                     //     $handler     : an anonymous function usually with an argument: $Router
                     Kit::log([__METHOD__, 'call end', [
@@ -150,7 +150,7 @@ class Router
     }
 
     /**
-     * @todo what?
+     * @TODO what?
      * Cancels something?
      * @return boolean
      */
@@ -161,7 +161,7 @@ class Router
             Kit::log([__METHOD__, 'return FALSE'], FALSE);
             return FALSE;
         } else {
-            // @todo: need test!
+            // @TODO: need test!
             $this->pop();
             $this->cancelled = TRUE;
             Kit::log([__METHOD__, 'pop()', 'cancelled = TRUE', 'return TRUE'], FALSE);
@@ -299,7 +299,7 @@ class Router
         $controller  = Loader::controller($handler); // eg. \AboutController
         $combination = strtolower($this->method) . Kit::strToTitle($function); // eg. 'postJoin'
         Kit::log([__METHOD__, ['controller' => $controller, 'combination' => $combination]]);
-        // @todo: possibly conflict!?
+        // @TODO: possibly conflict!?
         if (method_exists($controller, $combination)) { // eg. AboutController::postJoin().
             Kit::log([__METHOD__, 'method_exists($controller, $combination)'], FALSE);
             $fn = $combination;
@@ -312,7 +312,7 @@ class Router
             $params = [$this];
         } else {
             // CAN NOT FIT! Rollback!
-            // @todo: need test!
+            // @TODO: need test!
             Kit::log([__METHOD__, 'call pop', ['this' => $this]]);
             $this->pop();
             // eg. $this->uri  : '/about/join/whatever'
@@ -360,10 +360,10 @@ class Router
         // '/' found.
             $function = substr($uri, 0, $index); // eg. 'user'
             if (($paramRaw = substr($uri, $index + 1)) === FALSE) {
-                // @todo: need test!
+                // @TODO: need test!
                 $params = []; // eg. '/user/' => 'user/' with no params
             } else {
-                // at least one param
+                // At least one param.
                 $params = explode('/', substr($uri, $index + 1)); // eg. ['page', '12']
             }
         }
@@ -409,9 +409,9 @@ class Router
     private function end($result)
     {
         Kit::log([__METHOD__, ['result' => $result]]);
-        // @todo: what? when to use $this->cancelled?
+        // @TODO: what? when to use $this->cancelled?
         if ($this->cancelled) {
-            // @todo: need test!
+            // @TODO: need test!
             $this->cancelled = FALSE;
         } else {
             $this->settled = TRUE;

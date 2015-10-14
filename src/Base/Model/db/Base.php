@@ -19,7 +19,7 @@ use \Ilex\Core\Loader;
  */
 class Base extends \Ilex\Base\Model\Base
 {
-    protected $collectionName; // @todo: where assigned?
+    protected $collectionName; // @todo: where is it assigned?
     public    $collection;     // @todo: Do NOT expose this! Change to protected!
 
     public function __construct()
