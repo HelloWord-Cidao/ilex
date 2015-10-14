@@ -4,7 +4,7 @@ namespace Ilex;
 
 use \Ilex\Core\Constant;
 use \Ilex\Core\Loader;
-use \Ilex\Core\Route;
+use \Ilex\Core\Router;
 use \Ilex\Lib\Kit;
 
 /**
@@ -63,10 +63,10 @@ class Autoloader
             'url'    => $url
         ]]);
         // ob_start();
-        $Route = new Route($method, $url);
+        $Router = new Router($method, $url);
         include(Loader::APPPATH() . 'Config/Route.php');
-        Kit::log([__METHOD__, ['$Route' => $Route]]);
-        return $Route->result();
+        Kit::log([__METHOD__, ['$Router' => $Router]]);
+        return $Router->result();
         // return ob_get_clean();
     }
 }

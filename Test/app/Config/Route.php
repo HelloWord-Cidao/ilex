@@ -1,25 +1,25 @@
 <?php
 
-namespace app\config;
+namespace app\Config;
 
 /**
  * The following code will be included by Autoloader::resolve()
- * Whenever $Route::end() is invoked, $Route->settled will be TRUE,
+ * Whenever $Router::end() is invoked, $Router->settled will be TRUE,
  * so that the subsequent routes will fail.
  */
 
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 
-/** @var \Ilex\Core\Route $Route */
+/** @var \Ilex\Core\Router $Router */
 
 Kit::log('#1 get /');
-$Route->get('/', function () {
+$Router->get('/', function () {
     return ('Hello world!');
 });
 
 Kit::log('#2 post /user/(any)');
-$Route->post('/user/(any)', function ($name) {
+$Router->post('/user/(any)', function ($name) {
     /**
      * Model 'sys/Input' has already been loaded in \Ilex\Tester::boot(),
      * and been updated in \Ilex\Tester::run(),
@@ -31,33 +31,33 @@ $Route->post('/user/(any)', function ($name) {
      * and assign it to $Input.
      */
     $Input = Loader::model('sys/Input');
-    Kit::log(['route.php', ['$Input' => $Input]]);
+    Kit::log(['Route.php', ['$Input' => $Input]]);
     return ('Hello ' . $Input->post('title', 'Guest') . ' ' . $name . '!');
 });
 
 Kit::log('#3 get /projects');
-$Route->get('/projects', 'Project'); // invoke ProjectController::index()
+$Router->get('/projects', 'Project'); // invoke ProjectController::index()
 
 Kit::log('#4 get /project/(num)');
-$Route->get('/project/(num)', 'Project', 'view'); // invoke ProjectController::view(num)
+$Router->get('/project/(num)', 'Project', 'view'); // invoke ProjectController::view(num)
 
 Kit::log('#5 group /planet');
-$Route->group('/planet', function ($Route) {
+$Router->group('/planet', function ($Router) {
     Kit::log('#5.1 get /');
-    $Route->get('/', function () {
+    $Router->get('/', function () {
         return ('Hello Cosmos!');
     });
     Kit::log('#5.2 back');
-    $Route->back();
+    $Router->back();
 });
 
 Kit::log('#6 controller /about');
-$Route->controller('/about', 'About');
+$Router->controller('/about', 'About');
 
 Kit::log('#7 controller /play');
-$Route->controller('/play', 'Play');
+$Router->controller('/play', 'Play');
 
 Kit::log('#8 get (all)');
-$Route->get('(all)', function ($url) {
+$Router->get('(all)', function ($url) {
     return ('Oops, 404! "' . $url . '" does not exist.');
 });

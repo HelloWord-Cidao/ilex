@@ -6,7 +6,7 @@ use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 
 /**
- * Class Route
+ * Class Router
  * The class in charge of routing requests.
  * @package Ilex\Core
  * 
@@ -42,7 +42,7 @@ use \Ilex\Lib\Kit;
  * @method public boolean put   (string $description, mixed $handler, string $function = NULL)
  * @method public boolean delete(string $description, mixed $handler, string $function = NULL)
  */
-class Route
+class Router
 {
     private $method;            // eg. 'GET' | 'POST'. Lower or upper case?
     private $uri;
@@ -69,7 +69,7 @@ class Route
      */
     public function __toString()
     {
-        $result  = PHP_EOL . '\Route {' . PHP_EOL;
+        $result  = PHP_EOL . '\Router {' . PHP_EOL;
         $result .= "\tsettled   : " . Kit::toString($this->settled)   . PHP_EOL;
         $result .= "\tcancelled : " . Kit::toString($this->cancelled) . PHP_EOL;
         $result .= "\tmethod    : " . Kit::toString($this->method)    . PHP_EOL;
@@ -124,7 +124,7 @@ class Route
      * Try to fit group route.
      * @todo Group routes should implemented in order!!!
      * @param string   $description eg. '/whatever'
-     * @param callable $handler     eg. an anonymous function usually with an argument: $Route
+     * @param callable $handler     eg. an anonymous function usually with an argument: $Router
      */
     public function group($description, $handler)
     {
@@ -366,7 +366,7 @@ class Route
     /**
      * @todo what?
      * @param string   $description eg. '/about' 
-     * @param callable $handler     eg. an anonymous function usually with an argument: $Route
+     * @param callable $handler     eg. an anonymous function usually with an argument: $Router
      * @return boolean
      */
     private function fitGroup($description, $handler)

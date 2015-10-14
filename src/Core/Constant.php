@@ -41,8 +41,7 @@ class Constant
             'SVR_MONGO_DB'          => 'test',
             'SVR_MONGO_TIMEOUT'     => 2000,
         ];
-        // @todo: change to CamelCase?
-        include_once(Loader::APPPATH() . 'config/const.php');
+        include_once(Loader::APPPATH() . 'Config/Const.php');
         foreach ($constants as $name => $value) {
             if (!defined($name)) {
                 define($name, $value);

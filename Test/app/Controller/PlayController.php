@@ -6,41 +6,41 @@ namespace app\Controller;
  * Class PlayController
  * @package app\Controller
  * 
- * @method public resolve(\Ilex\Core\Route $Route)
+ * @method public resolve(\Ilex\Core\Router $Router)
  * @method public view(string $id)
  */
 class PlayController extends \Ilex\Base\Controller\Base
 {
     /**
-     * @param \Ilex\Core\Route $Route
+     * @param \Ilex\Core\Router $Router
      */
-    public function resolve($Route)
+    public function resolve($Router)
     {
-        $Route->get('/', function () {
+        $Router->get('/', function () {
             return ('Come and play!');
         });
-        $Route->get('/(num)', $this, 'view');
+        $Router->get('/(num)', $this, 'view');
 
         // Just a test for `group` inside a controller's `resolve`...
-        $Route->group('/play', function ($Route) {
-            /** @var \Ilex\Core\Route $Route */
-            $Route->get('/(num)', $this, 'view');
-            $Route->back();
+        $Router->group('/play', function ($Router) {
+            /** @var \Ilex\Core\Router $Router */
+            $Router->get('/(num)', $this, 'view');
+            $Router->back();
         });
 
-        $Route->group('/no-back', function ($Route) {
-            /** @var \Ilex\Core\Route $Route */
-            $Route->get('/', function () {
+        $Router->group('/no-back', function ($Router) {
+            /** @var \Ilex\Core\Router $Router */
+            $Router->get('/', function () {
                 return ('No back here...');
             });
             /*
              * 404 should be handled manually here.
-             * Add `$Route->get('(all)', ...)` or `$Route->get('.*')` to response.
-             * Add `$Route->back()` to fallback.
+             * Add `$Router->get('(all)', ...)` or `$Router->get('.*')` to response.
+             * Add `$Router->back()` to fallback.
              */
         });
 
-        $Route->get('(all)', function ($url) {
+        $Router->get('(all)', function ($url) {
             return ('Sorry but "' . substr($url, 1) . '" is not here. 404.');
         });
     }
