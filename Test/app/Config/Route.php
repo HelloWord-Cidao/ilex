@@ -41,6 +41,7 @@ $Router->get('/projects', 'Project'); // This will invoke ProjectController::ind
 Kit::log('#4 get /project/(num) Project view');
 $Router->get('/project/(num)', 'Project', 'view'); // This will invoke ProjectController::view(num).
 
+// @todo: what is route of type: group??
 Kit::log('#5 group /planet func');
 $Router->group('/planet', function ($Router) {
     Kit::log('#5.1 get / func');
@@ -53,10 +54,10 @@ $Router->group('/planet', function ($Router) {
 });
 
 Kit::log('#6 controller /about About');
-$Router->controller('/about', 'About');
+$Router->controller('/about', 'About'); // This will invoke AboutController.
 
 Kit::log('#7 controller /play Play');
-$Router->controller('/play', 'Play');
+$Router->controller('/play', 'Play'); // This will invoke PlayController.
 
 Kit::log('#8 get (all) func');
 $Router->get('(all)', function ($url) {

@@ -61,7 +61,7 @@ class RouteTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('Join whatever!', Tester::run('/about/join/whatever'));
         $this->assertEquals('Join whatever!', Tester::run('/about/join/whatever/'));
         $this->assertEquals('Join whatever!', Tester::run('/about/join/whatever//'));
-        // the default 'GET' method will go wrong!
+        // @todo: the default 'GET' method will go wrong!
         $this->assertEquals('Welcome to whatever, Jack!', Tester::run('/about/join/whatever/', 'POST'));
         $this->assertEquals('Welcome to whatever, John!', Tester::run('/about/join/whatever/', 'POST', ['name' => 'John']));
     }
