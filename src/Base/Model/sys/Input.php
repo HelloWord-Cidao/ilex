@@ -23,7 +23,6 @@ use \Ilex\Lib\Kit;
  */
 class Input extends Base
 {
-    // @todo: public or private?
     private $get;
     private $post;
 

@@ -10,15 +10,16 @@ use \Ilex\Lib\Kit;
  * Class Tester
  * @package Ilex
  * 
- * @property public static \Ilex\Base\Model\sys\Input $Input
+ * @property private static \Ilex\Base\Model\sys\Input   $Input
+ * @property private static \Ilex\Base\Model\sys\Session $Session
  * 
  * @method public static        boot($APPPATH, $RUNTIMEPATH)
  * @method public static string run($url = '/', $method = 'GET', $postData = [], $getData = [])
  */
 class Tester
 {
-    public static $Input;
-    public static $Session;
+    private static $Input;
+    private static $Session;
 
     /**
      * @param string $APPPATH

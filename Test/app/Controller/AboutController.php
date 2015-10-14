@@ -6,7 +6,7 @@ namespace app\Controller;
  * Class AboutController
  * @package app\Controller
  *
- * @property \Ilex\Base\Model\sys\Input $Input
+ * @property private \Ilex\Base\Model\sys\Input $Input
  * 
  * @method public index()
  * @method public join(string $group = 'tech')
@@ -34,6 +34,7 @@ class AboutController extends \Ilex\Base\Controller\Base
      */
     public function postJoin($group = 'tech')
     {
+        // @todo: what??
         $this->loadModel('sys/Input');
         return ('Welcome to ' . $group . ', ' . $this->Input->post('name', 'Jack') . '!');
     }
