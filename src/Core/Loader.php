@@ -210,6 +210,7 @@ class Loader
             ]
         ] as $item) {
             if (file_exists($item['path'])) {
+                // Now include the app class here, then it can be used somewhere else!
                 include($item['path']);
                 return $item['name'];
             }

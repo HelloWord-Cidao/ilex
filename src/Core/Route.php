@@ -322,8 +322,8 @@ class Route
 
     /**
      * Returns [$function, $params] if parameters found, else returns $function.
-     * @param string $uri eg. '/mission/page/12'
-     * @return array|string
+     * @param string $uri   eg. '/mission/page/12'
+     * @return array|string eg. ['mission', ['page', '12']]
      */
     private function getFunction($uri)
     {
@@ -359,8 +359,8 @@ class Route
         if ($function === '') {
             $function = 'index'; // $uri was '/' at the beginning
         }
-        return count($params) ? [$function, $params] : $function;
         // eg. ['mission', ['page', '12']]
+        return count($params) ? [$function, $params] : $function;
     }
 
     /**

@@ -9,6 +9,7 @@ namespace Ilex\Lib;
  * 
  * @method public static string  escape(string $data)
  * @method public static string  time(int|boolean $time = FALSE, string $format = 'Y-m-d H:i:s')
+ * @method public static string  getRealPath(string $path)
  * @method public static         log(mixed $data, boolean $quotationMarks = TRUE, string $env = 'TEST')
  * @method public static string  toString(mixed $data, boolean $quotationMarks = TRUE)
  * @method public static boolean isDict(array $array)
@@ -38,6 +39,22 @@ class Kit
             $time = time();
         }
         return date($format, $time);
+    }
+
+    /**
+     * Returns canonicalized absolute pathname with a trailing '/'
+     * eg. '/home/user/Project/Test/../Test/app' => '/home/user/Project/Test/app/'
+     * @param string $path
+     * @return string
+     */
+    public static function getRealPath($path)
+    {
+        if (($_temp = realpath($path)) !== FALSE) {
+            $path = $_temp . '/';
+        } else {
+            $path = rtrim($path, '/') . '/';
+        }
+        return $path;
     }
 
     /**

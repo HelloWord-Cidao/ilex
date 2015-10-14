@@ -27,6 +27,7 @@ class Tester
     public static function boot($APPPATH, $RUNTIMEPATH)
     {
         Autoloader::initialize($APPPATH, $RUNTIMEPATH);
+        // now Loader has been initialized by Autoloader::initialize()
         self::$Input   = Loader::model('sys/Input');
         self::$Session = Loader::model('sys/Session');
     }
@@ -48,7 +49,8 @@ class Tester
         ]]);
         self::$Input->clear()->merge('post', $postData)->merge('get', $getData);
         Kit::log([__METHOD__, ['self::$Input' => self::$Input]]);
-        $_SERVER['REQUEST_URI'] =  ENV_HOST . '/' . $url;
+        // @todo: what?
+        // $_SERVER['REQUEST_URI'] =  ENV_HOST . '/' . $url;
         return Autoloader::resolve($method, $url);
     }
 }
