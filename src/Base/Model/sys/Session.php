@@ -18,7 +18,6 @@ use \Ilex\Lib\Kit;
  * @method public    string  __toString()
  * @method public            boot()
  * @method public            forget()
- * @method protected         start()
  * @method public    string  newSid()
  * @method public            makeGuest()
  * @method public            assign(array $vars)
@@ -26,7 +25,8 @@ use \Ilex\Lib\Kit;
  * @method public    mixed   __get(string $key)
  * @method public    mixed   get(string|boolean $key = FALSE, mixed $default = FALSE)
  * @method public    mixed   __set(string $key, mixed $value)
- * @method public    mixed   let(string $key, mixed $value)
+ * @method public    mixed   set(string $key, mixed $value)
+ * @method private           start()
  */
 class Session extends Base
 {
@@ -92,25 +92,12 @@ class Session extends Base
     }
 
     /**
-     * @todo protected?
-     * Starts the session.
-     * @uses ENVIRONMENT, SYS_SESSNAME
-     */
-    protected function start()
-    {
-        if (ENVIRONMENT !== 'TEST') {
-            session_name(SYS_SESSNAME); // defined in \Ilex\Core\Constant
-            session_start();
-        }
-    }
-
-    /**
      * Generates new sid.
      * @return string
      */
     public function newSid()
     {
-        return $this->let($this->SID, sha1(uniqid() . mt_rand()));
+        return $this->set($this->SID, sha1(uniqid() . mt_rand()));
     }
 
     /**
@@ -119,9 +106,9 @@ class Session extends Base
      */
     public function makeGuest()
     {
-        $this->let($this->UID, 0);
-        $this->let($this->USERNAME, 'Guest');
-        $this->let($this->LOGIN, FALSE);
+        $this->set($this->UID, 0);
+        $this->set($this->USERNAME, 'Guest');
+        $this->set($this->LOGIN, FALSE);
     }
 
     /**
@@ -179,7 +166,7 @@ class Session extends Base
      */
     public function __set($key, $value)
     {
-        return $this->let($key, $value);
+        return $this->set($key, $value);
     }
 
     /**
@@ -188,8 +175,20 @@ class Session extends Base
      * @param mixed  $value
      * @return mixed
      */
-    public function let($key, $value)
+    public function set($key, $value)
     {
         return $this->fakeSession[$key] = $value;
+    }
+
+    /**
+     * Starts the session.
+     * @uses ENVIRONMENT, SYS_SESSNAME
+     */
+    private function start()
+    {
+        if (ENVIRONMENT !== 'TEST') {
+            session_name(SYS_SESSNAME); // defined in \Ilex\Core\Constant
+            session_start();
+        }
     }
 }

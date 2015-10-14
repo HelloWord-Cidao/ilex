@@ -7,8 +7,8 @@ namespace Ilex\Core;
  * The class in charge of http operations.
  * @package Ilex\Core
  * 
- * @method public static function redirect(string $url)
- * @method public static function json(mixed $data)
+ * @method public static redirect(string $url)
+ * @method public static json(mixed $data)
  */
 class Http
 {

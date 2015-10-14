@@ -11,15 +11,15 @@ use \Ilex\Lib\Kit;
  * 
  * @property private array $data
  * 
- * @method public         __construct(array $data)
- * @method public string  __toString()
- * @method public boolean has()
- * @method public mixed   __get(mixed $key)
- * @method public mixed   get(mixed $key, mixed $default)
- * @method public mixed   __set(mixed $key, mixed $value)
- * @method public mixed   let(mixed $key, mixed $value)
- * @method public         merge(array $data)
- * @method public         assign(array $data = [])
+ * @method public                     __construct(array $data = [])
+ * @method public string              __toString()
+ * @method public boolean             has()
+ * @method public mixed               __get(mixed $key)
+ * @method public mixed               get(mixed $key, mixed $default)
+ * @method public mixed               __set(mixed $key, mixed $value)
+ * @method public mixed               set(mixed $key, mixed $value)
+ * @method public \Ilex\Lib\Container merge(array $data)
+ * @method public \Ilex\Lib\Container assign(array $data = [])
  */
 class Container
 {
@@ -28,7 +28,7 @@ class Container
     /**
      * @param array $data
      */
-    public function __construct($data)
+    public function __construct($data = [])
     {
         $this->assign($data);
     }
@@ -82,7 +82,7 @@ class Container
      */
     public function __set($key, $value)
     {
-        return $this->let($key, $value);
+        return $this->set($key, $value);
     }
 
     /**
@@ -90,24 +90,28 @@ class Container
      * @param mixed $value
      * @return mixed
      */
-    public function let($key, $value)
+    public function set($key, $value)
     {
-        return $this->data[$key] = $value;
+        return ($this->data[$key] = $value);
     }
 
     /**
      * @param array $data
+     * @return \Ilex\Lib\Container
      */
     public function merge($data)
     {
         $this->assign(array_merge($this->data, $data));
+        return $this;
     }
 
     /**
      * @param array $data
+     * @return \Ilex\Lib\Container
      */
     public function assign($data = [])
     {
         $this->data = $data;
+        return $this;
     }
 }

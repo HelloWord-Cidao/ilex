@@ -3,6 +3,7 @@
 namespace Ilex\Core;
 
 use ReflectionClass;
+use \Ilex\Lib\Container;
 // use \Ilex\Lib\Kit;
 
 /**
@@ -28,16 +29,15 @@ use ReflectionClass;
  * @method private static object         createInstance(string $class, array $params)
  * @method private static boolean        has(mixed $k)
  * @method private static mixed          get(mixed $k)
- * @method private static mixed          let(mixed $k, mixed $v)
- * @method private static mixed          letTo(mixed $k, mixed $kk, mixed $v)
+ * @method private static mixed          set(mixed $k, mixed $v)
+ * @method private static mixed          setSet(mixed $k, mixed $kk, mixed $v)
  */
 class Loader
 {
     /**
-     * @todo: use \Ilex\Lib\Container
-     * structure: type('Controller'|'Model') => path(eg. 'hw/Brain') => class object
+     * structure: type('Controller'|'Model') => path(eg. 'sys/Input') => class object
      */
-    private static $container = [];
+    private static $container = new Container();
 
     /**
      * @param string $ILEXPATH
@@ -46,12 +46,12 @@ class Loader
      */
     public static function initialize($ILEXPATH, $APPPATH, $RUNTIMEPATH)
     {
-        self::let('ILEXPATH',    $ILEXPATH);
-        self::let('APPPATH',     $APPPATH);
-        self::let('RUNTIMEPATH', $RUNTIMEPATH);
+        self::set('ILEXPATH',    $ILEXPATH);
+        self::set('APPPATH',     $APPPATH);
+        self::set('RUNTIMEPATH', $RUNTIMEPATH);
 
-        self::let('Controller', []); // @todo: use \Ilex\Lib\Container
-        self::let('Model',      []); // @todo: use \Ilex\Lib\Container
+        self::set('Controller', new Container());
+        self::set('Model',      new Container());
     }
 
     /**
@@ -80,7 +80,7 @@ class Loader
 
     /**
      * Extracts handler name from path.
-     * eg. 'hw/Brain' => 'Brain'
+     * eg. 'sys/Input' => 'Input'
      * @param string $path
      * @return string
      */
@@ -104,7 +104,7 @@ class Loader
                 'db'                => SVR_MONGO_DB,
                 'connectTimeoutMS'  => SVR_MONGO_TIMEOUT
             ]);
-            return self::let('db', $mongo->selectDB(SVR_MONGO_DB));
+            return self::set('db', $mongo->selectDB(SVR_MONGO_DB));
         }
     }
 
@@ -147,52 +147,50 @@ class Loader
     }
 
     /**
-     * @todo private?
      * @param string $path
      * @param string $type
      * @return boolean
      */
     private static function isLoadedWithBase($path, $type)
     {
+        // If $type is not 'Controller' or 'Model', it will throw an exception.
         $typeEntities = self::get($type);
-        return isset($typeEntities[$path]);
+        return $typeEntities->has($path);
     }
 
      /**
-      * @todo private?
       * Returns a loaded class, if it is NOT already loaded, 
       * then load it and save it into $container.
       * The function ensures that for each model only one entity is loaded.
-      * @param string $path eg. 'hw/Brain'
+      * @param string $path eg. 'sys/Input'
       * @param string $type eg. 'Model', 'Controller'
       * @param array  $params
       * @return object
       */
     private static function loadWithBase($path, $type, $params = [])
     {
-        $typeEntities = self::get($type); // @todo: if NOT isset($container[$type])?
-        if (isset($typeEntities[$path])) {
-            return $typeEntities[$path];
+        // If $type is not 'Controller' or 'Model', it will throw an exception.
+        $typeEntities = self::get($type);
+        if ($typeEntities->has($path)) {
+            return $typeEntities->get($path;
         } else {
-            // @todo: static:: or self:: ?
             $className = self::load($path, $type);
             if ($className === FALSE) {
                 throw new \Exception(ucfirst($type) . ' ' . $path . ' not found.');
             }
-            $class = self::createInstance($className, $params); // @todo: what?
-            return self::letTo($type, $path, $class);
+            $instance = self::createInstance($className, $params);
+            return self::setSet($type, $path, $instance);
         }
     }
 
 
     /**
-     * @todo private?
      * Includes package and return its name, returns FALSE if fails.
      * Try APPPATH first and then ILEXPATH.
-     * eg. $path = 'hw/Brain', $type = 'Model', 
-     *     this function will includes 'APPPATH/Model/hw/BrainModel.php', 
-     *     and returns 'BrainModel'
-     * @param string $path eg. 'hw/Brain' ?
+     * eg. $path = 'sys/Input', $type = 'Model', 
+     *     this function will includes 'APPPATH/Model/sys/InputModel.php', 
+     *     and returns 'InputModel'
+     * @param string $path eg. 'sys/Input'
      * @param string $type eg. 'Model', 'Controller'
      * @return string|boolean
      */
@@ -205,7 +203,6 @@ class Loader
             ],
             'ilex' => [
                 'path' => self::get('ILEXPATH') . 'Base/' . $type . '/' . $path . '.php',
-                // @todo: Be sure that it is definitely Model? No suffix: $type?
                 'name' => '\\Ilex\\Base\\' . $type . '\\' . str_replace('/', '\\', $path)
             ]
         ] as $item) {
@@ -235,7 +232,7 @@ class Loader
      */
     private static function has($k)
     {
-        return isset(self::$container[$k]);
+        return self::$container->has($k);
     }
     /**
      * @param mixed $k
@@ -243,7 +240,7 @@ class Loader
      */
     private static function get($k)
     {
-        return self::$container[$k];
+        return self::$container->get($k);
     }
 
     /**
@@ -251,9 +248,9 @@ class Loader
      * @param mixed $v
      * @return mixed
      */
-    private static function let($k, $v)
+    private static function set($k, $v)
     {
-        return self::$container[$k] = $v;
+        return self::$container->set($k, $v);
     }
 
     /**
@@ -262,8 +259,9 @@ class Loader
      * @param mixed $v
      * @return mixed
      */
-    private static function letTo($k, $kk, $v)
+    private static function setSet($k, $kk, $v)
     {
-        return self::$container[$k][$kk] = $v;
+        // If the existence is not guaranteed, it will throw an exception.
+        return self::$container->get($k)->set($kk, $v);
     }
 }

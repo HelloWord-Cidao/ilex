@@ -31,7 +31,7 @@ use \Ilex\Lib\Kit;
  * @method private boolean      fitController(string $description, string $handler)
  * @method private array|string getFunction(string $uri)
  * @method private boolean      fitGroup(string $description, callable $handler)
- * @method private boolean      getRestURI(string $description)
+ * @method private boolean      resolveRestURI(string $description)
  * @method private              end(mixed $result)
  * @method private              pop()
  * 
@@ -44,7 +44,7 @@ use \Ilex\Lib\Kit;
  */
 class Router
 {
-    private $method;            // eg. 'GET' | 'POST'. Lower or upper case?
+    private $method;            // i.e.  'GET' | 'HEAD' | 'POST' | 'PUT'
     private $uri;
     private $uris      = [];
     private $params    = [];
@@ -83,7 +83,7 @@ class Router
 
     /**
      * Checks the method and then calls self::fitGeneral().
-     * @param string $name      eg. 'get' | 'post' | 'any' ?
+     * @param string $name      i.e. 'any' | 'get' | 'post' | 'put' | 'delete' 
      * @param array  $arguments eg. ['/project/(num)', 'Project', 'view']
      */
     public function __call($name, $arguments)
@@ -275,7 +275,7 @@ class Router
          *     $handler      : 'About' 
          *     $this->method : 'POST' 
          */
-        if (!$this->getRestURI($description)) {
+        if (!$this->resolveRestURI($description)) {
         // $description is NOT a prefix of $this->uri, CAN NOT FIT!
             return FALSE;
         }
@@ -322,13 +322,13 @@ class Router
 
     /**
      * Returns [$function, $params] if parameters found, else returns $function.
-     * @param string $uri   eg. '/mission/page/12'
-     * @return array|string eg. ['mission', ['page', '12']]
+     * @param string $uri   eg. '/user/page/12'
+     * @return array|string eg. ['user', ['page', '12']]
      */
     private function getFunction($uri)
     {
         // Search for the first '/' in $uri.
-        // eg. '/mission/page/12'
+        // eg. '/user/page/12'
         $index = strpos($uri, '/'); // eg. 0
         if ($index === 0) {
         // $uri begins with '/'.
@@ -338,19 +338,19 @@ class Router
                 $index = FALSE;
             } else {
                 // Now the first '/' is excluded. Search for the second '/' in $uri.
-                // eg. 'mission/page/12'
+                // eg. 'user/page/12'
                 $index = strpos($uri, '/'); // eg. 7
             }
         }
         if ($index === FALSE) {
         // '/' NOT found
             $function = $uri; // It will be '' if $uri was '/' at the beginning!
-            $params = []; // eg. '/mission' => 'mission' with no params
+            $params = []; // eg. '/user' => 'user' with no params
         } else {
         // '/' found
-            $function = substr($uri, 0, $index); // eg. 'mission'
+            $function = substr($uri, 0, $index); // eg. 'user'
             if (($paramRaw = substr($uri, $index + 1)) === FALSE) {
-                $params = []; // eg. '/mission/' => 'mission/' with no params
+                $params = []; // eg. '/user/' => 'user/' with no params
             } else {
                 // at least one param
                 $params = explode('/', substr($uri, $index + 1)); // eg. ['page', '12']
@@ -359,7 +359,7 @@ class Router
         if ($function === '') {
             $function = 'index'; // $uri was '/' at the beginning
         }
-        // eg. ['mission', ['page', '12']]
+        // eg. ['user', ['page', '12']]
         return count($params) ? [$function, $params] : $function;
     }
 
@@ -377,7 +377,7 @@ class Router
          *     $handler      : 'About' 
          *     $this->method : 'POST' 
          */
-        if (!$this->getRestURI($description)) {
+        if (!$this->resolveRestURI($description)) {
         // $description is NOT a prefix of $this->uri, CAN NOT FIT!
             return FALSE;
         }
@@ -398,7 +398,7 @@ class Router
      * @param string $description eg. '/about'
      * @return boolean
      */
-    private function getRestURI($description)
+    private function resolveRestURI($description)
     {
         $length = strlen($description);
         if (substr($this->uri, 0, $length) !== $description) {
@@ -418,12 +418,12 @@ class Router
     }
 
     /**
-     * @todo what?
      * @param mixed $result
      */
     private function end($result)
     {
         Kit::log([__METHOD__, ['result' => $result]]);
+        // @todo: what? when to use $this->cancelled?
         if ($this->cancelled) {
             $this->cancelled = FALSE;
         } else {

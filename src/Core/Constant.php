@@ -9,7 +9,7 @@ use \Ilex\Core\Loader;
  * The class in charge of initializing const variables.
  * @package Ilex\Core
  * 
- * @method public static function initialize()
+ * @method public static initialize()
  */
 class Constant
 {

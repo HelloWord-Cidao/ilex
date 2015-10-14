@@ -18,7 +18,7 @@ use \Ilex\Lib\Kit;
 class Autoloader
 {
     /**
-     * @todo static:: or self:: ?
+     * @todo check inheritance of Autoloader! static:: or self:: ?
      * @todo where should the model 'sys/Input' be loaded?
      * @param string $APPPATH
      * @param string $RUNTIMEPATH
