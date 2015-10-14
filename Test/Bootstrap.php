@@ -22,4 +22,4 @@ $RouteTest->testControllerIndex();
 // $RouteTest->testControllerFunction();
 // $RouteTest->testControllerResolve();
 // $RouteTest->testGroup();
-echo 'OK';
+echo 'OK' . PHP_EOL;
