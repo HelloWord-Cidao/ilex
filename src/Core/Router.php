@@ -161,6 +161,7 @@ class Router
             Kit::log([__METHOD__, 'return FALSE'], FALSE);
             return FALSE;
         } else {
+            // @todo: need test!
             $this->pop();
             $this->cancelled = TRUE;
             Kit::log([__METHOD__, 'pop()', 'cancelled = TRUE', 'return TRUE'], FALSE);
@@ -311,6 +312,7 @@ class Router
             $params = [$this];
         } else {
             // CAN NOT FIT! Rollback!
+            // @todo: need test!
             Kit::log([__METHOD__, 'call pop', ['this' => $this]]);
             $this->pop();
             // eg. $this->uri  : '/about/join/whatever'
@@ -358,6 +360,7 @@ class Router
         // '/' found.
             $function = substr($uri, 0, $index); // eg. 'user'
             if (($paramRaw = substr($uri, $index + 1)) === FALSE) {
+                // @todo: need test!
                 $params = []; // eg. '/user/' => 'user/' with no params
             } else {
                 // at least one param
@@ -408,6 +411,7 @@ class Router
         Kit::log([__METHOD__, ['result' => $result]]);
         // @todo: what? when to use $this->cancelled?
         if ($this->cancelled) {
+            // @todo: need test!
             $this->cancelled = FALSE;
         } else {
             $this->settled = TRUE;

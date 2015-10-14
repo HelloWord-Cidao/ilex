@@ -62,11 +62,9 @@ class Autoloader
             'method' => $method,
             'url'    => $url
         ]]);
-        // ob_start();
         $Router = new Router($method, $url);
         include(Loader::APPPATH() . 'Config/Route.php');
         Kit::log([__METHOD__, ['$Router' => $Router]]);
         return $Router->result();
-        // return ob_get_clean();
     }
 }

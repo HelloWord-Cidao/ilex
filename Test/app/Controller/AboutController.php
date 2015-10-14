@@ -34,7 +34,7 @@ class AboutController extends \Ilex\Base\Controller\Base
      */
     public function postJoin($group = 'tech')
     {
-        // @todo: what??
+        // This will assign the instance of the loaded model to $this->Input.
         $this->loadModel('sys/Input');
         return ('Welcome to ' . $group . ', ' . $this->Input->post('name', 'Jack') . '!');
     }
