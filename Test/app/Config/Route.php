@@ -49,6 +49,7 @@ $Router->group('/planet', function ($Router) {
     });
     Kit::log('#5.2 back');
     $Router->back();
+    return $Router->result();
 });
 
 Kit::log('#6 controller /about About');
