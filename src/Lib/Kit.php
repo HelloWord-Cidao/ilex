@@ -7,13 +7,14 @@ namespace Ilex\Lib;
  * A kit class.
  * @package Ilex\Lib
  * 
- * @method public static string  escape(string $data)
- * @method public static string  time(int|boolean $time = FALSE, string $format = 'Y-m-d H:i:s')
- * @method public static string  getRealPath(string $path)
- * @method public static         log(mixed $data, boolean $quotationMarks = TRUE, string $env = 'TEST')
- * @method public static string  toString(mixed $data, boolean $quotationMarks = TRUE)
- * @method public static boolean isDict(array $array)
- * @method public static boolean isList(array $array)
+ * @method public static string         escape(string $data)
+ * @method public static string         time(int|boolean $time = FALSE, string $format = 'Y-m-d H:i:s')
+ * @method public static string         getRealPath(string $path)
+ * @method public static                log(mixed $data, boolean $quotationMarks = TRUE, string $env = 'TEST')
+ * @method public static string         toString(mixed $data, boolean $quotationMarks = TRUE)
+ * @method public static boolean        isDict(array $array)
+ * @method public static boolean        isList(array $array)
+ * @method public static string|boolean strToTitle($string)
  */
 class Kit
 {
@@ -114,7 +115,6 @@ class Kit
                 ) . ' }';
             
         }
-            
         else if ($data instanceof \Closure) return '\Closure';
         else if (is_object($data) AND !method_exists($data, '__toString'))
             return '\Object' . '(' . get_class($data) . ')';
@@ -146,5 +146,17 @@ class Kit
         if (!is_array($array)) return FALSE;
         if (count($array) === 0) return TRUE;
         return array_keys($array) === range(0, count($array) - 1);
+    }
+
+    /**
+     * @param string $string
+     * @return string|boolean
+     */
+    public static function strToTitle($string)
+    {
+        if (is_string($string)) {
+            if (strlen($string) === 0) return $string;
+            return strtoupper(substr($string, 0, 1)) . substr($string, 1);
+        } else return FALSE;
     }
 }
