@@ -19,7 +19,7 @@ class Autoloader
 {
     /**
      * @todo static:: or self:: ?
-     * @todo where is the model 'sys/Input' loaded?
+     * @todo where should the model 'sys/Input' be loaded?
      * @param string $APPPATH
      * @param string $RUNTIMEPATH
      * @return string
@@ -29,7 +29,7 @@ class Autoloader
         static::initialize($APPPATH, $RUNTIMEPATH);
         // @todo: how to handle the return value?
         return static::resolve(
-            $_SERVER['REQUEST_METHOD'], // eg. 'GET' | 'POST' | 'PUT' | 'DELETE'?
+            $_SERVER['REQUEST_METHOD'], // i.e.  'GET' | 'HEAD' | 'POST' | 'PUT'
             isset($_GET['_url']) ? $_GET['_url'] : '/'
         );
     }
@@ -64,8 +64,7 @@ class Autoloader
         ]]);
         // ob_start();
         $Route = new Route($method, $url);
-        // @todo: change to CamelCase?
-        include(Loader::APPPATH() . 'config/route.php');
+        include(Loader::APPPATH() . 'Config/Route.php');
         Kit::log([__METHOD__, ['$Route' => $Route]]);
         return $Route->result();
         // return ob_get_clean();

@@ -366,7 +366,7 @@ class Route
     /**
      * @todo what?
      * @param string   $description eg. '/about' 
-     * @param callable $handler     eg. an anonymous function usually with an argument: $Route 
+     * @param callable $handler     eg. an anonymous function usually with an argument: $Route
      * @return boolean
      */
     private function fitGroup($description, $handler)
