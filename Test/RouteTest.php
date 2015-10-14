@@ -46,11 +46,11 @@ class RouteTest extends PHPUnit_Framework_TestCase
 
     public function testControllerIndex()
     {
-        // $this->assertEquals('about', Tester::run('/about'), 'testControllerIndex fails.');
-        // $this->assertEquals('about', Tester::run('/about/'), 'testControllerIndex fails.');
-        // $this->assertEquals('about', Tester::run('/about//'), 'testControllerIndex fails.');
-        // $this->assertEquals('about', Tester::run('/about/index'), 'testControllerIndex fails.');
-        // $this->assertEquals('about', Tester::run('/about/index/'), 'testControllerIndex fails.');
+        $this->assertEquals('about', Tester::run('/about'), 'testControllerIndex fails.');
+        $this->assertEquals('about', Tester::run('/about/'), 'testControllerIndex fails.');
+        $this->assertEquals('about', Tester::run('/about//'), 'testControllerIndex fails.');
+        $this->assertEquals('about', Tester::run('/about/index'), 'testControllerIndex fails.');
+        $this->assertEquals('about', Tester::run('/about/index/'), 'testControllerIndex fails.');
         $this->assertEquals('about', Tester::run('/about/index//'), 'testControllerIndex fails.');
     }
 
@@ -58,12 +58,12 @@ class RouteTest extends PHPUnit_Framework_TestCase
     {
         // $this->assertEquals('Join tech!', Tester::run('/about/join'));
         // $this->assertEquals('Join tech!', Tester::run('/about/join/'));
-        $this->assertEquals('Join whatever!', Tester::run('/about/join/whatever'));
-        $this->assertEquals('Join whatever!', Tester::run('/about/join/whatever/'));
-        $this->assertEquals('Join whatever!', Tester::run('/about/join/whatever//'));
+        // $this->assertEquals('Join whatever!', Tester::run('/about/join/whatever'));
+        // $this->assertEquals('Join whatever!', Tester::run('/about/join/whatever/'));
+        // $this->assertEquals('Join whatever!', Tester::run('/about/join/whatever//'));
         // the default 'GET' method will go wrong!
         $this->assertEquals('Welcome to whatever, Jack!', Tester::run('/about/join/whatever/', 'POST'));
-        $this->assertEquals('Welcome to whatever, John!', Tester::run('/about/join/whatever/', 'POST', ['name' => 'John']));
+        // $this->assertEquals('Welcome to whatever, John!', Tester::run('/about/join/whatever/', 'POST', ['name' => 'John']));
     }
 
     public function testControllerResolve()

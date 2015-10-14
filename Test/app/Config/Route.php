@@ -13,12 +13,12 @@ use \Ilex\Lib\Kit;
 
 /** @var \Ilex\Core\Router $Router */
 
-Kit::log('#1 get /');
+Kit::log('#1 get / func');
 $Router->get('/', function () {
     return ('Hello world!');
 });
 
-Kit::log('#2 post /user/(any)');
+Kit::log('#2 post /user/(any) func');
 $Router->post('/user/(any)', function ($name) {
     /**
      * Model 'sys/Input' has already been loaded in \Ilex\Tester::boot(),
@@ -35,15 +35,15 @@ $Router->post('/user/(any)', function ($name) {
     return ('Hello ' . $Input->post('title', 'Guest') . ' ' . $name . '!');
 });
 
-Kit::log('#3 get /projects');
+Kit::log('#3 get /projects Project');
 $Router->get('/projects', 'Project'); // This will invoke ProjectController::index().
 
-Kit::log('#4 get /project/(num)');
+Kit::log('#4 get /project/(num) Project view');
 $Router->get('/project/(num)', 'Project', 'view'); // This will invoke ProjectController::view(num).
 
-Kit::log('#5 group /planet');
+Kit::log('#5 group /planet func');
 $Router->group('/planet', function ($Router) {
-    Kit::log('#5.1 get /');
+    Kit::log('#5.1 get / func');
     $Router->get('/', function () {
         return ('Hello Cosmos!');
     });
@@ -51,13 +51,13 @@ $Router->group('/planet', function ($Router) {
     $Router->back();
 });
 
-Kit::log('#6 controller /about');
+Kit::log('#6 controller /about About');
 $Router->controller('/about', 'About');
 
-Kit::log('#7 controller /play');
+Kit::log('#7 controller /play Play');
 $Router->controller('/play', 'Play');
 
-Kit::log('#8 get (all)');
+Kit::log('#8 get (all) func');
 $Router->get('(all)', function ($url) {
     return ('Oops, 404! "' . $url . '" does not exist.');
 });
