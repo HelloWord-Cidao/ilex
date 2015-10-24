@@ -10,7 +10,7 @@ use \Ilex\Tester;
 
 Tester::boot(__DIR__ . '/../Test/app', __DIR__ . '/../Test/runtime');
 
-include(__DIR__ . '/RouteTest.php');
+require(__DIR__ . '/RouteTest.php');
 
 use \Ilex\Test\RouteTest;
 
