@@ -63,7 +63,7 @@ class Autoloader
             'url'    => $url
         ]]);
         $Router = new Router($method, $url);
-        include(Loader::APPPATH() . 'Config/Route.php');
+        require(Loader::APPPATH() . 'Config/Route.php');
         Kit::log([__METHOD__, ['$Router' => $Router]]);
         return $Router->result();
     }

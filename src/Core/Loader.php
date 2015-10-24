@@ -207,7 +207,8 @@ class Loader
         ] as $item) {
             if (file_exists($item['path'])) {
                 // Now include the app class here, then it can be used somewhere else!
-                include($item['path']);
+                // @todo: include once?
+                includeFile($item['path']);
                 return $item['name'];
             }
         }
@@ -263,4 +264,14 @@ class Loader
         // If the existence is not guaranteed, it will throw an exception.
         return self::$container->get($k)->set($kk, $v);
     }
+}
+
+/**
+ * Scope isolated include.
+ *
+ * Prevents access to $this/self from included files.
+ */
+function includeFile($file)
+{
+    include $file;
 }

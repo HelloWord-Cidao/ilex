@@ -41,7 +41,7 @@ class Constant
             'SVR_MONGO_DB'          => 'test',
             'SVR_MONGO_TIMEOUT'     => 2000,
         ];
-        include_once(Loader::APPPATH() . 'Config/Const.php');
+        require_once(Loader::APPPATH() . 'Config/Const.php');
         foreach ($constants as $name => $value) {
             if (!defined($name)) {
                 define($name, $value);
