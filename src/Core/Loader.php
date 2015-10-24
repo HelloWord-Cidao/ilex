@@ -35,6 +35,7 @@ use \Ilex\Lib\Container;
 class Loader
 {
     // Structure: type('Controller'|'Model') => path(eg. 'sys/Input') => class object
+    //         or 'ILEXPATH'|'APPPATH'|'RUNTIMEPATH' => string
     private static $container;
 
     /**
@@ -187,8 +188,8 @@ class Loader
      * Includes package and return its name, returns FALSE if fails.
      * Try APPPATH first and then ILEXPATH.
      * eg. $path = 'sys/Input', $type = 'Model', 
-     *     this function will includes 'APPPATH/Model/sys/InputModel.php', 
-     *     and returns 'InputModel'
+     *     this function will includes the file : 'ILEXPATH/Base/Model/sys/Input.php', 
+     *     and returns '\\Ilex\\Base\\Model\\sys\\Input'
      * @param string $path eg. 'sys/Input'
      * @param string $type eg. 'Model', 'Controller'
      * @return string|boolean
