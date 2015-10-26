@@ -14,19 +14,19 @@ use \Ilex\Lib\Kit;
  * @property private boolean $booted
  * @property private array   $fakeSession
  * 
- * @method public            __construct()
- * @method public    string  __toString()
- * @method public            boot()
- * @method public            forget()
- * @method public    string  newSid()
- * @method public            makeGuest()
- * @method public            assign(array $vars)
- * @method public    boolean has(string $key)
- * @method public    mixed   __get(string $key)
- * @method public    mixed   get(string|boolean $key = FALSE, mixed $default = FALSE)
- * @method public    mixed   __set(string $key, mixed $value)
- * @method public    mixed   set(string $key, mixed $value)
- * @method private           start()
+ * @method public                                __construct()
+ * @method public    string                      __toString()
+ * @method public    Ilex\Base\Model\sys\Session boot()
+ * @method public    Ilex\Base\Model\sys\Session forget()
+ * @method public    string                      newSid()
+ * @method public    Ilex\Base\Model\sys\Session makeGuest()
+ * @method public    Ilex\Base\Model\sys\Session assign(array $vars)
+ * @method public    boolean                     has(string $key)
+ * @method public    mixed                       __get(string $key)
+ * @method public    mixed                       get(string|boolean $key = FALSE, mixed $default = FALSE)
+ * @method public    mixed                       __set(string $key, mixed $value)
+ * @method public    mixed                       set(string $key, mixed $value)
+ * @method private   Ilex\Base\Model\sys\Session start()
  */
 class Session extends Base
 {
@@ -56,6 +56,7 @@ class Session extends Base
 
     /**
      * @uses ENVIRONMENT
+     * @return Ilex\Base\Model\sys\Session
      */
     public function boot()
     {
@@ -74,11 +75,13 @@ class Session extends Base
                 $this->makeGuest();
             }
         }
+        return $this;
     }
 
     /**
      * Resets status.
      * @uses ENVIRONMENT
+     * @return Ilex\Base\Model\sys\Session
      */
     public function forget()
     {
@@ -89,6 +92,7 @@ class Session extends Base
         $this->start();
         $this->newSid();
         $this->makeGuest();
+        return $this;
     }
 
     /**
@@ -103,18 +107,21 @@ class Session extends Base
     /**
      * Sets guest status.
      * @uses UID, USERNAME, LOGIN
+     * @return Ilex\Base\Model\sys\Session
      */
     public function makeGuest()
     {
         $this->set($this->UID, 0);
         $this->set($this->USERNAME, 'Guest');
         $this->set($this->LOGIN, FALSE);
+        return $this;
     }
 
     /**
      * Assigns $vars to $_SESSION or $fakeSession.
      * @uses ENVIRONMENT
      * @param array $vars
+     * @return Ilex\Base\Model\sys\Session
      */
     public function assign($vars)
     {
@@ -125,6 +132,7 @@ class Session extends Base
         } else {
             $this->fakeSession = $tmp;
         }
+        return $this;
     }
 
     /**
@@ -177,12 +185,13 @@ class Session extends Base
      */
     public function set($key, $value)
     {
-        return $this->fakeSession[$key] = $value;
+        return ($this->fakeSession[$key] = $value);
     }
 
     /**
      * Starts the session.
      * @uses ENVIRONMENT, SYS_SESSNAME
+     * @return Ilex\Base\Model\sys\Session
      */
     private function start()
     {
@@ -190,5 +199,6 @@ class Session extends Base
             session_name(SYS_SESSNAME); // Defined in \Ilex\Core\Constant.
             session_start();
         }
+        return $this;
     }
 }

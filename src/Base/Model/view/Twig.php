@@ -7,7 +7,7 @@ use \Ilex\Core\Loader;
 
 /**
  * Class Twig
- * The class in charge of Twig operations.
+ * Encapsulation of Twig operations.
  * @package Ilex\Base\Model\view
  *
  * @property array                        $twigVars
