@@ -37,7 +37,6 @@ use \Ilex\Lib\Kit;
  * @method private boolean      resolveRestURI(string $description)
  * @method private              end(mixed $result)
  * @method private              pop()
- * 
  */
 class Router
 {
