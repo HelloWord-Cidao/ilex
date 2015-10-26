@@ -11,6 +11,10 @@ use \Ilex\Lib\Kit;
  * Encapsulation of session.
  * @package Ilex\Base\Model\sys
  * 
+ * @property const   string  SID
+ * @property const   string  UID
+ * @property const   string  USERNAME
+ * @property const   string  LOGIN
  * @property private boolean $booted
  * @property private array   $fakeSession
  * 
@@ -75,6 +79,13 @@ class Session extends Base
                 $this->makeGuest();
             }
         }
+        /*
+         * Now the following fields have been assigned:
+         * $this->SID
+         * $this->UID
+         * $this->USERNAME
+         * $this->LOGIN
+         */
         return $this;
     }
 

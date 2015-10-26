@@ -10,10 +10,10 @@ use \Ilex\Core\Loader;
  * Encapsulation of Twig operations.
  * @package Ilex\Base\Model\view
  *
- * @property array                        $twigVars
- * @property \Twig_Environment            $twig
- * @property \Ilex\Base\Model\sys\Input   $Input
- * @property \Ilex\Base\Model\sys\Session $Session
+ * @property protected array                        $twigVars
+ * @property protected \Twig_Environment            $twig
+ * @property protected \Ilex\Base\Model\sys\Input   $Input
+ * @property protected \Ilex\Base\Model\sys\Session $Session
  * 
  * @method public                            __construct()
  * @method public \Ilex\Base\Model\view\Twig render(string $path)
