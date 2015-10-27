@@ -13,7 +13,7 @@ use \Ilex\Lib\Kit;
  * 
  * @method public                     __construct(array $data = [])
  * @method public string              __toString()
- * @method public boolean             has()
+ * @method public boolean             has(IMPLICIT)
  * @method public mixed               __get(mixed $key)
  * @method public mixed               get(mixed $key, mixed $default = NULL)
  * @method public mixed               __set(mixed $key, mixed $value)
@@ -42,6 +42,7 @@ class Container
     }
 
     /**
+     * @param mixed $key IMPLICIT MULTIPLE
      * @return boolean
      */
     public function has()

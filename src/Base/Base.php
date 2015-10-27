@@ -8,23 +8,25 @@ use \Ilex\Core\Loader;
  * Class Base
  * @package Ilex\Base
  * 
- * @method protected object loadModel()
+ * @method protected object loadModel(IMPLICIT)
  */
 class Base
 {
     /**
      * @todo check use of this method in other project!
      * Protected method that can be called by the controllers in APPPATH/Controller.
+     * @param string $path  IMPLICIT
+     * @param mixed  $param IMPLICIT MULTIPLE
      * @return object
      */
     protected function loadModel()
     {
         $params = [];
-        foreach (func_get_args() as $index => $n) {
+        foreach (func_get_args() as $index => $value) {
             if ($index === 0) {
-                $path = $n;
+                $path = $value;
             } else {
-                $params[] = $n;
+                $params[] = $value;
             }
         }
         $name = Loader::getHandlerFromPath($path);
