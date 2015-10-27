@@ -42,6 +42,7 @@ class Container
     }
 
     /**
+     * Checks if all the params exist as keys in $this->data.
      * @param mixed $key IMPLICIT MULTIPLE
      * @return boolean
      */

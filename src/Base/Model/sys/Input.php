@@ -11,8 +11,8 @@ use \Ilex\Lib\Kit;
  * Encapsulation of system input, such as $_GET, $_POST.
  * @package Ilex\Base\Model\sys
  * 
- * @property private \Ilex\Lib\Container $get
- * @property private \Ilex\Lib\Container $post
+ * @property private \Ilex\Lib\Container $getData
+ * @property private \Ilex\Lib\Container $postData
  * 
  * @method public                            __construct()
  * @method public string                     __toString()
@@ -20,19 +20,21 @@ use \Ilex\Lib\Kit;
  * @method public \Ilex\Base\Model\sys\Input clear(string $name = '')
  * @method public mixed                      get(string $key = NULL, mixed $default = NULL)
  * @method public mixed                      post(string $key = NULL, mixed $default = NULL)
+ * @method public boolean                    hasGet(IMPLICIT)
+ * @method public boolean                    hasPost(IMPLICIT)
  */
 class Input extends Base
 {
-    private $get;
-    private $post;
+    private $getData;
+    private $postData;
 
     /**
      * Encapsulates global variables.
      */
     public function __construct()
     {
-        $this->get = new Container($_GET);
-        $this->post = new Container($_POST);
+        $this->getData = new Container($_GET);
+        $this->postData = new Container($_POST);
     }
 
     /**
@@ -41,8 +43,8 @@ class Input extends Base
     public function __toString()
     {
         return Kit::toString([
-            'get'  => $this->get,
-            'post' => $this->post
+            'get'  => $this->getData,
+            'post' => $this->postData
         ]);
     }
 
@@ -53,22 +55,24 @@ class Input extends Base
      */
     public function merge($name, $data = [])
     {
+        $name .= 'Data';
         $this->$name->merge($data);
         return $this;
     }
 
     /**
-     * If $name is NOT assigned, $get and $post both will be cleared.
+     * If $name is NOT assigned, $getData and $postData will both be cleared.
      * @param string $name
      * @return \Ilex\Base\Model\sys\Input
      */
     public function clear($name = '')
     {
         if ($name) {
+            $name .= 'Data';
             $this->$name->assign();
         } else {
-            $this->get->assign();
-            $this->post->assign();
+            $this->getData->assign();
+            $this->postData->assign();
         }
         return $this;
     }
@@ -78,8 +82,9 @@ class Input extends Base
      * @param mixed  $default
      * @return mixed
      */
-    public function get($key = NULL, $default = NULL) {
-        return $this->get->get($key, $default);
+    public function get($key = NULL, $default = NULL)
+    {
+        return $this->getData->get($key, $default);
     }
 
     /**
@@ -87,7 +92,26 @@ class Input extends Base
      * @param mixed  $default
      * @return mixed
      */
-    public function post($key = NULL, $default = NULL) {
-        return $this->post->get($key, $default);
+    public function post($key = NULL, $default = NULL)
+    {
+        return $this->postData->get($key, $default);
+    }
+
+    /**
+     * @param string $key IMPLICIT MULTIPLE
+     * @return boolean
+     */
+    public function hasGet()
+    {
+        return call_user_func_array([$this->getData, 'has'], func_get_args());
+    }
+
+    /**
+     * @param string $key IMPLICIT MULTIPLE
+     * @return boolean
+     */
+    public function hasPost()
+    {
+        return call_user_func_array([$this->postData, 'has'], func_get_args());
     }
 }
