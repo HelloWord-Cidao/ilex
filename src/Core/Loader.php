@@ -13,16 +13,17 @@ use \Ilex\Lib\Container;
  * 
  * @property private static \Ilex\Lib\Container $container
  * 
- * @method public  static                initialize(string $ILEXPATH, string $APPPATH, string $RUNTIMEPATH)
- * @method public  static string         ILEXPATH()
- * @method public  static string         APPPATH()
- * @method public  static string         RUNTIMEPATH()
- * @method public  static string         getHandlerFromPath(string $path)
- * @method public  static \MongoDB       db()
- * @method public  static object         controller(string $path, array $params = [])
- * @method public  static object         model(string $path, array $params = [])
- * @method public  static boolean        isControllerLoaded(string $path)
- * @method public  static boolean        isModelLoaded(string $path)
+ * @method public static          initialize(string $ILEXPATH, string $APPPATH, string $RUNTIMEPATH)
+ * @method public static string   ILEXPATH()
+ * @method public static string   APPPATH()
+ * @method public static string   RUNTIMEPATH()
+ * @method public static string   getHandlerFromPath(string $path)
+ * @method public static \MongoDB db()
+ * @method public static object   controller(string $path, array $params = [])
+ * @method public static object   model(string $path, array $params = [])
+ * @method public static boolean  isControllerLoaded(string $path)
+ * @method public static boolean  isModelLoaded(string $path)
+ *
  * @method private static boolean        isLoadedWithBase(string $path, string $type)
  * @method private static object         loadWithBase(string $path, string $type, array $params = [])
  * @method private static string|boolean load(string $path, string $type)

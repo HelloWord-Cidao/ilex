@@ -18,17 +18,18 @@ use \Ilex\Lib\Kit;
  * @property private boolean $cancelled
  * @property private         $result
  * 
- * @method public                   __construct(string $method, string $uri)
- * @method public  string           __string()
- * @method public                   __call(string $name, array $arguments)
+ * @method public          __construct(string $method, string $uri)
+ * @method public  string  __string()
+ * @method public          __call(string $name, array $arguments)
  * Methods derived from __call():
- *   @method public                 any       (string $description, mixed $handler, string $function = NULL)
- *   @method public                 get       (string $description, mixed $handler, string $function = NULL)
- *   @method public                 post      (string $description, mixed $handler, string $function = NULL)
- *   @method public                 controller(string $description, string $handler)
- *   @method public                 group     (string $description, callable $handler)
- * @method public  mixed            result()
- * @method public  boolean          back()
+ *   @method public        any       (string $description, mixed $handler, string $function = NULL)
+ *   @method public        get       (string $description, mixed $handler, string $function = NULL)
+ *   @method public        post      (string $description, mixed $handler, string $function = NULL)
+ *   @method public        controller(string $description, string $handler)
+ *   @method public        group     (string $description, callable $handler)
+ * @method public  mixed   result()
+ * @method public  boolean back()
+ *
  * @method private boolean          fitGeneral(string $description, mixed $handler, string $function = NULL)
  * @method private string           getPattern(string $description)
  * @method private Ilex\Core\Router merge(array $vars)

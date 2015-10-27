@@ -12,7 +12,6 @@ namespace Ilex\Core;
  */
 class Http
 {
-
     /**
      * @uses ENVIRONMENT
      * @param string $url

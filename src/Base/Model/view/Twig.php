@@ -10,10 +10,11 @@ use \Ilex\Core\Loader;
  * Encapsulation of Twig operations.
  * @package Ilex\Base\Model\view
  *
- * @property protected array                        $twigVars
- * @property protected \Twig_Environment            $twig
  * @property protected \Ilex\Base\Model\sys\Input   $Input
  * @property protected \Ilex\Base\Model\sys\Session $Session
+ *
+ * @property private array             $twigVars
+ * @property private \Twig_Environment $twig
  * 
  * @method public                            __construct()
  * @method public \Ilex\Base\Model\view\Twig render(string $path)
@@ -22,10 +23,11 @@ use \Ilex\Core\Loader;
  */
 class Twig extends Base
 {
-    protected $twigVars = [];
-    protected $twig     = NULL;
     protected $Input    = NULL;
     protected $Session  = NULL;
+
+    private $twigVars = [];
+    private $twig     = NULL;
 
     public function __construct()
     {

@@ -9,18 +9,20 @@ use \Ilex\Core\Loader;
  * Encapsulation of database operations.
  * @package Ilex\Base\Model\db
  *
- * @property protected string           $collectionName
- * @property public    \MongoCollection $collection
+ * @property public \MongoCollection $collection
+ *
+ * @property protected string $collectionName
  * 
- * @method public                 __construct()
- * @method public    array|object find(array $criterion = [], array $projection = [], boolean $toArray = TRUE)
- * @method protected array        setRetractId(array $data)
- * @method protected mixed        getId(mixed $id)
+ * @method public              __construct()
+ * @method public array|object find(array $criterion = [], array $projection = [], boolean $toArray = TRUE)
+ *
+ * @method protected array setRetractId(array $data)
+ * @method protected mixed getId(mixed $id)
  */
 class Base extends \Ilex\Base\Model\Base
 {
-    protected $collectionName; // @todo: where is it assigned?
     public    $collection;     // @todo: Do NOT expose this! Change to protected!
+    protected $collectionName; // @todo: where is it assigned?
 
     public function __construct()
     {

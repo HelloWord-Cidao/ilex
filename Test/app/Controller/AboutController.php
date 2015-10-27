@@ -6,7 +6,7 @@ namespace app\Controller;
  * Class AboutController
  * @package app\Controller
  *
- * @property protected \Ilex\Base\Model\sys\Input $Input
+ * @property private \Ilex\Base\Model\sys\Input $Input
  * 
  * @method public index()
  * @method public join(string $group = 'tech')
@@ -14,7 +14,7 @@ namespace app\Controller;
  */
 class AboutController extends \Ilex\Base\Controller\Base
 {
-    protected $Input = NULL;
+    private $Input = NULL;
 
     public function index()
     {

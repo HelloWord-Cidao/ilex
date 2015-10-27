@@ -11,26 +11,28 @@ use \Ilex\Lib\Kit;
  * Encapsulation of session.
  * @package Ilex\Base\Model\sys
  * 
- * @property const   string  SID
- * @property const   string  UID
- * @property const   string  USERNAME
- * @property const   string  LOGIN
+ * @property const string SID
+ * @property const string UID
+ * @property const string USERNAME
+ * @property const string LOGIN
+ *
  * @property private boolean $booted
  * @property private array   $fakeSession
  * 
- * @method public                                __construct()
- * @method public    string                      __toString()
- * @method public    Ilex\Base\Model\sys\Session boot()
- * @method public    Ilex\Base\Model\sys\Session forget()
- * @method public    string                      newSid()
- * @method public    Ilex\Base\Model\sys\Session makeGuest()
- * @method public    Ilex\Base\Model\sys\Session assign(array $vars)
- * @method public    boolean                     has(string $key)
- * @method public    mixed                       __get(string $key)
- * @method public    mixed                       get(string|boolean $key = FALSE, mixed $default = FALSE)
- * @method public    mixed                       __set(string $key, mixed $value)
- * @method public    mixed                       set(string $key, mixed $value)
- * @method private   Ilex\Base\Model\sys\Session start()
+ * @method public                             __construct()
+ * @method public string                      __toString()
+ * @method public Ilex\Base\Model\sys\Session boot()
+ * @method public Ilex\Base\Model\sys\Session forget()
+ * @method public string                      newSid()
+ * @method public Ilex\Base\Model\sys\Session makeGuest()
+ * @method public Ilex\Base\Model\sys\Session assign(array $vars)
+ * @method public boolean                     has(string $key)
+ * @method public mixed                       __get(string $key)
+ * @method public mixed                       get(string|boolean $key = FALSE, mixed $default = FALSE)
+ * @method public mixed                       __set(string $key, mixed $value)
+ * @method public mixed                       set(string $key, mixed $value)
+ *
+ * @method private Ilex\Base\Model\sys\Session start()
  */
 class Session extends Base
 {
