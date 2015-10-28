@@ -14,14 +14,14 @@ use \Ilex\Lib\Kit;
  * @property private \Ilex\Lib\Container $getData
  * @property private \Ilex\Lib\Container $postData
  * 
- * @method public                            __construct()
- * @method public string                     __toString()
- * @method public \Ilex\Base\Model\sys\Input merge(string $name, array $data = [])
- * @method public \Ilex\Base\Model\sys\Input clear(string $name = '')
- * @method public mixed                      get(string $key = NULL, mixed $default = NULL)
- * @method public mixed                      post(string $key = NULL, mixed $default = NULL)
- * @method public boolean                    hasGet(IMPLICIT)
- * @method public boolean                    hasPost(IMPLICIT)
+ * @method public         __construct()
+ * @method public string  __toString()
+ * @method public this    merge(string $name, array $data = [])
+ * @method public this    clear(string $name = '')
+ * @method public mixed   get(string $key = NULL, mixed $default = NULL)
+ * @method public mixed   post(string $key = NULL, mixed $default = NULL)
+ * @method public boolean hasGet(IMPLICIT)
+ * @method public boolean hasPost(IMPLICIT)
  */
 class Input extends Base
 {
@@ -51,7 +51,7 @@ class Input extends Base
     /**
      * @param string $name
      * @param array  $data
-     * @return \Ilex\Base\Model\sys\Input
+     * @return this
      */
     public function merge($name, $data = [])
     {
@@ -63,7 +63,7 @@ class Input extends Base
     /**
      * If $name is NOT assigned, $getData and $postData will both be cleared.
      * @param string $name
-     * @return \Ilex\Base\Model\sys\Input
+     * @return this
      */
     public function clear($name = '')
     {

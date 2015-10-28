@@ -11,15 +11,15 @@ use \Ilex\Lib\Kit;
  * 
  * @property private array $data
  * 
- * @method public                     __construct(array $data = [])
- * @method public string              __toString()
- * @method public boolean             has(IMPLICIT)
- * @method public mixed               __get(mixed $key)
- * @method public mixed               get(mixed $key, mixed $default = NULL)
- * @method public mixed               __set(mixed $key, mixed $value)
- * @method public mixed               set(mixed $key, mixed $value)
- * @method public \Ilex\Lib\Container merge(array $data)
- * @method public \Ilex\Lib\Container assign(array $data = [])
+ * @method public         __construct(array $data = [])
+ * @method public string  __toString()
+ * @method public boolean has(IMPLICIT)
+ * @method public mixed   __get(mixed $key)
+ * @method public mixed   get(mixed $key, mixed $default = NULL)
+ * @method public mixed   __set(mixed $key, mixed $value)
+ * @method public mixed   set(mixed $key, mixed $value)
+ * @method public this    merge(array $data)
+ * @method public this    assign(array $data = [])
  */
 class Container
 {
@@ -99,7 +99,7 @@ class Container
 
     /**
      * @param array $data
-     * @return \Ilex\Lib\Container
+     * @return this
      */
     public function merge($data)
     {
@@ -109,7 +109,7 @@ class Container
 
     /**
      * @param array $data
-     * @return \Ilex\Lib\Container
+     * @return this
      */
     public function assign($data = [])
     {
