@@ -100,10 +100,10 @@ class Loader
             return self::get('db');
         } else {
             $mongo = new \MongoClient(SVR_MONGO_HOST . ':' . SVR_MONGO_PORT, [
-                'username'          => SVR_MONGO_USER,
-                'password'          => SVR_MONGO_PASS,
-                'db'                => SVR_MONGO_DB,
-                'connectTimeoutMS'  => SVR_MONGO_TIMEOUT
+                'username'         => SVR_MONGO_USER,
+                'password'         => SVR_MONGO_PASS,
+                'db'               => SVR_MONGO_DB,
+                'connectTimeoutMS' => SVR_MONGO_TIMEOUT
             ]);
             return self::set('db', $mongo->selectDB(SVR_MONGO_DB));
         }

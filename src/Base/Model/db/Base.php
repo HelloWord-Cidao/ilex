@@ -14,7 +14,7 @@ use \Ilex\Core\Loader;
  * @property protected string $collectionName
  * 
  * @method public              __construct()
- * @method public array|object find(array $criterion = [], array $projection = [], boolean $toArray = TRUE)
+ * @method public array|\MongoCursor find(array $criterion = [], array $projection = [], boolean $toArray = TRUE)
  *
  * @method protected array setRetractId(array $data)
  * @method protected mixed getId(mixed $id)
@@ -34,7 +34,7 @@ class Base extends \Ilex\Base\Model\Base
      * @param array   $criterion
      * @param array   $projection
      * @param boolean $toArray
-     * @return array|object
+     * @return array|\MongoCursor
      */
     public function find($criterion = [], $projection = [], $toArray = TRUE)
     {
