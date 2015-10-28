@@ -13,7 +13,6 @@ use \Ilex\Core\Loader;
 class Base
 {
     /**
-     * @todo check use of this method in other project!
      * Protected method that can be called by the controllers in APPPATH/Controller.
      * @param string $path  IMPLICIT
      * @param mixed  $param IMPLICIT MULTIPLE
@@ -31,9 +30,7 @@ class Base
         }
         $name = Loader::getHandlerFromPath($path);
         /**
-         * @todo definitely Loader::model()? not Loader::controller()?
-         * maybe should implement loadController(),
-         * and add suffix to $name, i.e., 'About' => 'AboutController'?
+         * @todo maybe should add suffix to $name, i.e., 'Session' => 'SessionModel'?
          */
         return is_null($this->$name) ? ($this->$name = Loader::model($path, $params)) : $this->$name;
     }

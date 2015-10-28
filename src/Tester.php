@@ -50,8 +50,7 @@ class Tester
         ]]);
         self::$Input->clear()->merge('post', $postData)->merge('get', $getData);
         Kit::log([__METHOD__, ['self::$Input' => self::$Input]]);
-        // @todo: what?
-        // $_SERVER['REQUEST_URI'] =  ENV_HOST . '/' . $url;
+        // $_SERVER['REQUEST_URI'] =  ENV_HOST . '/' . $url; // @todo: what?
         return Autoloader::resolve($method, $url);
     }
 }

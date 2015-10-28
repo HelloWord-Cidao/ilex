@@ -19,7 +19,6 @@ class Autoloader
 {
     /**
      * @todo check inheritance of Autoloader! static:: or self:: ?
-     * @todo where should the model 'sys/Input' be loaded?
      * @param string $APPPATH
      * @param string $RUNTIMEPATH
      * @return string

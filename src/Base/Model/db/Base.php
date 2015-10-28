@@ -21,8 +21,9 @@ use \Ilex\Core\Loader;
  */
 class Base extends \Ilex\Base\Model\Base
 {
-    public    $collection;     // @todo: Do NOT expose this! Change to protected!
-    protected $collectionName; // @todo: where is it assigned?
+    public $collection; // @todo: Do NOT expose this! Change to protected!
+
+    protected $collectionName;
 
     public function __construct()
     {

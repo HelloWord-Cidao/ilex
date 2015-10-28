@@ -208,10 +208,9 @@ class Router
                     'function' => is_null($function) ? 'index' : $function,
                     'params'   => $this->params
                 ]]);
-                // @todo: definitely Loader::controller()? not Loader::model()?
                 $this->end(
                     call_user_func_array([
-                        is_string($handler) ? Loader::controller($handler) : $handler,
+                        is_string($handler) ? Loader::controller($handler) : $handler, // The controller is loaded HERE!
                         is_null($function) ? 'index' : $function // The default function is method 'index' of the handler.
                     ], $this->params)
                 );
@@ -296,10 +295,11 @@ class Router
             'params'   => $params
         ]]);
         
+        // The controller is loaded HERE!
         $controller  = Loader::controller($handler); // eg. \AboutController
         $combination = strtolower($this->method) . Kit::strToTitle($function); // eg. 'postJoin'
         Kit::log([__METHOD__, ['controller' => $controller, 'combination' => $combination]]);
-        // @TODO: possibly conflict!?
+        // @TODO: possibly conflict!? Test cases concerned with the default method: 'get'!
         if (method_exists($controller, $combination)) { // eg. AboutController::postJoin().
             Kit::log([__METHOD__, 'method_exists($controller, $combination)'], FALSE);
             $fn = $combination;
