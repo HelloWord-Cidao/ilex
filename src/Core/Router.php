@@ -242,8 +242,8 @@ class Router
                 '(any)' => '([^/]+?)',
                 '(num)' => '([0-9]+?)',
                 '(all)' => '(.+?)'
-            ] as $k => $v) {
-            $description = str_replace($k, $v, $description);
+            ] as $key => $value) {
+            $description = str_replace($key, $value, $description);
         }
         return '@^' . $description . '$@';
     }

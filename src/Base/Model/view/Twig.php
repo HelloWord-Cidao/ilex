@@ -19,7 +19,7 @@ use \Ilex\Core\Loader;
  * @method public       __construct()
  * @method public       render(string $path)
  * @method public       assign(array $vars)
- * @method public mixed let(mixed $k, mixed $v)
+ * @method public mixed let(mixed $key, mixed $value)
  */
 class Twig extends Base
 {
@@ -66,12 +66,12 @@ class Twig extends Base
     }
 
     /**
-     * @param mixed $k
-     * @param mixed $v
+     * @param mixed $key
+     * @param mixed $value
      * @return mixed
      */
-    public function let($k, $v)
+    public function let($key, $value)
     {
-        return ($this->twigVars[$k] = $v);
+        return ($this->twigVars[$key] = $value);
     }
 }

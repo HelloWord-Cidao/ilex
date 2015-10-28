@@ -28,10 +28,10 @@ use \Ilex\Lib\Container;
  * @method private static object         loadWithBase(string $path, string $type, array $params = [])
  * @method private static string|boolean load(string $path, string $type)
  * @method private static object         createInstance(string $class, array $params)
- * @method private static boolean        has(mixed $k)
- * @method private static mixed          get(mixed $k)
- * @method private static mixed          set(mixed $k, mixed $v)
- * @method private static mixed          setSet(mixed $k, mixed $kk, mixed $v)
+ * @method private static boolean        has(mixed $key)
+ * @method private static mixed          get(mixed $key)
+ * @method private static mixed          set(mixed $key, mixed $value)
+ * @method private static mixed          setSet(mixed $key, mixed $keyKey, mixed $value)
  */
 class Loader
 {
@@ -229,42 +229,42 @@ class Loader
     }
 
     /**
-     * @param mixed $k
+     * @param mixed $key
      * @return boolean
      */
-    private static function has($k)
+    private static function has($key)
     {
-        return self::$container->has($k);
+        return self::$container->has($key);
     }
     /**
-     * @param mixed $k
+     * @param mixed $key
      * @return mixed
      */
-    private static function get($k)
+    private static function get($key)
     {
-        return self::$container->get($k);
-    }
-
-    /**
-     * @param mixed $k
-     * @param mixed $v
-     * @return mixed
-     */
-    private static function set($k, $v)
-    {
-        return self::$container->set($k, $v);
+        return self::$container->get($key);
     }
 
     /**
-     * @param mixed $k
-     * @param mixed $kk
-     * @param mixed $v
+     * @param mixed $key
+     * @param mixed $value
      * @return mixed
      */
-    private static function setSet($k, $kk, $v)
+    private static function set($key, $value)
+    {
+        return self::$container->set($key, $value);
+    }
+
+    /**
+     * @param mixed $key
+     * @param mixed $keyKey
+     * @param mixed $value
+     * @return mixed
+     */
+    private static function setSet($key, $keyKey, $value)
     {
         // If the existence is not guaranteed, it will throw an exception.
-        return self::$container->get($k)->set($kk, $v);
+        return self::$container->get($key)->set($keyKey, $value);
     }
 }
 
