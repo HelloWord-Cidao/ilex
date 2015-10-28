@@ -30,14 +30,14 @@ use \Ilex\Lib\Kit;
  * @method public  mixed   result()
  * @method public  boolean back()
  *
- * @method private boolean          fitGeneral(string $description, mixed $handler, string $function = NULL)
- * @method private string           getPattern(string $description)
- * @method private Ilex\Core\Router merge(array $vars)
- * @method private boolean          fitController(string $description, string $handler)
- * @method private array|string     getFunction(string $uri)
- * @method private boolean          resolveRestURI(string $description)
- * @method private Ilex\Core\Router end(mixed $result)
- * @method private Ilex\Core\Router pop()
+ * @method private boolean      fitGeneral(string $description, mixed $handler, string $function = NULL)
+ * @method private string       getPattern(string $description)
+ * @method private              merge(array $vars)
+ * @method private boolean      fitController(string $description, string $handler)
+ * @method private array|string getFunction(string $uri)
+ * @method private boolean      resolveRestURI(string $description)
+ * @method private              end(mixed $result)
+ * @method private              pop()
  */
 class Router
 {
@@ -251,13 +251,11 @@ class Router
 
     /**
      * @param array $var
-     * @return Ilex\Core\Router
      */
     private function merge($vars)
     {
         // The only place where $this->params is updated.
         $this->params = array_merge($this->params, $vars);
-        return $this;
     }
 
     /**
@@ -407,7 +405,6 @@ class Router
 
     /**
      * @param mixed $result
-     * @return Ilex\Core\Router
      */
     private function end($result)
     {
@@ -421,17 +418,12 @@ class Router
             $this->result = $result;
         }
         Kit::log([__METHOD__, ['this' => $this]]);
-        return $this;
     }
 
-    /**
-     * @return Ilex\Core\Router
-     */
     private function pop()
     {
         // The last of three places where $this->uri is assigned.
         // The last of two places where $this->uris is updated.
         $this->uri = array_pop($this->uris);
-        return $this;
     }
 }

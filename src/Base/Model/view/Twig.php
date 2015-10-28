@@ -16,10 +16,10 @@ use \Ilex\Core\Loader;
  * @property private array             $twigVars
  * @property private \Twig_Environment $twig
  * 
- * @method public                            __construct()
- * @method public \Ilex\Base\Model\view\Twig render(string $path)
- * @method public \Ilex\Base\Model\view\Twig assign(array $vars)
- * @method public mixed                      let(mixed $k, mixed $v)
+ * @method public       __construct()
+ * @method public       render(string $path)
+ * @method public       assign(array $vars)
+ * @method public mixed let(mixed $k, mixed $v)
  */
 class Twig extends Base
 {
@@ -51,22 +51,18 @@ class Twig extends Base
 
     /**
      * @param string $path
-     * @return \Ilex\Base\Model\view\Twig
      */
     public function render($path)
     {
         echo($this->twig->render($path . '.twig', $this->twigVars));
-        return $this;
     }
 
     /**
      * @param array $vars
-     * @return \Ilex\Base\Model\view\Twig
      */
     public function assign($vars)
     {
         $this->twigVars = array_merge($this->twigVars, $vars);
-        return $this;
     }
 
     /**
