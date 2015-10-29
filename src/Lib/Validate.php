@@ -17,8 +17,8 @@ namespace Ilex\Lib;
  * @method public static boolean        re(mixed $value, array $rule)
  * More methods ignored.
  * 
- * @method public static boolean        is_int(mixed $value)
- * @method public static boolean        is_float(mixed $value)
+ * @method public static boolean        isInt(mixed $value)
+ * @method public static boolean        isFloat(mixed $value)
  */
 class Validate
 {
@@ -201,7 +201,7 @@ class Validate
      * @param mixed $value
      * @return boolean
      */
-    public static function is_int($value)
+    public static function isInt($value)
     {
         if (is_int($value)) {
             return TRUE;
@@ -216,7 +216,7 @@ class Validate
      * @param mixed $value
      * @return boolean
      */
-    public static function is_float($value)
+    public static function isFloat($value)
     {
         if (is_float($value) OR is_int($value)) {
             return TRUE;
