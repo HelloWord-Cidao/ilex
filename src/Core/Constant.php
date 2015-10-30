@@ -43,7 +43,7 @@ class Constant
         ];
         require_once(Loader::APPPATH() . 'Config/Const.php');
         foreach ($constants as $name => $value) {
-            if (!defined($name)) {
+            if (defined($name) === FALSE) {
                 define($name, $value);
             }
         }

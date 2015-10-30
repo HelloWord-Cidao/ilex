@@ -47,7 +47,7 @@ class Validate
             /**
              * @todo: what?
              */
-            if (!isset($values[$name])) {
+            if (isset($values[$name]) === FALSE) {
                 if (isset($rulePackage['default'])) {
                     $values[$name] = $rulePackage['default'];
                 } else {

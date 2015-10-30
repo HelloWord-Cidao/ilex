@@ -49,7 +49,7 @@ class Container
     public function has()
     {
         foreach (func_get_args() as $key) {
-            if (!isset($this->data[$key])) {
+            if (isset($this->data[$key]) === FALSE) {
                 return FALSE;
             }
         }

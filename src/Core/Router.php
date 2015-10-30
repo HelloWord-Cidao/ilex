@@ -85,7 +85,7 @@ class Router
      */
     public function __call($name, $arguments)
     {
-        if (!$this->settled) {
+        if ($this->settled === FALSE) {
             Kit::log([__METHOD__, [
                 'settled' => $this->settled,
                 'method'  => $this->method,
@@ -108,7 +108,7 @@ class Router
                  *     $this->uris  : []
                  *     $description : '/about'
                  */
-                if (!$this->resolveRestURI($description)) {
+                if ($this->resolveRestURI($description) === FALSE) {
                 // $description IS NOT a prefix of $this->uri, CAN NOT FIT!
                     Kit::log([__METHOD__, '$description IS NOT a prefix of $this->uri, CAN NOT FIT!']);
                     return;
@@ -200,7 +200,7 @@ class Router
             Kit::log([__METHOD__, 'after merge', ['params' => $this->params]]);
             // eg. $this->params : ['12']
             
-            if (is_string($handler) OR !($handler instanceof \Closure)) {
+            if (is_string($handler) OR ($handler instanceof \Closure) === FALSE) {
             // $handler is a string or IS NOT an anonymous function, i.e., an instance.
                 Kit::log([__METHOD__, '$handler is a string or IS NOT an anonymous function, i.e., an instance.'], FALSE);
                 Kit::log([__METHOD__, 'call end', [

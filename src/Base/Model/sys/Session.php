@@ -65,7 +65,7 @@ class Session extends Base
      */
     public function boot()
     {
-        if (!$this->booted) {
+        if ($this->booted === FALSE) {
             $this->start();
             $this->booted = TRUE;
             if (ENVIRONMENT !== 'TEST') {
@@ -73,10 +73,10 @@ class Session extends Base
             } else {
                 $this->fakeSession = [];
             }
-            if (!$this->has($this->SID)) {
+            if ($this->has($this->SID) === FALSE) {
                 $this->newSid();
             }
-            if (!$this->has($this->UID)) {
+            if ($this->has($this->UID) === FALSE) {
                 $this->makeGuest();
             }
         }

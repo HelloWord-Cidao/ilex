@@ -116,7 +116,7 @@ class Kit
             
         }
         else if ($data instanceof \Closure) return '\Closure';
-        else if (is_object($data) AND !method_exists($data, '__toString'))
+        else if (is_object($data) AND method_exists($data, '__toString') === FALSE)
             return '\Object' . '(' . get_class($data) . ')';
         else if (is_bool($data)) return $data ? 'TRUE' : 'FALSE';
         else if (is_null($data)) return 'NULL';
@@ -131,7 +131,7 @@ class Kit
      */
     public static function isDict($array)
     {
-        if (!is_array($array)) return FALSE;
+        if (is_array($array) === FALSE) return FALSE;
         if (count($array) === 0) return TRUE;
         return !self::isList($array);
     }
@@ -143,7 +143,7 @@ class Kit
      */
     public static function isList($array)
     {
-        if (!is_array($array)) return FALSE;
+        if (is_array($array) === FALSE) return FALSE;
         if (count($array) === 0) return TRUE;
         return array_keys($array) === range(0, count($array) - 1);
     }
