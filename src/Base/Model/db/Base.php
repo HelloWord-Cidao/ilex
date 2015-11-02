@@ -13,11 +13,11 @@ use \Ilex\Core\Loader;
  *
  * @property protected string $collectionName
  * 
- * @method public              __construct()
+ * @method public                    __construct()
  * @method public array|\MongoCursor find(array $criterion = [], array $projection = [], boolean $toArray = TRUE)
  *
- * @method protected array setRetractId(array $data)
  * @method protected mixed getId(mixed $id)
+ * @method protected array setRetractId(array $data)
  */
 class Base extends \Ilex\Base\Model\Base
 {
@@ -44,19 +44,6 @@ class Base extends \Ilex\Base\Model\Base
     }
 
     /**
-     * Normalizes _id in $data.
-     * @param array $data
-     * @return array
-     */
-    protected function setRetractId($data)
-    {
-        if (isset($data['_id'])) {
-            $data['_id'] = $this->getId($data['_id']);
-        }
-        return $data;
-    }
-
-    /**
      * Normalizes $id.
      * @param mixed $id
      * @return mixed
@@ -72,5 +59,18 @@ class Base extends \Ilex\Base\Model\Base
         } else {
             return $id;
         }
+    }
+
+    /**
+     * Normalizes _id in $data.
+     * @param array $data
+     * @return array
+     */
+    protected function setRetractId($data)
+    {
+        if (isset($data['_id'])) {
+            $data['_id'] = $this->getId($data['_id']);
+        }
+        return $data;
     }
 }

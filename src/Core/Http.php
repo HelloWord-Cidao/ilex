@@ -7,11 +7,19 @@ namespace Ilex\Core;
  * The class in charge of http operations.
  * @package Ilex\Core
  * 
- * @method public static redirect(string $url)
  * @method public static json(mixed $data)
+ * @method public static redirect(string $url)
  */
 class Http
 {
+    /**
+     * @param mixed $data
+     */
+    public static function json($data)
+    {
+        echo(json_encode($data));
+    }
+
     /**
      * @uses ENVIRONMENT
      * @param string $url
@@ -21,13 +29,5 @@ class Http
         if (ENVIRONMENT !== 'TEST') {
             header('Location: ' . $url);
         }
-    }
-
-    /**
-     * @param mixed $data
-     */
-    public static function json($data)
-    {
-        echo(json_encode($data));
     }
 }

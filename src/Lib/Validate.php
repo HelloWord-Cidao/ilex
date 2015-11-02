@@ -23,14 +23,14 @@ namespace Ilex\Lib;
 class Validate
 {
     public static $patterns = [
-        'alpha'     => '/^[\pL\pM]+$/u',
-        'alpha_num' => '/^[\pL\pM\pN]+$/u',
         'aA'        => '/^[a-z]+$/i',
         'aA0'       => '/^[a-z0-9]+$/i',
-        'chinese'   => '/^[\x{4e00}-\x{9fa5}]+$/u',
+        'alpha'     => '/^[\pL\pM]+$/u',
+        'alpha_num' => '/^[\pL\pM\pN]+$/u',
         'captcha'   => '/^[a-z0-9]{4}$/i',
-        'mobile'    => '/^1[3-9][0-9]{9}$/',
+        'chinese'   => '/^[\x{4e00}-\x{9fa5}]+$/u',
         'email'     => '/([a-z0-9]*[-_\.]?[a-z0-9]+)*@([a-z0-9]*[-_]?[a-z0-9]+)+[\.][a-z]{2,3}([\.][a-z]{2})?/i',
+        'mobile'    => '/^1[3-9][0-9]{9}$/',
     ];
 
     /**

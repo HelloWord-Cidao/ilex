@@ -16,12 +16,12 @@ use \Ilex\Lib\Kit;
  * 
  * @method public         __construct()
  * @method public string  __toString()
- * @method public this    merge(string $name, array $data = [])
  * @method public this    clear(string $name = '')
  * @method public mixed   get(string $key = NULL, mixed $default = NULL)
- * @method public mixed   post(string $key = NULL, mixed $default = NULL)
  * @method public boolean hasGet(IMPLICIT)
  * @method public boolean hasPost(IMPLICIT)
+ * @method public this    merge(string $name, array $data = [])
+ * @method public mixed   post(string $key = NULL, mixed $default = NULL)
  */
 class Input extends Base
 {
@@ -46,18 +46,6 @@ class Input extends Base
             'get'  => $this->getData,
             'post' => $this->postData
         ]);
-    }
-
-    /**
-     * @param string $name
-     * @param array  $data
-     * @return this
-     */
-    public function merge($name, $data = [])
-    {
-        $name .= 'Data';
-        $this->$name->merge($data);
-        return $this;
     }
 
     /**
@@ -88,16 +76,6 @@ class Input extends Base
     }
 
     /**
-     * @param string $key
-     * @param mixed  $default
-     * @return mixed
-     */
-    public function post($key = NULL, $default = NULL)
-    {
-        return $this->postData->get($key, $default);
-    }
-
-    /**
      * @param string $key IMPLICIT MULTIPLE
      * @return boolean
      */
@@ -113,5 +91,27 @@ class Input extends Base
     public function hasPost()
     {
         return call_user_func_array([$this->postData, 'has'], func_get_args());
+    }
+
+    /**
+     * @param string $name
+     * @param array  $data
+     * @return this
+     */
+    public function merge($name, $data = [])
+    {
+        $name .= 'Data';
+        $this->$name->merge($data);
+        return $this;
+    }
+
+    /**
+     * @param string $key
+     * @param mixed  $default
+     * @return mixed
+     */
+    public function post($key = NULL, $default = NULL)
+    {
+        return $this->postData->get($key, $default);
     }
 }

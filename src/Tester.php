@@ -43,10 +43,10 @@ class Tester
     public static function run($url = '/', $method = 'GET', $postData = [], $getData = [])
     {
         Kit::log([__METHOD__, [
-            'url'      => $url,
+            'getData'  => $getData,
             'method'   => $method,
             'postData' => $postData,
-            'getData'  => $getData
+            'url'      => $url,
         ]]);
         self::$Input->clear()->merge('post', $postData)->merge('get', $getData);
         Kit::log([__METHOD__, ['self::$Input' => self::$Input]]);

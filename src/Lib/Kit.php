@@ -8,13 +8,13 @@ namespace Ilex\Lib;
  * @package Ilex\Lib
  * 
  * @method public static string         escape(string $data)
- * @method public static string         time(int|boolean $time = FALSE, string $format = 'Y-m-d H:i:s')
  * @method public static string         getRealPath(string $path)
- * @method public static                log(mixed $data, boolean $quotationMarks = TRUE, string $env = 'TEST')
- * @method public static string         toString(mixed $data, boolean $quotationMarks = TRUE)
  * @method public static boolean        isDict(array $array)
  * @method public static boolean        isList(array $array)
+ * @method public static                log(mixed $data, boolean $quotationMarks = TRUE, string $env = 'TEST')
  * @method public static string|boolean strToTitle($string)
+ * @method public static string         time(int|boolean $time = FALSE, string $format = 'Y-m-d H:i:s')
+ * @method public static string         toString(mixed $data, boolean $quotationMarks = TRUE)
  */
 class Kit
 {
@@ -26,20 +26,6 @@ class Kit
     public static function escape($data)
     {
         return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
-    }
-
-    /**
-     * Converts time and returns it.
-     * @param int|boolean $time
-     * @param string      $format
-     * @return string
-     */
-    public static function time($time = FALSE, $format = 'Y-m-d H:i:s')
-    {
-        if ($time === FALSE) {
-            $time = time();
-        }
-        return date($format, $time);
     }
 
     /**
@@ -56,6 +42,30 @@ class Kit
             $path = rtrim($path, '/') . '/';
         }
         return $path;
+    }
+
+    /**
+     * Checks whether an array is a dict.
+     * @param array $array
+     * @return boolean
+     */
+    public static function isDict($array)
+    {
+        if (is_array($array) === FALSE) return FALSE;
+        if (count($array) === 0) return TRUE;
+        return !self::isList($array);
+    }
+
+    /**
+     * Checks whether an array is a list.
+     * @param array $array
+     * @return boolean
+     */
+    public static function isList($array)
+    {
+        if (is_array($array) === FALSE) return FALSE;
+        if (count($array) === 0) return TRUE;
+        return array_keys($array) === range(0, count($array) - 1);
     }
 
     /**
@@ -79,6 +89,32 @@ class Kit
             }
             echo $result;
         }
+    }
+
+    /**
+     * @param string $string
+     * @return string|boolean
+     */
+    public static function strToTitle($string)
+    {
+        if (is_string($string)) {
+            if (strlen($string) === 0) return $string;
+            return strtoupper(substr($string, 0, 1)) . substr($string, 1);
+        } else return FALSE;
+    }
+
+    /**
+     * Converts time and returns it.
+     * @param int|boolean $time
+     * @param string      $format
+     * @return string
+     */
+    public static function time($time = FALSE, $format = 'Y-m-d H:i:s')
+    {
+        if ($time === FALSE) {
+            $time = time();
+        }
+        return date($format, $time);
     }
 
     /**
@@ -122,41 +158,5 @@ class Kit
         else if (is_null($data)) return 'NULL';
         else if (is_string($data)) return $quotationMarks ? ('\'' . $data . '\'') : $data;
         else return strval($data);
-    }
-
-    /**
-     * Checks whether an array is a dict.
-     * @param array $array
-     * @return boolean
-     */
-    public static function isDict($array)
-    {
-        if (is_array($array) === FALSE) return FALSE;
-        if (count($array) === 0) return TRUE;
-        return !self::isList($array);
-    }
-
-    /**
-     * Checks whether an array is a list.
-     * @param array $array
-     * @return boolean
-     */
-    public static function isList($array)
-    {
-        if (is_array($array) === FALSE) return FALSE;
-        if (count($array) === 0) return TRUE;
-        return array_keys($array) === range(0, count($array) - 1);
-    }
-
-    /**
-     * @param string $string
-     * @return string|boolean
-     */
-    public static function strToTitle($string)
-    {
-        if (is_string($string)) {
-            if (strlen($string) === 0) return $string;
-            return strtoupper(substr($string, 0, 1)) . substr($string, 1);
-        } else return FALSE;
     }
 }
