@@ -209,9 +209,11 @@ class Router
         Kit::log([__METHOD__, ['this' => $this]]);
 
         $function = self::getFunction($this->uri);
+        Kit::log([__METHOD__, ['function' => $function]]);
         if (is_array($function)) {
-            $function = $function[0];
+            // CAN NOT change order!
             $params   = $function[1];
+            $function = $function[0];
         } else {
             $params = [];
         }
