@@ -1,6 +1,6 @@
 <?php
 
-namespace Ilex\Base\Model\view;
+namespace Ilex\Base\Model\View;
 
 use \Ilex\Base\Model\Base;
 use \Ilex\Core\Loader;
@@ -8,9 +8,9 @@ use \Ilex\Core\Loader;
 /**
  * Class Twig
  * Encapsulation of Twig operations.
- * @package Ilex\Base\Model\view
+ * @package Ilex\Base\Model\View
  *
- * @property protected \Ilex\Base\Model\sys\Input $Input
+ * @property protected \Ilex\Base\Model\System\Input $Input
  *
  * @property private \Twig_Environment $twig
  * @property private array             $twigVars
@@ -43,7 +43,7 @@ class Twig extends Base
             'title_suffix' => CFG_TITLE_SUFFIX, // Should be defined in APPPATH/Config/Const.php.
             'tpl_dir'      => 'static/',
         ));
-        $this->loadModel('sys/Input');
+        $this->loadModel('System/Input');
         $this->assign([
             'GET'  => $this->Input->get(),  // array
             'POST' => $this->Input->post(), // array

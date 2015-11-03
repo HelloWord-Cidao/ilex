@@ -1,6 +1,6 @@
 <?php
 
-namespace Ilex\Base\Model\sys;
+namespace Ilex\Base\Model\System;
 
 use \Ilex\Base\Model\Base;
 use \Ilex\Lib\Container;
@@ -9,7 +9,7 @@ use \Ilex\Lib\Kit;
 /**
  * Class Session
  * Encapsulation of session.
- * @package Ilex\Base\Model\sys
+ * @package Ilex\Base\Model\System
  * 
  * @property const string LOGIN
  * @property const string SID

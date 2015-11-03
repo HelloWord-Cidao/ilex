@@ -1,6 +1,6 @@
 <?php
 
-namespace Ilex\Base\Model\sys;
+namespace Ilex\Base\Model\System;
 
 use \Ilex\Base\Model\Base;
 use \Ilex\Lib\Container;
@@ -9,7 +9,7 @@ use \Ilex\Lib\Kit;
 /**
  * Class Input
  * Encapsulation of system input, such as $_GET, $_POST.
- * @package Ilex\Base\Model\sys
+ * @package Ilex\Base\Model\System
  * 
  * @property private \Ilex\Lib\Container $getData
  * @property private \Ilex\Lib\Container $postData

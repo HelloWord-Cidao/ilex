@@ -6,7 +6,7 @@ namespace app\Controller;
  * Class AboutController
  * @package app\Controller
  *
- * @property protected \Ilex\Base\Model\sys\Input $Input
+ * @property protected \Ilex\Base\Model\System\Input $Input
  * 
  * @method public index()
  * @method public join(string $group = 'tech')
@@ -35,7 +35,7 @@ class AboutController extends \Ilex\Base\Controller\Base
     public function postJoin($group = 'tech')
     {
         // This will assign the instance of the loaded model to $this->Input.
-        $this->loadModel('sys/Input');
+        $this->loadModel('System/Input');
         return ('Welcome to ' . $group . ', ' . $this->Input->post('name', 'Jack') . '!');
     }
 }

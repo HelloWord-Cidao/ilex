@@ -1,13 +1,13 @@
 <?php
 
-namespace Ilex\Base\Model\db;
+namespace Ilex\Base\Model\Database;
 
 use \Ilex\Core\Loader;
 
 /**
  * Class Base
  * Encapsulation of database operations.
- * @package Ilex\Base\Model\db
+ * @package Ilex\Base\Model\Database
  *
  * @property public \MongoCollection $collection
  *

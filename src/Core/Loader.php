@@ -35,7 +35,7 @@ use \Ilex\Lib\Container;
  */
 class Loader
 {
-    // Structure: type('Controller'|'Model') => path(eg. 'sys/Input') => class object
+    // Structure: type('Controller'|'Model') => path(eg. 'System/Input') => class object
     //         or 'ILEXPATH'|'APPPATH'|'RUNTIMEPATH' => string
     private static $container;
 
@@ -93,7 +93,7 @@ class Loader
 
     /**
      * Extracts handler name from path.
-     * eg. 'sys/Input' => 'Input'
+     * eg. 'System/Input' => 'Input'
      * @param string $path
      * @return string
      */
@@ -191,10 +191,10 @@ class Loader
     /**
      * Includes package and return its name, returns FALSE if fails.
      * Try APPPATH first and then ILEXPATH.
-     * eg. $path = 'sys/Input', $type = 'Model', 
-     *     this function will includes the file : 'ILEXPATH/Base/Model/sys/Input.php', 
-     *     and returns '\\Ilex\\Base\\Model\\sys\\Input'
-     * @param string $path eg. 'sys/Input'
+     * eg. $path = 'System/Input', $type = 'Model', 
+     *     this function will includes the file : 'ILEXPATH/Base/Model/System/Input.php', 
+     *     and returns '\\Ilex\\Base\\Model\\System\\Input'
+     * @param string $path eg. 'System/Input'
      * @param string $type eg. 'Model', 'Controller'
      * @return string|boolean
      */
@@ -224,7 +224,7 @@ class Loader
       * Returns a loaded class, if it is NOT already loaded, 
       * then load it and save it into $container.
       * The function ensures that for each model only one entity is loaded.
-      * @param string $path eg. 'sys/Input'
+      * @param string $path eg. 'System/Input'
       * @param string $type eg. 'Model', 'Controller'
       * @param array  $params
       * @return object

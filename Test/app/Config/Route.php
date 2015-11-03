@@ -21,7 +21,7 @@ $Router->get('/', function () {
 Kit::log('#2 post /user/(any) func');
 $Router->post('/user/(any)', function ($name) {
     /**
-     * Model 'sys/Input' has already been loaded in \Ilex\Tester::boot(),
+     * Model 'System/Input' has already been loaded in \Ilex\Tester::boot(),
      * and been updated in \Ilex\Tester::run(),
      * with the POST and data given by \Ilex\Test\RouteTest,
      * because the properties and methods of class Loader are all static,
@@ -30,7 +30,7 @@ $Router->post('/user/(any)', function ($name) {
      * but just take out the loaded model from Loader::container,
      * and assign it to $Input.
      */
-    $Input = Loader::model('sys/Input');
+    $Input = Loader::model('System/Input');
     Kit::log(['Route.php', ['$Input' => $Input]]);
     return ('Hello ' . $Input->post('title', 'Guest') . ' ' . $name . '!');
 });

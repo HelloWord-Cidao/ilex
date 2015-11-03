@@ -10,8 +10,8 @@ use \Ilex\Lib\Kit;
  * Class Tester
  * @package Ilex
  * 
- * @property private static \Ilex\Base\Model\sys\Input   $Input
- * @property private static \Ilex\Base\Model\sys\Session $Session
+ * @property private static \Ilex\Base\Model\System\Input   $Input
+ * @property private static \Ilex\Base\Model\System\Session $Session
  * 
  * @method public static        boot($APPPATH, $RUNTIMEPATH)
  * @method public static string run($url = '/', $method = 'GET', $postData = [], $getData = [])
@@ -29,8 +29,8 @@ class Tester
     {
         Autoloader::initialize($APPPATH, $RUNTIMEPATH);
         // Now Loader has been initialized by Autoloader::initialize().
-        self::$Input   = Loader::model('sys/Input');
-        self::$Session = Loader::model('sys/Session');
+        self::$Input   = Loader::model('System/Input');
+        self::$Session = Loader::model('System/Session');
     }
 
     /**
