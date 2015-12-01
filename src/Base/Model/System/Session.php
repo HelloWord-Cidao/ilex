@@ -13,7 +13,7 @@ use \Ilex\Lib\Kit;
  * 
  * @property const string LOGIN
  * @property const string SID
- * @property const string UID
+ * @property const string USERID
  * @property const string USERNAME
  *
  * @property private boolean $booted
@@ -38,7 +38,7 @@ class Session extends Base
 {
     const LOGIN    = 'login';
     const SID      = 'sid';
-    const UID      = 'uid';
+    const USERID   = 'userId';
     const USERNAME = 'username';
 
     private $booted = FALSE;
@@ -111,7 +111,7 @@ class Session extends Base
             if ($this->has($this->SID) === FALSE) {
                 $this->newSid();
             }
-            if ($this->has($this->UID) === FALSE) {
+            if ($this->has($this->USERID) === FALSE) {
                 $this->makeGuest();
             }
         }
@@ -119,7 +119,7 @@ class Session extends Base
          * Now the following fields have been assigned:
          * $this->LOGIN
          * $this->SID
-         * $this->UID
+         * $this->USERID
          * $this->USERNAME
          */
     }
@@ -165,12 +165,12 @@ class Session extends Base
 
     /**
      * Sets guest status.
-     * @uses UID, USERNAME, LOGIN
+     * @uses USERID, USERNAME, LOGIN
      */
     public function makeGuest()
     {
         $this->set($this->LOGIN, FALSE);
-        $this->set($this->UID, 0);
+        $this->set($this->USERID, 0);
         $this->set($this->USERNAME, 'Guest');
     }
 

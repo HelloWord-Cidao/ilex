@@ -2,11 +2,12 @@
 
 namespace Ilex\Base\Model\Database;
 
+use \Ilex\Base\Model\Base;
 use \Ilex\Core\Loader;
 
 /**
- * Class Base
- * Encapsulation of database operations.
+ * Class MongoDBCollection
+ * Encapsulation of basic operations of MongoDB collections.
  * @package Ilex\Base\Model\Database
  *
  * @property public \MongoCollection $collection
@@ -19,7 +20,7 @@ use \Ilex\Core\Loader;
  * @method protected mixed getId(mixed $id)
  * @method protected array setRetractId(array $data)
  */
-class Base extends \Ilex\Base\Model\Base
+class MongoDBCollection extends Base
 {
     public $collection; // @todo: Do NOT expose this! Change to protected!
 

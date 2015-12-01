@@ -6,6 +6,7 @@ use \Ilex\Core\Loader;
 
 /**
  * Class Base
+ * Base class of controllers and models.
  * @package Ilex\Base
  * 
  * @method protected object loadModel(IMPLICIT)

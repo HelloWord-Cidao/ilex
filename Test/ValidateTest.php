@@ -3,17 +3,17 @@
 namespace Ilex\Test;
 
 use PHPUnit_Framework_TestCase;
-use \Ilex\Lib\Validate;
+use \Ilex\Lib\Validator;
 
 /**
- * Class ValidateTest
+ * Class ValidatorTest
  * @package Ilex\Test
  *
- * @method public testValidate()
+ * @method public testValidator()
  */
-class ValidateTest extends PHPUnit_Framework_TestCase
+class ValidatorTest extends PHPUnit_Framework_TestCase
 {
-    public function testValidate()
+    public function testValidator()
     {
         $data = [
             'password' => '1234',
@@ -29,7 +29,7 @@ class ValidateTest extends PHPUnit_Framework_TestCase
                 'yz'
             ]
         ];
-        $result = Validate::batch($data, [
+        $result = Validator::batch($data, [
             'username' => [
                 'require' => ['message' => 'NAME_REQUIRED'],
                 'length_gt' => ['value' => 0]

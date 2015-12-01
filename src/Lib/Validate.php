@@ -3,7 +3,7 @@
 namespace Ilex\Lib;
 
 /**
- * Class Validate
+ * Class Validator
  * A tool used to validate data efficiently.
  * @package Ilex\Lib
  * 
@@ -20,7 +20,7 @@ namespace Ilex\Lib;
  * @method public static boolean        isInt(mixed $value)
  * @method public static boolean        isFloat(mixed $value)
  */
-class Validate
+class Validator
 {
     public static $patterns = [
         'aA'        => '/^[a-z]+$/i',
