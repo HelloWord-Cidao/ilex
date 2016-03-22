@@ -33,6 +33,7 @@ class Input extends Base
      */
     public function __construct()
     {
+        // @TODO: deal with json form of POST
         $this->getData = new Container($_GET);
         $this->postData = new Container($_POST);
     }

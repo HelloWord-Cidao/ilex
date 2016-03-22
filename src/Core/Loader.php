@@ -4,6 +4,7 @@ namespace Ilex\Core;
 
 use ReflectionClass;
 use \Ilex\Lib\Container;
+
 // use \Ilex\Lib\Kit;
 
 /**
@@ -202,7 +203,7 @@ class Loader
     {
         foreach ([
             'app' => [
-                'name' => 'app\\' . $type . '\\' . $path . $type,
+                'name' => '\\app\\' . $type . '\\' . str_replace('/', '\\', $path) . $type,
                 'path' => self::get('APPPATH') . $type . '/' . $path . $type . '.php',
             ],
             'ilex' => [

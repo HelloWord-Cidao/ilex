@@ -84,9 +84,9 @@ class Kit
                     if ($key === 0) $result .= self::toString($value, FALSE) . ' : ';
                     else $result .= self::toString($value, $quotationMarks) . "\t";
                 }
-                $result .= PHP_EOL;
+                $result .= PHP_EOL.'<br>';
             } else {
-                $result .= self::toString($data, FALSE) . PHP_EOL;
+                $result .= self::toString($data, FALSE) . PHP_EOL.'<br>';
             }
             echo $result;
         }
