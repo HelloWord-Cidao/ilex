@@ -42,7 +42,7 @@ class Twig extends Base
         $this->assign([
             'title_suffix' => CFG_TITLE_SUFFIX, // Should be defined in APPPATH/Config/Const.php.
             'tpl_dir'      => 'static/',
-        ));
+        ]);
         $this->loadModel('System/Input');
         $this->assign([
             'GET'  => $this->Input->get(),  // array

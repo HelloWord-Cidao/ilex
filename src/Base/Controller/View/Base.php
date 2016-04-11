@@ -1,11 +1,11 @@
 <?php
 
-namespace Ilex\Base\View\Service;
+namespace Ilex\Base\Controller\View;
 
 /**
  * Class Base
  * Base class of view controllers.
- * @package Ilex\Base\View\Service
+ * @package Ilex\Base\Controller\View
  */
 class Base extends \Ilex\Base\Controller\Base
 {

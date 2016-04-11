@@ -24,10 +24,11 @@ class Tester
     /**
      * @param string $APPPATH
      * @param string $RUNTIMEPATH
+     * @param string $APPNAME
      */
-    public static function boot($APPPATH, $RUNTIMEPATH)
+    public static function boot($APPPATH, $RUNTIMEPATH, $APPNAME)
     {
-        Autoloader::initialize($APPPATH, $RUNTIMEPATH);
+        Autoloader::initialize($APPPATH, $RUNTIMEPATH, $APPNAME);
         // Now Loader has been initialized by Autoloader::initialize().
         self::$Input   = Loader::model('System/Input');
         self::$Session = Loader::model('System/Session');

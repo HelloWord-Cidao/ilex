@@ -8,7 +8,7 @@ use \Ilex\Tester;
 
 // define('ENVIRONMENT', 'TEST');
 
-Tester::boot(__DIR__ . '/../Test/app', __DIR__ . '/../Test/runtime');
+Tester::boot(__DIR__ . '/../Test/app', __DIR__ . '/../Test/runtime', 'app');
 
 require(__DIR__ . '/RouteTest.php');
 

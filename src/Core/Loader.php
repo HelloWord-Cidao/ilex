@@ -4,6 +4,7 @@ namespace Ilex\Core;
 
 use ReflectionClass;
 use \Ilex\Lib\Container;
+use \Ilex\Lib\Kit;
 
 // use \Ilex\Lib\Kit;
 
@@ -15,6 +16,7 @@ use \Ilex\Lib\Container;
  * @property private static \Ilex\Lib\Container $container
  * 
  * @method public static string   APPPATH()
+ * @method public static string   APPNAME()
  * @method public static string   ILEXPATH()
  * @method public static string   RUNTIMEPATH()
  * @method public static object   controller(string $path, array $params = [])
@@ -46,6 +48,14 @@ class Loader
     public static function APPPATH()
     {
         return self::get('APPPATH');
+    }
+
+    /**
+     * @return string
+     */
+    public static function APPNAME()
+    {
+        return self::get('APPNAME');
     }
 
     /**
@@ -108,13 +118,15 @@ class Loader
      * @param string $ILEXPATH
      * @param string $APPPATH
      * @param string $RUNTIMEPATH
+     * @param string $APPNAME
      */
-    public static function initialize($ILEXPATH, $APPPATH, $RUNTIMEPATH)
+    public static function initialize($ILEXPATH, $APPPATH, $RUNTIMEPATH, $APPNAME)
     {
         self::$container = new Container();
         self::set('ILEXPATH',    $ILEXPATH);
         self::set('APPPATH',     $APPPATH);
         self::set('RUNTIMEPATH', $RUNTIMEPATH);
+        self::set('APPNAME',     $APPNAME);
 
         self::set('Controller', new Container());
         self::set('Model',      new Container());
@@ -203,7 +215,7 @@ class Loader
     {
         foreach ([
             'app' => [
-                'name' => '\\app\\' . $type . '\\' . str_replace('/', '\\', $path) . $type,
+                'name' => '\\' . self::get('APPNAME'). '\\' . $type . '\\' . str_replace('/', '\\', $path) . $type,
                 'path' => self::get('APPPATH') . $type . '/' . $path . $type . '.php',
             ],
             'ilex' => [

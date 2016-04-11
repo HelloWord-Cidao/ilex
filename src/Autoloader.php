@@ -20,8 +20,9 @@ class Autoloader
      /**
      * @param string $APPPATH
      * @param string $RUNTIMEPATH
+     * @param string $APPNAME
      */
-    public static function initialize($APPPATH, $RUNTIMEPATH)
+    public static function initialize($APPPATH, $RUNTIMEPATH, $APPNAME)
     {
         $APPPATH     = Kit::getRealPath($APPPATH);
         $ILEXPATH    = Kit::getRealPath(__DIR__);
@@ -30,7 +31,7 @@ class Autoloader
          * Loader::initialize() should be called before Constant::initialize(), 
          * because Loader::APPPATH() is called in Constant::initialize()
          */
-        Loader::initialize($ILEXPATH, $APPPATH, $RUNTIMEPATH);
+        Loader::initialize($ILEXPATH, $APPPATH, $RUNTIMEPATH, $APPNAME);
         Constant::initialize();
     }
 
@@ -55,11 +56,12 @@ class Autoloader
      * @todo check inheritance of Autoloader! static:: or self:: ?
      * @param string $APPPATH
      * @param string $RUNTIMEPATH
+     * @param string $APPNAME
      * @return string
      */
-    public static function run($APPPATH, $RUNTIMEPATH)
+    public static function run($APPPATH, $RUNTIMEPATH, $APPNAME)
     {
-        static::initialize($APPPATH, $RUNTIMEPATH);
+        static::initialize($APPPATH, $RUNTIMEPATH, $APPNAME);
         // @todo: how to handle the return value? check other project.
         return static::resolve(
             $_SERVER['REQUEST_METHOD'], // i.e.  'GET' | 'HEAD' | 'POST' | 'PUT'
