@@ -10,19 +10,19 @@ use \Ilex\Core\Loader;
  * Encapsulation of basic operations of MongoDB collections.
  * @package Ilex\Base\Model\Database
  *
- * @property public \MongoCollection $collection
- *
+ * @property protected \MongoCollection $collection
  * @property protected string $collectionName
  * 
  * @method public                    __construct()
- * @method public array|\MongoCursor find(array $criterion = [], array $projection = [], boolean $toArray = TRUE)
+ * @method protected array|\MongoCursor find(array $criterion = [], array $projection = [], boolean $toArray = TRUE)
+ * @method protected boolean insert(array $document)
  *
- * @method protected mixed getId(mixed $id)
- * @method protected array setRetractId(array $data)
+ * @method private mixed getId(mixed $id)
+ * @method private array setRetractId(array $data)
  */
 class MongoDBCollection extends Base
 {
-    public $collection; // @todo: Do NOT expose this! Change to protected!
+    protected $collection;
 
     protected $collectionName;
 
@@ -37,7 +37,7 @@ class MongoDBCollection extends Base
      * @param boolean $toArray
      * @return array|\MongoCursor
      */
-    public function find($criterion = [], $projection = [], $toArray = TRUE)
+    protected function find($criterion = [], $projection = [], $toArray = TRUE)
     {
         $criterion = $this->setRetractId($criterion);
         $cursor = $this->collection->find($criterion, $projection);
@@ -45,11 +45,27 @@ class MongoDBCollection extends Base
     }
 
     /**
+     * @param array $document
+     * @return boolean
+     */
+    protected function insert($document)
+    {
+        if (!isset($document['Meta'])) $document['Meta'] = [];
+        $document['Meta']['CreateTime'] = new \MongoDate(time());
+        try {
+            $this->collection->insert($document, ['w' => 1]);
+            return TRUE;
+        } catch(MongoCursorException $e) {
+            return FALSE;
+        }
+    }
+
+    /**
      * Normalizes $id.
      * @param mixed $id
      * @return mixed
      */
-    protected function getId($id)
+    private function getId($id)
     {
         if (is_string($id)) {
             try {
@@ -67,7 +83,7 @@ class MongoDBCollection extends Base
      * @param array $data
      * @return array
      */
-    protected function setRetractId($data)
+    private function setRetractId($data)
     {
         if (isset($data['_id'])) {
             $data['_id'] = $this->getId($data['_id']);
