@@ -37,7 +37,7 @@ class MongoDBCollection extends Base
      * @param boolean $toArray
      * @return array|\MongoCursor
      */
-    protected function find($criterion = [], $projection = [], $toArray = TRUE)
+    public function find($criterion = [], $projection = [], $toArray = TRUE)
     {
         $criterion = $this->setRetractId($criterion);
         $cursor = $this->collection->find($criterion, $projection);
