@@ -32,6 +32,7 @@ class MongoDBCollection extends Base
     }
 
     /**
+     * @todo: protected
      * @param array   $criterion
      * @param array   $projection
      * @param boolean $toArray
@@ -45,10 +46,11 @@ class MongoDBCollection extends Base
     }
 
     /**
+     * @todo: protected
      * @param array $document
      * @return boolean
      */
-    protected function insert($document)
+    public function insert($document)
     {
         if (!isset($document['Meta'])) $document['Meta'] = [];
         $document['Meta']['CreateTime'] = new \MongoDate(time());
