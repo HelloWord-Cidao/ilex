@@ -13,7 +13,7 @@ use \Ilex\Core\Loader;
  * @property protected \MongoCollection $collection
  * @property protected string $collectionName
  * 
- * @method public                    __construct()
+ * @method protected                    initialize()
  * @method protected array|\MongoCursor find(array $criterion = [], array $projection = [], boolean $toArray = TRUE)
  * @method protected boolean insert(array $document)
  *
@@ -22,13 +22,17 @@ use \Ilex\Core\Loader;
  */
 class MongoDBCollection extends Base
 {
-    protected $collection;
+    // protected $collectionName;
+    
+    private $collection;
 
-    protected $collectionName;
-
-    public function __construct()
+    // protected function initialize($collectionName)
+    public function initialize($collectionName)
     {
-        $this->collection = Loader::db()->selectCollection($this->collectionName);
+        echo '<br>'.__METHOD__.$collectionName.'789<br>';
+        // $this->collection = Loader::db()->selectCollection($this->collectionName);
+        $this->collection = Loader::db()->selectCollection($collectionName);
+        echo '<br>'.__METHOD__.$collectionName.'999<br>';
     }
 
     /**
