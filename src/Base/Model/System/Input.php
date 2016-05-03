@@ -18,9 +18,11 @@ use \Ilex\Lib\Kit;
  * @method public string  __toString()
  * @method public this    clear(string $name = '')
  * @method public mixed   get(string $key = NULL, mixed $default = NULL)
- * @method public boolean hasGet(IMPLICIT)
- * @method public boolean hasPost(IMPLICIT)
+ * @method public boolean hasGet(array $keys)
+ * @method public boolean hasPost(array $keys)
  * @method public this    merge(string $name, array $data = [])
+ * @method public array   missGet(array $keys)
+ * @method public array   missPost(array $keys)
  * @method public mixed   post(string $key = NULL, mixed $default = NULL)
  */
 class Input extends Base
@@ -36,6 +38,8 @@ class Input extends Base
         // @TODO: deal with json form of POST
         $this->getData = new Container($_GET);
         $this->postData = new Container($_POST);
+        $data = json_decode(file_get_contents('php://input'), TRUE);
+        if (!is_null($data)) $this->merge('post', $data);
     }
 
     /**
@@ -77,21 +81,21 @@ class Input extends Base
     }
 
     /**
-     * @param string $key IMPLICIT MULTIPLE
+     * @param array $keys
      * @return boolean
      */
-    public function hasGet()
+    public function hasGet($keys)
     {
-        return call_user_func_array([$this->getData, 'has'], func_get_args());
+        return call_user_func_array([$this->getData, 'has'], $keys);
     }
 
     /**
-     * @param string $key IMPLICIT MULTIPLE
+     * @param array $keys
      * @return boolean
      */
-    public function hasPost()
+    public function hasPost($keys)
     {
-        return call_user_func_array([$this->postData, 'has'], func_get_args());
+        return call_user_func_array([$this->postData, 'has'], $keys);
     }
 
     /**
@@ -104,6 +108,24 @@ class Input extends Base
         $name .= 'Data';
         $this->$name->merge($data);
         return $this;
+    }
+
+    /**
+     * @param array $keys
+     * @return array
+     */
+    public function missGet($keys)
+    {
+        return $this->getData->miss($keys);
+    }
+
+    /**
+     * @param array $keys
+     * @return array
+     */
+    public function missPost($keys)
+    {
+        return $this->postData->miss($keys);
     }
 
     /**

@@ -87,7 +87,7 @@ class Session extends Base
     public function assign($vars)
     {
         $tmp = array_merge($this->fakeSession, $vars);
-        if (ENVIRONMENT !== 'TEST') {
+        if (ENVIRONMENT !== 'TESTILEX') {
             $_SESSION = $tmp;
             $this->fakeSession = &$_SESSION;
         } else {
@@ -103,7 +103,7 @@ class Session extends Base
         if ($this->booted === FALSE) {
             $this->start();
             $this->booted = TRUE;
-            if (ENVIRONMENT !== 'TEST') {
+            if (ENVIRONMENT !== 'TESTILEX') {
                 $this->fakeSession = &$_SESSION;
             } else {
                 $this->fakeSession = [];
@@ -130,7 +130,7 @@ class Session extends Base
      */
     public function forget()
     {
-        if (ENVIRONMENT !== 'TEST') {
+        if (ENVIRONMENT !== 'TESTILEX') {
             session_unset();
             session_destroy();
         }
@@ -200,7 +200,7 @@ class Session extends Base
      */
     private function start()
     {
-        if (ENVIRONMENT !== 'TEST') {
+        if (ENVIRONMENT !== 'TESTILEX') {
             session_name(SYS_SESSNAME); // Defined in \Ilex\Core\Constant.
             session_start();
         }

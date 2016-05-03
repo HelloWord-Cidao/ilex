@@ -19,6 +19,7 @@ use \Ilex\Lib\Kit;
  * @method public mixed   get(mixed $key, mixed $default = NULL)
  * @method public boolean has(IMPLICIT)
  * @method public this    merge(array $data)
+ * @method public array   miss(array $keys)
  * @method public mixed   set(mixed $key, mixed $value)
  */
 class Container
@@ -105,6 +106,22 @@ class Container
     {
         $this->assign(array_merge($this->data, $data));
         return $this;
+    }
+
+    /**
+     * Returns the params that do not exist as keys in $this->data.
+     * @param array $keys
+     * @return array
+     */
+    public function miss($keys)
+    {
+        $missing_keys = [];
+        foreach ($keys as $key) {
+            if (isset($this->data[$key]) === FALSE) {
+                $missing_keys[] = $key;
+            }
+        }
+        return $missing_keys;
     }
 
     /**

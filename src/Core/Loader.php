@@ -6,8 +6,6 @@ use ReflectionClass;
 use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
 
-// use \Ilex\Lib\Kit;
-
 /**
  * Class Loader
  * The class in charge of loading app interblocks.

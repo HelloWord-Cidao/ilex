@@ -75,7 +75,7 @@ class Kit
      * @param boolean $quotationMarks indicates whether to include quotation marks when dealing with strings
      * @param string $env
      */
-    public static function log($data, $quotationMarks = TRUE, $env = 'TEST')
+    public static function log($data, $quotationMarks = TRUE, $env = 'TESTILEX')
     {
         if (ENVIRONMENT === $env) {
             $result = '';

@@ -6,7 +6,7 @@ require_once(__DIR__ . '/../vendor/autoload.php');
 
 use \Ilex\Tester;
 
-// define('ENVIRONMENT', 'TEST');
+// define('ENVIRONMENT', 'TESTILEX');
 
 Tester::boot(__DIR__ . '/../Test/app', __DIR__ . '/../Test/runtime', 'app');
 

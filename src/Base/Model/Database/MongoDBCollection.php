@@ -22,27 +22,22 @@ use \Ilex\Core\Loader;
  */
 class MongoDBCollection extends Base
 {
-    // protected $collectionName;
+    protected $collectionName;
     
     private $collection;
 
-    // protected function initialize($collectionName)
-    public function initialize($collectionName)
+    protected function initialize($collectionName)
     {
-        echo '<br>'.__METHOD__.$collectionName.'789<br>';
-        // $this->collection = Loader::db()->selectCollection($this->collectionName);
         $this->collection = Loader::db()->selectCollection($collectionName);
-        echo '<br>'.__METHOD__.$collectionName.'999<br>';
     }
 
     /**
-     * @todo: protected
      * @param array   $criterion
      * @param array   $projection
      * @param boolean $toArray
      * @return array|\MongoCursor
      */
-    public function find($criterion = [], $projection = [], $toArray = TRUE)
+    protected function find($criterion = [], $projection = [], $toArray = TRUE)
     {
         $criterion = $this->setRetractId($criterion);
         $cursor = $this->collection->find($criterion, $projection);
@@ -50,19 +45,21 @@ class MongoDBCollection extends Base
     }
 
     /**
-     * @todo: protected
      * @param array $document
      * @return boolean
      */
-    public function insert($document)
+    protected function insert($document)
     {
         if (!isset($document['Meta'])) $document['Meta'] = [];
         $document['Meta']['CreateTime'] = new \MongoDate(time());
         try {
             $this->collection->insert($document, ['w' => 1]);
             return TRUE;
-        } catch(MongoCursorException $e) {
-            return FALSE;
+        } catch(\Exception $e) {
+            return [
+                'message' => $e->getMessage(),
+                'code'    => $e->getCode(),
+            ];
         }
     }
 
