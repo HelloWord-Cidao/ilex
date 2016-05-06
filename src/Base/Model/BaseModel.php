@@ -2,12 +2,14 @@
 
 namespace Ilex\Base\Model;
 
+use \Ilex\Base\Base;
+
 /**
- * Class Base
+ * Class BaseModel
  * Base class of models.
  * @package Ilex\Base\Model
  */
-class Base extends \Ilex\Base\Base
+class BaseModel extends Base
 {
 
 }

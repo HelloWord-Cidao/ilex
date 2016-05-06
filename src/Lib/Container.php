@@ -62,6 +62,33 @@ class Container
     }
 
     /**
+     * Returns the params that do not exist as keys in $this->data.
+     * @param array $keys
+     * @return array
+     */
+    public function miss($keys)
+    {
+        $missing_keys = [];
+        foreach ($keys as $key) {
+            if (isset($this->data[$key]) === FALSE) {
+                $missing_keys[] = $key;
+            }
+        }
+        return $missing_keys;
+    }
+
+    /**
+     * @param array $data
+     * @return this
+     */
+    public function merge($data)
+    {
+        // @todo: use array_merge or '+' operator?
+        $this->assign($this->data + $data);
+        return $this;
+    }
+
+    /**
      * @param array $data
      * @return this
      */
@@ -69,18 +96,6 @@ class Container
     {
         $this->data = $data;
         return $this;
-    }
-
-    /**
-     * @param mixed $key
-     * @param mixed $default
-     * @return mixed
-     */
-    public function get($key, $default = NULL)
-    {
-        return is_null($key) ?
-            $this->data :
-            (isset($this->data[$key]) ? $this->data[$key] : $default);
     }
 
     /**
@@ -99,29 +114,15 @@ class Container
     }
 
     /**
-     * @param array $data
-     * @return this
+     * @param mixed $key
+     * @param mixed $default
+     * @return mixed
      */
-    public function merge($data)
+    public function get($key, $default = NULL)
     {
-        $this->assign(array_merge($this->data, $data));
-        return $this;
-    }
-
-    /**
-     * Returns the params that do not exist as keys in $this->data.
-     * @param array $keys
-     * @return array
-     */
-    public function miss($keys)
-    {
-        $missing_keys = [];
-        foreach ($keys as $key) {
-            if (isset($this->data[$key]) === FALSE) {
-                $missing_keys[] = $key;
-            }
-        }
-        return $missing_keys;
+        return is_null($key) ?
+            $this->data :
+            (isset($this->data[$key]) ? $this->data[$key] : $default);
     }
 
     /**

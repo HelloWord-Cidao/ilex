@@ -1,16 +1,16 @@
 <?php
 
 namespace Ilex\Lib;
+use \Ilex\Lib\Validator;
 
 /**
  * Class Kit
  * A kit class.
  * @package Ilex\Lib
  * 
+ * @method public static array          extractException(\Exception $exception)
  * @method public static string         escape(string $data)
  * @method public static string         getRealPath(string $path)
- * @method public static boolean        isDict(array $array)
- * @method public static boolean        isList(array $array)
  * @method public static                log(mixed $data, boolean $quotationMarks = TRUE, string $env = 'TEST')
  * @method public array|FALSE           randomByWeight(array $random_list)
  * @method public static string|boolean strToTitle($string)
@@ -19,6 +19,29 @@ namespace Ilex\Lib;
  */
 class Kit
 {
+
+    /**
+     * Extracts useful info from an exception.
+     * @param \Exception $exception
+     * @param boolean    $need_file_info
+     * @param boolean    $need_trace_info
+     * @return array
+     */
+    public static function extractException($exception, $need_file_info = FALSE, $need_trace_info = FALSE)
+    {
+        $result = ([
+            'message'       => $exception->getMessage(),
+            'code'          => $exception->getCode(),
+        ]) + ($need_file_info === FALSE ? [] : [
+            'file'          => $exception->getFile(),
+            'line'          => $exception->getLine(),
+        ]) + ($need_trace_info === FALSE ? [] : [
+            'trace'         => $exception->getTrace(),
+            // 'traceAsString' => $exception->getTraceAsString(),
+        ]);
+        return $result;
+    }
+
     /**
      * Escapes html content.
      * @param string $data
@@ -46,30 +69,6 @@ class Kit
     }
 
     /**
-     * Checks whether an array is a dict.
-     * @param array $array
-     * @return boolean
-     */
-    public static function isDict($array)
-    {
-        if (is_array($array) === FALSE) return FALSE;
-        if (count($array) === 0) return TRUE;
-        return !self::isList($array);
-    }
-
-    /**
-     * Checks whether an array is a list.
-     * @param array $array
-     * @return boolean
-     */
-    public static function isList($array)
-    {
-        if (is_array($array) === FALSE) return FALSE;
-        if (count($array) === 0) return TRUE;
-        return array_keys($array) === range(0, count($array) - 1);
-    }
-
-    /**
      * This mehtod logs debug info.
      * @param mixed  $data
      * @param boolean $quotationMarks indicates whether to include quotation marks when dealing with strings
@@ -81,12 +80,12 @@ class Kit
             $result = '';
             if (is_array($data)) {
                 foreach ($data as $key => $value) {
-                    if ($key === 0) $result .= self::toString($value, FALSE) . ' : ';
-                    else $result .= self::toString($value, $quotationMarks) . "\t";
+                    if ($key === 0) $result .= static::toString($value, FALSE) . ' : ';
+                    else $result .= static::toString($value, $quotationMarks) . "\t";
                 }
                 $result .= PHP_EOL.'<br>';
             } else {
-                $result .= self::toString($data, FALSE) . PHP_EOL.'<br>';
+                $result .= static::toString($data, FALSE) . PHP_EOL.'<br>';
             }
             echo $result;
         }
@@ -157,21 +156,21 @@ class Kit
             array_walk(
                 $data,
                 function(&$datum, $index, $quotationMarks) {
-                    $datum = self::toString($datum, $quotationMarks);
+                    $datum = static::toString($datum, $quotationMarks);
                 },
                 $quotationMarks
             );
         }
-        if (self::isList($data)) {
+        if (Validator::isList($data)) {
             if (count($data) === 0) return '[]';
             return '[ ' . join(', ', $data) . ' ]';
         }
-        else if (self::isDict($data)) {
+        else if (Validator::isDict($data)) {
             return '{ '
                 . join(', ',
                     array_map(
                         function($key, $value) {
-                            return self::toString($key, FALSE) . ' : ' . $value;
+                            return static::toString($key, FALSE) . ' : ' . $value;
                         },
                         array_keys($data),
                         array_values($data)

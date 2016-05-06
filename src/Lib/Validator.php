@@ -9,9 +9,9 @@ namespace Ilex\Lib;
  * 
  * @property public static array $patterns
  *
- * @method public static array|boolean  batch(array &$values, array $rulePackages)
- * @method public static array|boolean  package(mixed &$value, array $rulePackage)
- * @method public static boolean|string rule(mixed &$value, string $ruleName, array $rule, string|boolean $message = FALSE)
+ * @method public static array|boolean  batch(array &$values, array $rule_packages)
+ * @method public static array|boolean  package(mixed &$value, array $rule_package)
+ * @method public static boolean|string rule(mixed &$value, string $rule_name, array $rule, string|boolean $message = FALSE)
  * 
  * @method public static boolean        type(mixed &$value, array $rule)
  * @method public static boolean        re(mixed $value, array $rule)
@@ -19,6 +19,8 @@ namespace Ilex\Lib;
  * 
  * @method public static boolean        isInt(mixed $value)
  * @method public static boolean        isFloat(mixed $value)
+ * @method public static boolean        isDict(mixed $value)
+ * @method public static boolean        isList(mixed $value)
  */
 class Validator
 {
@@ -35,30 +37,30 @@ class Validator
 
     /**
      * @param array $value
-     * @param array $rulePackages
+     * @param array $rule_packages
      * @return array|boolean
      */
-    public static function batch(&$values, $rulePackages)
+    public static function batch(&$values, $rule_packages)
     {
         $errors = [];
-        foreach ($rulePackages as $i => $rulePackage) {
-            $name = isset($rulePackage['name']) ? $rulePackage['name'] : $i;
+        foreach ($rule_packages as $i => $rule_package) {
+            $name = isset($rule_package['name']) ? $rule_package['name'] : $i;
 
             /**
              * @todo: what?
              */
             if (isset($values[$name]) === FALSE) {
-                if (isset($rulePackage['default'])) {
-                    $values[$name] = $rulePackage['default'];
+                if (isset($rule_package['default'])) {
+                    $values[$name] = $rule_package['default'];
                 } else {
-                    if (isset($rulePackage['require'])) {
-                        $errors[$name] = [$rulePackage['require']['message']];
+                    if (isset($rule_package['require'])) {
+                        $errors[$name] = [$rule_package['require']['message']];
                     }
                 }
                 continue;
             }
 
-            $results = self::package($values[$name], $rulePackage);
+            $results = self::package($values[$name], $rule_package);
             if ($results !== TRUE) {
                 $errors[$name] = $results;
             }
@@ -68,16 +70,16 @@ class Validator
 
     /**
      * @param mixed $value
-     * @param array $rulePackage
+     * @param array $rule_package
      * @return array|boolean
      */
-    public static function package(&$value, $rulePackage)
+    public static function package(&$value, $rule_packages)
     {
         $errors = [];
-        foreach ($rulePackage as $ruleName => $rule) {
-            if (in_array($ruleName, ['name', 'require', 'default'])) { // ignore some reserved names
+        foreach ($rule_package as $rule_name => $rule) {
+            if (in_array($rule_name, ['name', 'require', 'default'])) { // ignore some reserved names
                 continue;
-            } elseif ($ruleName === 'all') {
+            } elseif ($rule_name === 'all') {
                 foreach ($value as $valueItem) {
                     $result = self::package($valueItem, $rule);
                     if ($result !== TRUE) {
@@ -85,7 +87,7 @@ class Validator
                     }
                 }
             } else {
-                $result = self::rule($value, $ruleName, $rule, $rule['message']);
+                $result = self::rule($value, $rule_name, $rule, $rule['message']);
                 if ($result !== TRUE) {
                     $errors[] = $result;
                 }
@@ -96,14 +98,14 @@ class Validator
 
     /**
      * @param mixed          $value
-     * @param string         $ruleName
+     * @param string         $rule_name
      * @param array          $rule
      * @param string|boolean $message
      * @return boolean|string
      */
-    public static function rule(&$value, $ruleName, $rule, $message = FALSE)
+    public static function rule(&$value, $rule_name, $rule, $message = FALSE)
     {
-        return self::$ruleName($value, $rule) ? TRUE : $message;
+        return self::$rule_name($value, $rule) ? TRUE : $message;
     }
 
     /*
@@ -225,5 +227,29 @@ class Validator
         } else {
             return FALSE;
         }
+    }
+
+    /**
+     * Checks whether a value is a dict.
+     * @param mixed $value
+     * @return boolean
+     */
+    public static function isDict($value)
+    {
+        if (is_array($value) === FALSE) return FALSE;
+        if (count($value) === 0) return TRUE;
+        return !self::isList($value);
+    }
+
+    /**
+     * Checks whether a value is a list.
+     * @param mixed $value
+     * @return boolean
+     */
+    public static function isList($value)
+    {
+        if (is_array($value) === FALSE) return FALSE;
+        if (count($value) === 0) return TRUE;
+        return array_keys($value) === range(0, count($value) - 1);
     }
 }

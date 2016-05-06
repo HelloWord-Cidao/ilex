@@ -30,8 +30,9 @@ class Tester
     {
         Autoloader::initialize($APPPATH, $RUNTIMEPATH, $APPNAME);
         // Now Loader has been initialized by Autoloader::initialize().
-        self::$Input   = Loader::model('System/Input');
-        self::$Session = Loader::model('System/Session');
+        // @todo: static or self?
+        static::$Input   = Loader::model('System/Input');
+        static::$Session = Loader::model('System/Session');
     }
 
     /**
@@ -49,8 +50,8 @@ class Tester
             'postData' => $postData,
             'url'      => $url,
         ]]);
-        self::$Input->clear()->merge('post', $postData)->merge('get', $getData);
-        Kit::log([__METHOD__, ['self::$Input' => self::$Input]]);
+        static::$Input->clear()->merge('post', $postData)->merge('get', $getData);
+        Kit::log([__METHOD__, ['static::$Input' => static::$Input]]);
         // $_SERVER['REQUEST_URI'] =  ENV_HOST . '/' . $url; // @todo: what?
         return Autoloader::resolve($method, $url);
     }

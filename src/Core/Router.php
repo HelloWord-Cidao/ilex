@@ -50,6 +50,35 @@ class Router
     private $uris      = [];
 
     /**
+     * @param string $method eg. 'GET' | 'POST' | 'PUT'
+     * @param string $uri
+     */
+    public function __construct($method, $uri)
+    {
+        // The only place where $method is assigned.
+        $this->method = $method;
+        // The first of three places where $this->uri is assigned.
+        $this->uri    = $uri;
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        $result  = PHP_EOL . '\Router {' . PHP_EOL;
+        $result .= "\tcancelled : " . Kit::toString($this->cancelled) . PHP_EOL;
+        $result .= "\tmethod    : " . Kit::toString($this->method)    . PHP_EOL;
+        $result .= "\tparams    : " . Kit::toString($this->params)    . PHP_EOL;
+        $result .= "\tresult    : " . Kit::toString($this->result)    . PHP_EOL;
+        $result .= "\tsettled   : " . Kit::toString($this->settled)   . PHP_EOL;
+        $result .= "\turi       : " . Kit::toString($this->uri)       . PHP_EOL;
+        $result .= "\turis      : " . Kit::toString($this->uris)      . PHP_EOL;
+        $result .= '}';
+        return $result;
+    }
+
+    /**
      * Checks the method and then attempts to fit the request..
      * @param string $name      i.e. 'any' | 'get' | 'post' | 'controller' | 'group'
      * @param array  $arguments
@@ -112,32 +141,32 @@ class Router
     }
 
     /**
-     * @param string $method eg. 'GET' | 'POST' | 'PUT'
-     * @param string $uri
+     * If $description IS a prefix of $this->uri, then pushes $this->uri into $this->uris,
+     * and extracts the rest uri from $this->uri, and updates it and returns TRUE,
+     * else returns FALSE.
+     * If $description is same as $this->uri, then '/' will be returned.
+     * eg. $description : '/about'
+     *     $this->uri   : '/about/join/whatever' => '/join/whatever'
+     *     $this->uri   : '/about' => '/'
+     * @param string $description eg. '/about'
+     * @return boolean
      */
-    public function __construct($method, $uri)
+    private function resolveRestURI($description)
     {
-        // The only place where $method is assigned.
-        $this->method = $method;
-        // The first of three places where $this->uri is assigned.
-        $this->uri    = $uri;
-    }
-
-    /**
-     * @return string
-     */
-    public function __toString()
-    {
-        $result  = PHP_EOL . '\Router {' . PHP_EOL;
-        $result .= "\tcancelled : " . Kit::toString($this->cancelled) . PHP_EOL;
-        $result .= "\tmethod    : " . Kit::toString($this->method)    . PHP_EOL;
-        $result .= "\tparams    : " . Kit::toString($this->params)    . PHP_EOL;
-        $result .= "\tresult    : " . Kit::toString($this->result)    . PHP_EOL;
-        $result .= "\tsettled   : " . Kit::toString($this->settled)   . PHP_EOL;
-        $result .= "\turi       : " . Kit::toString($this->uri)       . PHP_EOL;
-        $result .= "\turis      : " . Kit::toString($this->uris)      . PHP_EOL;
-        $result .= '}';
-        return $result;
+        $length = strlen($description);
+        if (substr($this->uri, 0, $length) !== $description) {
+        // $description IS NOT a prefix of $this->uri.
+            return FALSE;
+        } else {
+        // $description IS a prefix of $this->uri, eg. '/about/join/whatever'.
+            // The first of two places where $this->uris is updated.
+            $this->uris[] = $this->uri;
+            // The second of three places where $this->uri is assigned.
+            $this->uri = (
+                ($uri = substr($this->uri, $length)) === FALSE ? '/' : $uri
+            );
+            return TRUE;
+        }
     }
 
     /**
@@ -184,6 +213,95 @@ class Router
             $this->result = $result;
         }
         Kit::log([__METHOD__, ['this' => $this]]);
+    }
+
+    /**
+     * Extracts params and handles the request,
+     * by choosing the appropriate handler,
+     * and calling the appropriate method
+     * (calling `index` method if $function IS NOT defined),
+     * if $description CAN fit $this->uri.
+     * @param string $description eg. '/project/(num)', '/(num)', '/', '/user/(any)', '(all)'
+     * @param mixed  $handler     eg. 'Project',        $this,    an anonymous function
+     * @param string $function    eg. 'view'
+     * @return boolean
+     */
+    private function fitGeneral($description, $handler, $function = NULL)
+    {
+        Kit::log([__METHOD__, [
+            'desc'     => $description,
+            'function' => $function,
+            'handler'  => $handler,
+        ]]);
+        Kit::log([__METHOD__, ['this' => $this]]);
+        /**
+         * eg. $description  : '/project/(num)' => '/project/([0-9]+?)'
+         *     $this->uri    : 'http://www.test.com/project/12' or '/project/12'?
+         *     $this->params : []
+         *     $matches      : ['/project/12', '12']
+         */
+        if (preg_match(self::getPattern($description), $this->uri, $matches)) {
+            unset($matches[0]);
+            $this->merge($matches); // $this->params updated.
+            Kit::log([__METHOD__, 'after merge', ['params' => $this->params]]);
+            // eg. $this->params : ['12']
+            
+            if (is_string($handler) OR ($handler instanceof \Closure) === FALSE) {
+            // $handler is a string or IS NOT an anonymous function, i.e., an instance.
+                Kit::log([__METHOD__, '$handler is a string or IS NOT an anonymous function, i.e., an instance.'], FALSE);
+                Kit::log([__METHOD__, 'call end', [
+                    'function' => is_null($function) ? 'index' : $function,
+                    'handler'  => is_string($handler) ? Loader::controller($handler) : $handler,
+                    'params'   => $this->params,
+                ]]);
+                $this->end(
+                    call_user_func_array([
+                        is_string($handler) ? Loader::controller($handler) : $handler, // The controller is loaded HERE!
+                        is_null($function) ? 'index' : $function // The default function is method 'index' of the handler.
+                    ], $this->params)
+                );
+            } elseif (is_callable($handler)) {
+            // $handler is an anonymous function.
+                Kit::log([__METHOD__, '$handler is an anonymous function.'], FALSE);
+                Kit::log([__METHOD__, 'call end', [
+                    'handler' => $handler,
+                    'params'  => $this->params,
+                ]]);
+                $this->end(call_user_func_array($handler, $this->params));
+            }
+            Kit::log([__METHOD__, 'CAN FIT!'], FALSE);
+            return TRUE;
+        } else {
+            // CAN NOT FIT!
+            Kit::log([__METHOD__, 'CAN NOT FIT!'], FALSE);
+            return FALSE;
+        }
+    }
+
+    /**
+     * @param string $description
+     * @return string
+     */
+    private function getPattern($description)
+    {
+        foreach ([
+                '(all)' => '(.+?)',
+                '(any)' => '([^/]+?)',
+                '(num)' => '([0-9]+?)',
+            ] as $key => $value) {
+            $description = str_replace($key, $value, $description);
+        }
+        return '@^' . $description . '$@';
+    }
+
+    /**
+     * @param array $var
+     */
+    private function merge($vars)
+    {
+        // The only place where $this->params is updated.
+        // @todo: use array_merge or '+' operator?
+        $this->params += $vars;
     }
 
     /**
@@ -264,69 +382,6 @@ class Router
     }
 
     /**
-     * Extracts params and handles the request,
-     * by choosing the appropriate handler,
-     * and calling the appropriate method
-     * (calling `index` method if $function IS NOT defined),
-     * if $description CAN fit $this->uri.
-     * @param string $description eg. '/project/(num)', '/(num)', '/', '/user/(any)', '(all)'
-     * @param mixed  $handler     eg. 'Project',        $this,    an anonymous function
-     * @param string $function    eg. 'view'
-     * @return boolean
-     */
-    private function fitGeneral($description, $handler, $function = NULL)
-    {
-        Kit::log([__METHOD__, [
-            'desc'     => $description,
-            'function' => $function,
-            'handler'  => $handler,
-        ]]);
-        Kit::log([__METHOD__, ['this' => $this]]);
-        /**
-         * eg. $description  : '/project/(num)' => '/project/([0-9]+?)'
-         *     $this->uri    : 'http://www.test.com/project/12' or '/project/12'?
-         *     $this->params : []
-         *     $matches      : ['/project/12', '12']
-         */
-        if (preg_match(self::getPattern($description), $this->uri, $matches)) {
-            unset($matches[0]);
-            $this->merge($matches); // $this->params updated.
-            Kit::log([__METHOD__, 'after merge', ['params' => $this->params]]);
-            // eg. $this->params : ['12']
-            
-            if (is_string($handler) OR ($handler instanceof \Closure) === FALSE) {
-            // $handler is a string or IS NOT an anonymous function, i.e., an instance.
-                Kit::log([__METHOD__, '$handler is a string or IS NOT an anonymous function, i.e., an instance.'], FALSE);
-                Kit::log([__METHOD__, 'call end', [
-                    'function' => is_null($function) ? 'index' : $function,
-                    'handler'  => is_string($handler) ? Loader::controller($handler) : $handler,
-                    'params'   => $this->params,
-                ]]);
-                $this->end(
-                    call_user_func_array([
-                        is_string($handler) ? Loader::controller($handler) : $handler, // The controller is loaded HERE!
-                        is_null($function) ? 'index' : $function // The default function is method 'index' of the handler.
-                    ], $this->params)
-                );
-            } elseif (is_callable($handler)) {
-            // $handler is an anonymous function.
-                Kit::log([__METHOD__, '$handler is an anonymous function.'], FALSE);
-                Kit::log([__METHOD__, 'call end', [
-                    'handler' => $handler,
-                    'params'  => $this->params,
-                ]]);
-                $this->end(call_user_func_array($handler, $this->params));
-            }
-            Kit::log([__METHOD__, 'CAN FIT!'], FALSE);
-            return TRUE;
-        } else {
-            // CAN NOT FIT!
-            Kit::log([__METHOD__, 'CAN NOT FIT!'], FALSE);
-            return FALSE;
-        }
-    }
-
-    /**
      * Returns [$function, $params] if parameters found, else returns $function.
      * @param string $uri   eg. '/user/page/12'
      * @return array|string eg. ['user', ['page', '12']]
@@ -368,64 +423,10 @@ class Router
         return count($params) ? [$function, $params] : $function;
     }
 
-    /**
-     * @param string $description
-     * @return string
-     */
-    private function getPattern($description)
-    {
-        foreach ([
-                '(all)' => '(.+?)',
-                '(any)' => '([^/]+?)',
-                '(num)' => '([0-9]+?)',
-            ] as $key => $value) {
-            $description = str_replace($key, $value, $description);
-        }
-        return '@^' . $description . '$@';
-    }
-
-    /**
-     * @param array $var
-     */
-    private function merge($vars)
-    {
-        // The only place where $this->params is updated.
-        $this->params = array_merge($this->params, $vars);
-    }
-
     private function pop()
     {
         // The last of three places where $this->uri is assigned.
         // The last of two places where $this->uris is updated.
         $this->uri = array_pop($this->uris);
-    }
-
-    /**
-     * If $description IS a prefix of $this->uri, then pushes $this->uri into $this->uris,
-     * and extracts the rest uri from $this->uri, and updates it and returns TRUE,
-     * else returns FALSE.
-     * If $description is same as $this->uri, then '/' will be returned.
-     * eg. $description : '/about'
-     *     $this->uri   : '/about/join/whatever' => '/join/whatever'
-     *     $this->uri   : '/about' => '/'
-     * @param string $description eg. '/about'
-     * @return boolean
-     */
-    private function resolveRestURI($description)
-    {
-        $length = strlen($description);
-        if (substr($this->uri, 0, $length) !== $description) {
-        // $description IS NOT a prefix of $this->uri.
-            return FALSE;
-        } else {
-        // $description IS a prefix of $this->uri, eg. '/about/join/whatever'.
-            // The first of two places where $this->uris is updated.
-            $this->uris[] = $this->uri;
-            // The second of three places where $this->uri is assigned.
-            $this->uri = (
-                ($uri = substr($this->uri, $length)) === FALSE ? '/' : $uri
-            );
-            return TRUE;
-        }
     }
 }

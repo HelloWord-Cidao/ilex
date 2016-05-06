@@ -17,22 +17,23 @@ use \Ilex\Lib\Kit;
  */
 class Autoloader
 {
-     /**
+
+    /**
+     * @todo check inheritance of Autoloader! static:: or self:: ?
      * @param string $APPPATH
      * @param string $RUNTIMEPATH
      * @param string $APPNAME
+     * @return string
      */
-    public static function initialize($APPPATH, $RUNTIMEPATH, $APPNAME)
+    public static function run($APPPATH, $RUNTIMEPATH, $APPNAME)
     {
-        $APPPATH     = Kit::getRealPath($APPPATH);
-        $ILEXPATH    = Kit::getRealPath(__DIR__);
-        $RUNTIMEPATH = Kit::getRealPath($RUNTIMEPATH);
-        /**
-         * Loader::initialize() should be called before Constant::initialize(), 
-         * because Loader::APPPATH() is called in Constant::initialize()
-         */
-        Loader::initialize($ILEXPATH, $APPPATH, $RUNTIMEPATH, $APPNAME);
-        Constant::initialize();
+        static::initialize($APPPATH, $RUNTIMEPATH, $APPNAME);
+        // @todo: how to handle the return value? check other project.
+        // If a service controller is called, then it will response the HTTP request and exit before return anything. Other cases unknown.
+        return static::resolve(
+            $_SERVER['REQUEST_METHOD'], // i.e.  'GET' | 'HEAD' | 'POST' | 'PUT'
+            isset($_GET['_url']) ? $_GET['_url'] : '/'
+        );
     }
 
     /**
@@ -52,20 +53,21 @@ class Autoloader
         return $Router->result();
     }
 
-    /**
-     * @todo check inheritance of Autoloader! static:: or self:: ?
+     /**
      * @param string $APPPATH
      * @param string $RUNTIMEPATH
      * @param string $APPNAME
-     * @return string
      */
-    public static function run($APPPATH, $RUNTIMEPATH, $APPNAME)
+    public static function initialize($APPPATH, $RUNTIMEPATH, $APPNAME)
     {
-        static::initialize($APPPATH, $RUNTIMEPATH, $APPNAME);
-        // @todo: how to handle the return value? check other project.
-        return static::resolve(
-            $_SERVER['REQUEST_METHOD'], // i.e.  'GET' | 'HEAD' | 'POST' | 'PUT'
-            isset($_GET['_url']) ? $_GET['_url'] : '/'
-        );
+        $APPPATH     = Kit::getRealPath($APPPATH);
+        $ILEXPATH    = Kit::getRealPath(__DIR__);
+        $RUNTIMEPATH = Kit::getRealPath($RUNTIMEPATH);
+        /**
+         * Loader::initialize() should be called before Constant::initialize(), 
+         * because Loader::APPPATH() is called in Constant::initialize()
+         */
+        Loader::initialize($ILEXPATH, $APPPATH, $RUNTIMEPATH, $APPNAME);
+        Constant::initialize();
     }
 }

@@ -2,12 +2,14 @@
 
 namespace Ilex\Base\Controller;
 
+use \Ilex\Base\Base;
+
 /**
- * Class Base
+ * Class BaseController
  * Base class of controllers.
  * @package Ilex\Base\Controller
  */
-class Base extends \Ilex\Base\Base
+class BaseController extends Base
 {
 
 }

@@ -2,7 +2,7 @@
 
 namespace Ilex\Base\Model\System;
 
-use \Ilex\Base\Model\Base;
+use \Ilex\Base\Model\BaseModel;
 use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
 
@@ -25,7 +25,7 @@ use \Ilex\Lib\Kit;
  * @method public array   missPost(array $keys)
  * @method public mixed   post(string $key = NULL, mixed $default = NULL)
  */
-class Input extends Base
+class Input extends BaseModel
 {
     private $getData;
     private $postData;
@@ -35,7 +35,6 @@ class Input extends Base
      */
     public function __construct()
     {
-        // @TODO: deal with json form of POST
         $this->getData = new Container($_GET);
         $this->postData = new Container($_POST);
         $data = json_decode(file_get_contents('php://input'), TRUE);
@@ -69,17 +68,7 @@ class Input extends Base
         }
         return $this;
     }
-
-    /**
-     * @param string $key
-     * @param mixed  $default
-     * @return mixed
-     */
-    public function get($key = NULL, $default = NULL)
-    {
-        return $this->getData->get($key, $default);
-    }
-
+    
     /**
      * @param array $keys
      * @return boolean
@@ -96,6 +85,26 @@ class Input extends Base
     public function hasPost($keys)
     {
         return call_user_func_array([$this->postData, 'has'], $keys);
+    }
+
+    /**
+     * @param string $key
+     * @param mixed  $default
+     * @return mixed
+     */
+    public function get($key = NULL, $default = NULL)
+    {
+        return $this->getData->get($key, $default);
+    }
+
+    /**
+     * @param string $key
+     * @param mixed  $default
+     * @return mixed
+     */
+    public function post($key = NULL, $default = NULL)
+    {
+        return $this->postData->get($key, $default);
     }
 
     /**
@@ -126,15 +135,5 @@ class Input extends Base
     public function missPost($keys)
     {
         return $this->postData->miss($keys);
-    }
-
-    /**
-     * @param string $key
-     * @param mixed  $default
-     * @return mixed
-     */
-    public function post($key = NULL, $default = NULL)
-    {
-        return $this->postData->get($key, $default);
     }
 }

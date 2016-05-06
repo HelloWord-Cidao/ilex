@@ -2,7 +2,7 @@
 
 namespace Ilex\Base\Model\System;
 
-use \Ilex\Base\Model\Base;
+use \Ilex\Base\Model\BaseModel;
 use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
 
@@ -34,7 +34,7 @@ use \Ilex\Lib\Kit;
  *
  * @method private start()
  */
-class Session extends Base
+class Session extends BaseModel
 {
     const LOGIN    = 'login';
     const SID      = 'sid';
@@ -86,7 +86,8 @@ class Session extends Base
      */
     public function assign($vars)
     {
-        $tmp = array_merge($this->fakeSession, $vars);
+        // @todo: use array_merge or '+' operator?
+        $tmp = $this->fakeSession + $vars;
         if (ENVIRONMENT !== 'TESTILEX') {
             $_SESSION = $tmp;
             $this->fakeSession = &$_SESSION;
@@ -140,27 +141,24 @@ class Session extends Base
     }
 
     /**
-     * @todo check the default value of params
-     * Gets value from $fakeSession.
-     * @param string|boolean $key
-     * @param mixed          $default
-     * @return mixed
+     * Starts the session.
+     * @uses ENVIRONMENT, SYS_SESSNAME
      */
-    public function get($key = FALSE, $default = FALSE)
+    private function start()
     {
-        return $key ?
-            (isset($this->fakeSession[$key]) ? $this->fakeSession[$key] : $default) :
-            $this->fakeSession;
+        if (ENVIRONMENT !== 'TESTILEX') {
+            session_name(SYS_SESSNAME); // Defined in \Ilex\Core\Constant.
+            session_start();
+        }
     }
 
     /**
-     * Checks $key in $fakeSession.
-     * @param string $key
-     * @return boolean
+     * Generates new sid.
+     * @return string
      */
-    public function has($key)
+    public function newSid()
     {
-        return isset($this->fakeSession[$key]);
+        return $this->set($this->SID, sha1(uniqid() . mt_rand()));
     }
 
     /**
@@ -175,12 +173,27 @@ class Session extends Base
     }
 
     /**
-     * Generates new sid.
-     * @return string
+     * Checks $key in $fakeSession.
+     * @param string $key
+     * @return boolean
      */
-    public function newSid()
+    public function has($key)
     {
-        return $this->set($this->SID, sha1(uniqid() . mt_rand()));
+        return isset($this->fakeSession[$key]);
+    }
+
+    /**
+     * @todo check the default value of params
+     * Gets value from $fakeSession.
+     * @param string|boolean $key
+     * @param mixed          $default
+     * @return mixed
+     */
+    public function get($key = FALSE, $default = FALSE)
+    {
+        return $key ?
+            (isset($this->fakeSession[$key]) ? $this->fakeSession[$key] : $default) :
+            $this->fakeSession;
     }
 
     /**
@@ -192,17 +205,5 @@ class Session extends Base
     public function set($key, $value)
     {
         return ($this->fakeSession[$key] = $value);
-    }
-
-    /**
-     * Starts the session.
-     * @uses ENVIRONMENT, SYS_SESSNAME
-     */
-    private function start()
-    {
-        if (ENVIRONMENT !== 'TESTILEX') {
-            session_name(SYS_SESSNAME); // Defined in \Ilex\Core\Constant.
-            session_start();
-        }
     }
 }
