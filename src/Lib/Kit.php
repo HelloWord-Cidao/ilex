@@ -13,6 +13,7 @@ use \Ilex\Lib\Validator;
  * @method public static string         getRealPath(string $path)
  * @method public static                log(mixed $data, boolean $quotationMarks = TRUE, string $env = 'TEST')
  * @method public array|FALSE           randomByWeight(array $random_list)
+ * @method public static array          recoverMongoDBQuery(array $query)
  * @method public static string|boolean strToTitle($string)
  * @method public static string         time(int|boolean $time = FALSE, string $format = 'Y-m-d H:i:s')
  * @method public static string         toString(mixed $data, boolean $quotationMarks = TRUE)
@@ -116,6 +117,20 @@ class Kit
             $rand -= $object['Weight'];
             if ($rand <= 0) return $object['Data'];
         }
+    }
+
+    /**
+     * Recovers '.' from '_' in a MongoDB query keys.
+     * @param array $query
+     * @return array
+     */
+    public static function recoverMongoDBQuery($query)
+    {
+        foreach ($query as $key => $value) {
+            unset($query[$key]);
+            $query[str_replace('_', '.', $key)] = $value;
+        }
+        return $query;
     }
 
     /**
