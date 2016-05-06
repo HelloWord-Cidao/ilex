@@ -10,9 +10,15 @@ use \Ilex\Core\Http;
  * Base class of service controllers.
  * @package Ilex\Base\Controller\Service
  *
+ * @property protected \Ilex\Base\Model\System\InputModel   $Input
+ * @property protected \Ilex\Base\Model\System\LogModel     $Log
+ * @property protected \Ilex\Base\Model\System\SessionModel $Session
+ *
  * @property private boolean $closeCgiOnly
  * @property private array   $jsonData
  * @property private int     $statusCode
+ *
+ * @method public __construct()
  *
  * @method protected this  closeCgi()
  * @method protected array fetchArguments(array[] $argument_names)
@@ -35,9 +41,20 @@ use \Ilex\Core\Http;
  */
 class BaseService extends BaseController
 {
+    protected $Input   = NULL;
+    protected $Session = NULL;
+    protected $Log     = NULL;
+
     private $closeCgiOnly = FALSE; // 不exit, fast_cgi_close.让后面的脚本继续run
     private $jsonData   = [];
     private $statusCode = 200;
+
+    public function __construct()
+    {
+        $this->loadModel('System/Input');
+        $this->loadModel('System/Session');
+        $this->loadModel('Core/Log');
+    }
 
     /**
      * @todo what?
@@ -86,7 +103,12 @@ class BaseService extends BaseController
     protected function validateExistArguments($argument_names)
     {
         if (!$this->Input->hasGet($argument_names)) {
-            $err_info = $this->Input->missGet($argument_names);
+            $arguments = $this->Input->get();
+            unset($arguments['_url']);
+            $err_info = [
+                'missingArguments' => $this->Input->missGet($argument_names),
+                'givenArguments'   => $arguments,
+            ];
             $this->terminateForMissingArguments($err_info);
         }
     }
@@ -118,7 +140,10 @@ class BaseService extends BaseController
     protected function validateExistFields($field_names)
     {
         if (!$this->Input->hasPost($field_names)) {
-            $err_info = $this->Input->missPost($field_names);
+            $err_info = [
+                'missingFields' => $this->Input->missPost($field_names),
+                'givenFields'   => $this->Input->post(),
+            ];
             $this->terminateForMissingFields($err_info);
         }
     }

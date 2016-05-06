@@ -11,5 +11,9 @@ use \Ilex\Base\Model\BaseModel;
  */
 class BaseCore extends BaseModel
 {
-
+    protected function checkError($return_value)
+    {
+        if (is_array($return_value) && $return_value[T_IS_ERROR] === TRUE) return TRUE;
+        return FALSE;
+    }
 }
