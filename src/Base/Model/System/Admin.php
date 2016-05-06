@@ -8,6 +8,7 @@ use \Ilex\Base\Model\BaseModel;
 
 /**
  * Class Admin
+ * @package Ilex\Base\Model\System
  */
 class Admin extends BaseModel
 {
@@ -17,7 +18,7 @@ class Admin extends BaseModel
      * @param array $post_data
      * @return array[]|boolean
      */
-    public function collectionCount($arguments, $post_data)
+    public function countCollection($arguments, $post_data)
     {
         $collection_name = $arguments['collection_name'] . 'Collection';
         unset($arguments['collection_name']);
@@ -46,7 +47,7 @@ class Admin extends BaseModel
      * @param array $post_data
      * @return array[]|boolean
      */
-    public function collectionView($arguments, $post_data)
+    public function getCollection($arguments, $post_data)
     {
         $collection_name = $arguments['collection_name'] . 'Collection';
         unset($arguments['collection_name']);
