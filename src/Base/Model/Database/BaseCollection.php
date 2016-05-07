@@ -24,6 +24,12 @@ class BaseCollection extends MongoDBCollection
         return $this->find($criterion, $projection, $sort_by, $skip, $limit);
     }
 
+    public function getOne($criterion = [], $projection = [], $sort_by = NULL, $skip = NULL)
+    {
+        $data = $this->find($criterion, $projection, $sort_by, $skip);
+        return $data[0]; // @todo: check length!
+    }
+
     public function add($document)
     {
         return $this->insert($document);
