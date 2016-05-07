@@ -16,7 +16,7 @@ class BaseModel extends Base
         return [
             T_IS_ERROR => TRUE,
             'desc'     => $description,
-            'trace'    => array_slice(debug_backtrace(), 1),
+            // 'trace'    => array_slice(debug_backtrace(), 1),
         ];
     }
 }

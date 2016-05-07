@@ -4,6 +4,8 @@ namespace Ilex\Base\Controller\Service;
 
 use \Ilex\Base\Controller\BaseController;
 use \Ilex\Core\Http;
+use \Ilex\Core\Loader;
+use \Ilex\Lib\Kit;
 
 /**
  * Class BaseService
@@ -19,8 +21,6 @@ use \Ilex\Core\Http;
  * @property private int     $statusCode
  *
  * @method public __construct()
- *
- * @method protected this  closeCgi()
  * @method protected array fetchArguments(array[] $argument_names)
  * @method protected array fetchData(array[] $field_names)
  * @method protected       responseWithSuccess(mixed $data = NULL)
@@ -56,14 +56,19 @@ class BaseService extends BaseController
         $this->loadModel('Core/Log');
     }
 
-    /**
-     * @todo what?
-     * @return this
-     */
-    protected function closeCgi()
+    public function __call($method_name, $args) 
     {
-        $this->closeCgiOnly = TRUE;
-        return $this;
+        if (in_array($method_name, get_class_methods($this)) === FALSE) return;
+        $handler_prefix = Loader::getHandlerPrefixFromPath(get_called_class(), '\\', ['Service']);
+        $arguments = []; $post_data = [];
+        call_user_func_array([$this, $method_name], [&$arguments, &$post_data]);
+        $computation_data = NULL; $operation_status = TRUE;
+        call_user_func_array([$this->$handler_prefix, $method_name]
+            , [$arguments, $post_data, &$computation_data, &$operation_status]);
+        $this->validateComputationData($computation_data);
+        $this->validateOperationStatus($operation_status);
+        $this->Log->logRequest($operation_status, $arguments, $post_data);
+        $this->responseWithSuccess($computation_data, $operation_status);
     }
 
     /**
@@ -183,14 +188,14 @@ class BaseService extends BaseController
     }
 
     /**
-     * @param mixed $compudation_data
+     * @param mixed $computation_data
      *        mixed                      ok
      *        array [T_IS_ERROR => TRUE] error
      */
-    protected function validateComputationData($compudation_data)
+    protected function validateComputationData($computation_data)
     {
-        if (is_array($compudation_data) && $compudation_data[T_IS_ERROR] === TRUE)
-            $this->terminateForFailedComputation($compudation_data);
+        if (is_array($computation_data) && $computation_data[T_IS_ERROR] === TRUE)
+            $this->terminateForFailedComputation($computation_data);
     }
 
     /**

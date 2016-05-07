@@ -11,12 +11,13 @@ use \Ilex\Lib\Validator;
  * @method public static array          extractException(\Exception $exception)
  * @method public static string         escape(string $data)
  * @method public static string         getRealPath(string $path)
- * @method public static                log(mixed $data, boolean $quotationMarks = TRUE, string $env = 'TEST')
+ * @method public static mixed|NULL     last(array $array, int $offset = 1)
+ * @method public static                log(mixed $data, boolean $quotation_marks = TRUE, string $env = 'TEST')
  * @method public array|FALSE           randomByWeight(array $random_list)
  * @method public static array          recoverMongoDBQuery(array $query)
- * @method public static string|boolean strToTitle($string)
+ * @method public static array          separateTitleWords(string $string)
  * @method public static string         time(int|boolean $time = FALSE, string $format = 'Y-m-d H:i:s')
- * @method public static string         toString(mixed $data, boolean $quotationMarks = TRUE)
+ * @method public static string         toString(mixed $data, boolean $quotation_marks = TRUE)
  */
 class Kit
 {
@@ -54,7 +55,7 @@ class Kit
     }
 
     /**
-     * Returns canonicalized absolute pathname with a trailing '/'
+     * Returns canonicalized absolute pathname with a trailing '/'.
      * eg. '/home/user/Project/Test/../Test/app' => '/home/user/Project/Test/app/'
      * @param string $path
      * @return string
@@ -70,19 +71,31 @@ class Kit
     }
 
     /**
+     * Returns the last $offset element in $array.
+     * @param array $array
+     * @param int   $offset
+     * @return mixed|NULL
+     */
+    public function last($array, $offset = 1)
+    {
+        if ($offset > count($array)) return NULL;
+        return array_slice($array, -$offset)[0];
+    }
+
+    /**
      * This mehtod logs debug info.
      * @param mixed  $data
-     * @param boolean $quotationMarks indicates whether to include quotation marks when dealing with strings
+     * @param boolean $quotation_marks indicates whether to include quotation marks when dealing with strings
      * @param string $env
      */
-    public static function log($data, $quotationMarks = TRUE, $env = 'TESTILEX')
+    public static function log($data, $quotation_marks = TRUE, $env = 'TESTILEX')
     {
         if (ENVIRONMENT === $env) {
             $result = '';
             if (is_array($data)) {
                 foreach ($data as $key => $value) {
                     if ($key === 0) $result .= static::toString($value, FALSE) . ' : ';
-                    else $result .= static::toString($value, $quotationMarks) . "\t";
+                    else $result .= static::toString($value, $quotation_marks) . "\t";
                 }
                 $result .= PHP_EOL.'<br>';
             } else {
@@ -134,15 +147,23 @@ class Kit
     }
 
     /**
+     * Separates title words in a string.
      * @param string $string
-     * @return string|boolean
+     * @return array
      */
-    public static function strToTitle($string)
+    public static function separateTitleWords($string)
     {
-        if (is_string($string)) {
-            if (strlen($string) === 0) return $string;
-            return strtoupper(substr($string, 0, 1)) . substr($string, 1);
-        } else return FALSE;
+        $matches = [];
+        preg_match_all('/[A-Z][a-z]*/', $string, $matches, PREG_OFFSET_CAPTURE);
+        $matches = $matches[0];
+        if (count($matches) > 0) {
+            $result = [];
+            if ($matches[0][1] > 0) $result[] = substr($string, 0, $matches[0][1]);
+            foreach ($matches as $match) $result[] = $match[0];
+            return $result;
+        } else {
+            return [$string];
+        }
     }
 
     /**
@@ -162,18 +183,18 @@ class Kit
     /**
      * Generates the string form of data.
      * @param mixed   $data
-     * @param boolean $quotationMarks indicates whether to include quotation marks when dealing with strings
+     * @param boolean $quotation_marks indicates whether to include quotation marks when dealing with strings
      * @return string
      */
-    public static function toString($data, $quotationMarks = TRUE)
+    public static function toString($data, $quotation_marks = TRUE)
     {
         if (is_array($data)) {
             array_walk(
                 $data,
-                function(&$datum, $index, $quotationMarks) {
-                    $datum = static::toString($datum, $quotationMarks);
+                function(&$datum, $index, $quotation_marks) {
+                    $datum = static::toString($datum, $quotation_marks);
                 },
-                $quotationMarks
+                $quotation_marks
             );
         }
         if (Validator::isList($data)) {
@@ -198,7 +219,7 @@ class Kit
             return '\Object' . '(' . get_class($data) . ')';
         else if (is_bool($data)) return $data ? 'TRUE' : 'FALSE';
         else if (is_null($data)) return 'NULL';
-        else if (is_string($data)) return $quotationMarks ? ('\'' . $data . '\'') : $data;
+        else if (is_string($data)) return $quotation_marks ? ('\'' . $data . '\'') : $data;
         else return strval($data);
     }
 }

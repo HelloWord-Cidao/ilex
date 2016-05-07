@@ -29,8 +29,10 @@ class Log extends BaseCore
      * @param array  $arguments
      * @return array|boolean
      */
-    public function logRequest($handler, $operation_status, $arguments, $post_data)
+    public function logRequest($operation_status, $arguments, $post_data)
     {
+        $debug_backtrace = debug_backtrace()[1];
+        $handler = get_class($debug_backtrace['object']) . '::' . $debug_backtrace['args'][0];
         $log = [
             'Content' => [
                 'Handler'         => $handler,

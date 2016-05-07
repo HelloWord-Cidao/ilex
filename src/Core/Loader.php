@@ -19,7 +19,8 @@ use \Ilex\Lib\Kit;
  * @method public static string   RUNTIMEPATH()
  * @method public static object   controller(string $path, array $params = [])
  * @method public static \MongoDB db()
- * @method public static string   getHandlerFromPath(string $path)
+ * @method public static string   getHandlerFromPath(string $path, string $delimiter = '/')
+ * @method public static string   getHandlerPrefixFromPath(string $path, string $delimiter = '/', array $more_suffixes = [])
  * @method public static          initialize(string $ILEXPATH, string $APPPATH, string $RUNTIMEPATH)
  * @method public static boolean  isControllerLoaded(string $path)
  * @method public static boolean  isModelLoaded(string $path)
@@ -200,12 +201,35 @@ class Loader
      * Extracts handler name from path.
      * eg. 'System/Input' => 'Input'
      * @param string $path
+     * @param string $delimiter
      * @return string
      */
-    public static function getHandlerFromPath($path)
+    public static function getHandlerFromPath($path, $delimiter = '/')
     {
-        $handler = strrchr($path, '/');
+        $handler = strrchr($path, $delimiter);
         return $handler === FALSE ? $path : substr($handler, 1);
+    }
+
+    /**
+     * Extracts handler prefix name from path.
+     * eg. 'Service/AdminServiceController' => 'Admin'
+     * @param string $path
+     * @param string $delimiter
+     * @param array $more_suffixes
+     * @return string
+     */
+    public static function getHandlerPrefixFromPath($path, $delimiter = '/', $more_suffixes = [])
+    {
+        $suffix_list = array_merge(['Controller', 'Model'], $more_suffixes);
+        $handler     = static::getHandlerFromPath($path, $delimiter);
+        $title_words = Kit::separateTitleWords($handler);
+        while (count($title_words) > 0) {
+            if (in_array(Kit::last($title_words), $suffix_list)) {
+                array_pop($title_words);
+            } else break;
+        }
+        if (count($title_words) === 0) return '';
+        return join($title_words);
     }
 
     /**

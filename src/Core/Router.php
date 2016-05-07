@@ -346,7 +346,7 @@ class Router
         
         // The controller is loaded HERE!
         $controller  = Loader::controller($handler); // eg. \AboutController
-        $combination = strtolower($this->method) . Kit::strToTitle($function); // eg. 'postJoin'
+        $combination = strtolower($this->method) . ucfirst($function); // eg. 'postJoin'
         Kit::log([__METHOD__, ['controller' => $controller, 'combination' => $combination]]);
         // @TODO: possibly conflict!? Test cases concerned with the default method: 'get'!
         if (method_exists($controller, $combination)) { // eg. AboutController::postJoin().

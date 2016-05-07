@@ -14,12 +14,7 @@ use \Ilex\Lib\Kit;
 class Admin extends BaseModel
 {
 
-    /**
-     * @param array $arguments
-     * @param array $post_data
-     * @return array[]
-     */
-    public function countCollection($arguments, $post_data)
+    public function countCollection($arguments, $post_data, &$data, &$status)
     {
         $collection_name = $arguments['collection_name'] . 'Collection';
         unset($arguments['collection_name']);
@@ -39,16 +34,10 @@ class Admin extends BaseModel
 
         $data = $this->$collection_name->count($criterion, $skip, $limit);
 
-        if (!is_numeric($data)) return $this->generateErrorInfo('$data is not numeric.');
-        return $data;
+        if (!is_numeric($data)) $data = $this->generateErrorInfo('$data is not numeric.');
     }
 
-    /**
-     * @param array $arguments
-     * @param array $post_data
-     * @return array[]
-     */
-    public function getCollection($arguments, $post_data)
+    public function getCollection($arguments, $post_data, &$data, &$status)
     {
         $collection_name = $arguments['collection_name'] . 'Collection';
         unset($arguments['collection_name']);
@@ -70,7 +59,6 @@ class Admin extends BaseModel
 
         $data = $this->$collection_name->get($criterion, $projection, $sort_by, $skip, $limit);
 
-        if (!is_array($data)) return $this->generateErrorInfo('$data is not array.');
-        return $data;
+        if (!is_array($data)) $data = $this->generateErrorInfo('$data is not array.');
     }
 }
