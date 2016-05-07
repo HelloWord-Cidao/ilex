@@ -147,7 +147,7 @@ class BaseService extends BaseController
         if (!$this->Input->hasPost($field_names)) {
             $err_info = [
                 'missingFields' => $this->Input->missPost($field_names),
-                'givenFields'   => $this->Input->post(),
+                'givenFields'   => array_keys($this->Input->post()),
             ];
             $this->terminateForMissingFields($err_info);
         }
