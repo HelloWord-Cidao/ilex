@@ -5,16 +5,11 @@ namespace Ilex\Base\Controller\Service;
 use \Ilex\Base\Controller\BaseController;
 use \Ilex\Core\Http;
 use \Ilex\Core\Loader;
-use \Ilex\Lib\Kit;
 
 /**
  * Class BaseService
  * Base class of service controllers.
  * @package Ilex\Base\Controller\Service
- *
- * @property protected \Ilex\Base\Model\System\InputModel   $Input
- * @property protected \Ilex\Base\Model\System\LogModel     $Log
- * @property protected \Ilex\Base\Model\System\SessionModel $Session
  *
  * @property private boolean $closeCgiOnly
  * @property private array   $jsonData
@@ -41,10 +36,6 @@ use \Ilex\Lib\Kit;
  */
 class BaseService extends BaseController
 {
-    protected $Input   = NULL;
-    protected $Session = NULL;
-    protected $Log     = NULL;
-
     private $closeCgiOnly = FALSE; // 不exit, fast_cgi_close.让后面的脚本继续run
     private $jsonData   = [];
     private $statusCode = 200;
@@ -72,122 +63,6 @@ class BaseService extends BaseController
     }
 
     /**
-     * @return array
-     */
-    protected function fetchAllArguments()
-    {
-        $arguments = $this->Input->get();
-        unset($arguments['_url']);
-        return $arguments;
-    }
-
-    /**
-     * @return array
-     */
-    protected function fetchAllPostData()
-    {
-        return $this->Input->post();
-    }
-
-    /**
-     * @param array[] $argument_names
-     * @return array
-     */
-    protected function fetchArguments($argument_names)
-    {
-        $this->validateExistArguments($argument_names);
-        $arguments = [];
-        foreach ($argument_names as $argument_name)
-            $arguments[$argument_name] = $this->Input->get($argument_name);
-        return $arguments;
-    }
-
-    /**
-     * @param array[] $argument_names
-     */
-    protected function validateExistArguments($argument_names)
-    {
-        if (!$this->Input->hasGet($argument_names)) {
-            $arguments = $this->Input->get();
-            unset($arguments['_url']);
-            $err_info = [
-                'missingArguments' => $this->Input->missGet($argument_names),
-                'givenArguments'   => $arguments,
-            ];
-            $this->terminateForMissingArguments($err_info);
-        }
-    }
-
-    /**
-     * @param mixed $err_info
-     */
-    private function terminateForMissingArguments($err_info = NULL)
-    {
-        $this->terminate('Missing arguments.', $err_info);
-    }
-
-    /**
-     * @param array[] $field_names
-     * @return array
-     */
-    protected function fetchPostData($field_names)
-    {
-        $this->validateExistFields($field_names);
-        $post_data = [];
-        foreach ($field_names as $field_name)
-            $post_data[$field_name] = $this->Input->post($field_name);
-        return $post_data;
-    }
-
-    /**
-     * @param array[] $field_names
-     */
-    protected function validateExistFields($field_names)
-    {
-        if (!$this->Input->hasPost($field_names)) {
-            $err_info = [
-                'missingFields' => $this->Input->missPost($field_names),
-                'givenFields'   => array_keys($this->Input->post()),
-            ];
-            $this->terminateForMissingFields($err_info);
-        }
-    }
-
-    /**
-     * @param mixed $err_info
-     */
-    private function terminateForMissingFields($err_info = NULL)
-    {
-        $this->terminate('Missing fields.', $err_info);
-    }
-
-    /**
-     * @param array[] $argument_names
-     * @return array
-     */
-    protected function tryFetchArguments($argument_names)
-    {
-        $arguments = [];
-        foreach ($argument_names as $argument_name)
-            if ($this->Input->hasGet([$argument_name]))
-                $arguments[$argument_name] = $this->Input->get($argument_name);
-        return $arguments;
-    }
-
-    /**
-     * @param array[] $field_names
-     * @return array
-     */
-    protected function tryFetchPostData($field_names)
-    {
-        $post_data = [];
-        foreach ($field_names as $field_name)
-            if ($this->Input->hasPost([$field_name]))
-                $post_data[$field_name] = $this->Input->post($field_name);
-        return $post_data;
-    }
-
-    /**
      * @param mixed $computation_data
      *        mixed                      ok
      *        array [T_IS_ERROR => TRUE] error
@@ -195,15 +70,7 @@ class BaseService extends BaseController
     protected function validateComputationData($computation_data)
     {
         if (is_array($computation_data) && $computation_data[T_IS_ERROR] === TRUE)
-            $this->terminateForFailedComputation($computation_data);
-    }
-
-    /**
-     * @param mixed $err_info
-     */
-    private function terminateForFailedComputation($err_info = NULL)
-    {
-        $this->terminate('Computation failed.', $err_info);
+            $this->terminate('Computation failed.', $computation_data);
     }
 
     /**
@@ -218,16 +85,8 @@ class BaseService extends BaseController
     {
         if (!($operation_status === TRUE 
             || (is_array($operation_status) && $operation_status[T_IS_ERROR] === FALSE))) {
-            $this->terminateForFailedOperation($operation_status);
+            $this->terminate('Operation failed.', $operation_status);
         }
-    }
-
-    /**
-     * @param mixed $err_info
-     */
-    private function terminateForFailedOperation($err_info = NULL)
-    {
-        $this->terminate('Operation failed.', $err_info);
     }
 
     /**

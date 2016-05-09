@@ -10,8 +10,6 @@ use \Ilex\Base\Controller\Service\BaseService;
  */
 class AdminService extends BaseService
 {
-    protected $Admin;
-
     public function __construct()
     {
         parent::__construct();
@@ -31,5 +29,4 @@ class AdminService extends BaseService
         $arguments = $this->fetchAllArguments();
         $post_data = $this->tryFetchPostData(['Criterion', 'Projection', 'SortBy', 'Skip', 'Limit']);
     }
-
 }

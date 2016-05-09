@@ -60,7 +60,7 @@ class MongoDBCollection extends BaseModel
         if (!is_null($sort_by)) $cursor = $cursor->sort($sort_by);
         if (!is_null($skip)) $cursor = $cursor->skip($skip);
         if (!is_null($limit)) $cursor = $cursor->limit($limit);
-        if ($to_count === TRUE) return count(iterator_to_array($cursor));
+        if ($to_count === TRUE) return count(iterator_to_array($cursor)); // @todo: check efficiency
         return $to_array ? array_values(iterator_to_array($cursor)) : $cursor;
     }
 
