@@ -16,11 +16,12 @@ use \Ilex\Lib\Kit;
  * @method public mixed   __set(mixed $key, mixed $value)
  * @method public string  __toString()
  * @method public this    assign(array $data = [])
- * @method public mixed   get(mixed $key, mixed $default = NULL)
+ * @method public mixed   get(mixed $key = NULL, mixed $default = NULL)
  * @method public boolean has(IMPLICIT)
  * @method public this    merge(array $data)
  * @method public array   miss(array $keys)
  * @method public mixed   set(mixed $key, mixed $value)
+ * @method public boolean delete(mixed $key)
  */
 class Container
 {
@@ -118,7 +119,7 @@ class Container
      * @param mixed $default
      * @return mixed
      */
-    public function get($key, $default = NULL)
+    public function get($key = NULL, $default = NULL)
     {
         return is_null($key) ?
             $this->data :
@@ -133,5 +134,16 @@ class Container
     public function set($key, $value)
     {
         return ($this->data[$key] = $value);
+    }
+
+    /**
+     * @param mixed $key
+     * @return boolean
+     */
+    public function delete($key)
+    {
+        if (!isset($this->data[$key])) return FALSE;
+        else unset($this->data[$key]);
+        return TRUE;
     }
 }

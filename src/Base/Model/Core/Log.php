@@ -22,7 +22,7 @@ class Log extends BaseCore
     }
 
     /**
-     * @TODO: use debug_backtrace() to generate $handler
+     * @TODO: check efficiency
      * @param string $handler
      * @param array  $operation_status
      * @param mixed  $post_data

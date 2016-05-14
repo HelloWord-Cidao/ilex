@@ -240,8 +240,24 @@ class Router
          *     $this->params : []
          *     $matches      : ['/project/12', '12']
          */
-        if (preg_match(self::getPattern($description), $this->uri, $matches)) {
-            unset($matches[0]);
+        $pattern = $this->getPattern($description); // It will attempt to match the whole $this->uri string.
+        $uri     = rtrim($this->uri, '/'); // $this->uri contains no GET arguments.
+        if (preg_match($pattern, $uri, $matches)) {
+            preg_match_all('@([^:\(\)]+):([^:\(\)]+)@', $description, $m, PREG_SET_ORDER);
+            $mapping = [];
+            foreach ($m as $value) {
+                $mapping[$value[1]] = $value[2];
+            }
+            $Input = Loader::model('System/Input');
+            foreach ($matches as $key => $value) {
+                if (is_int($key)) {
+                    unset($matches[$key]);
+                } elseif ($mapping[$key] === 'num') {
+                    $Input->setInput($key, intval($value));
+                } else {
+                    $Input->setInput($key, $value);
+                }
+            }
             $this->merge($matches); // $this->params updated.
             Kit::log([__METHOD__, 'after merge', ['params' => $this->params]]);
             // eg. $this->params : ['12']
@@ -279,18 +295,24 @@ class Router
     }
 
     /**
+     * @todo: use more elegant regex.
      * @param string $description
      * @return string
      */
     private function getPattern($description)
     {
         foreach ([
-                '(all)' => '(.+?)',
-                '(any)' => '([^/]+?)',
-                '(num)' => '([0-9]+?)',
+                // '(all)' => '(.+?)',
+                // '(any)' => '([^/]+?)',
+                // '(num)' => '([0-9]+?)',
+                '('     => '(?P<',
+                ':all)' => '>.+?)',
+                ':any)' => '>[^/]+?)',
+                ':num)' => '>[0-9]+?)',
             ] as $key => $value) {
             $description = str_replace($key, $value, $description);
         }
+        $description = rtrim($description, '/');
         return '@^' . $description . '$@';
     }
 
@@ -326,7 +348,7 @@ class Router
         ]]);
         Kit::log([__METHOD__, ['this' => $this]]);
 
-        $function = self::getFunction($this->uri);
+        $function = $this->getFunction($this->uri);
         Kit::log([__METHOD__, ['function' => $function]]);
         if (is_array($function)) {
             // CAN NOT change order!

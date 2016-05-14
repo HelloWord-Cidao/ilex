@@ -31,7 +31,7 @@ class Autoloader
         // @todo: how to handle the return value? check other project.
         // If a service controller is called, then it will response the HTTP request and exit before return anything. Other cases unknown.
         return static::resolve(
-            $_SERVER['REQUEST_METHOD'], // i.e.  'GET' | 'HEAD' | 'POST' | 'PUT'
+            $_SERVER['REQUEST_METHOD'], // i.e.  'GET' | 'POST' | 'PUT' | 'DELETE'
             isset($_GET['_url']) ? $_GET['_url'] : '/'
         );
     }

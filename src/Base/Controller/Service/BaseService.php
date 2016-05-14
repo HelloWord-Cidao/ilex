@@ -16,23 +16,18 @@ use \Ilex\Core\Loader;
  * @property private int     $statusCode
  *
  * @method public __construct()
- * @method protected array fetchArguments(array[] $argument_names)
- * @method protected array fetchData(array[] $field_names)
- * @method protected       responseWithSuccess(mixed $data = NULL)
- * @method protected array tryFetchArguments(array[] $argument_names)
- * @method protected array tryFetchData(array[] $field_names)
- * @method protected       validateComputationData(mixed $data)
- * @method protected       validateExistArguments(array[] $argument_names)
- * @method protected       validateExistFields(array[] $field_names)
- * @method protected       validateOperationStatus(array|boolean $status)
  * 
- * @method private         output()
- * @method private         response(array $data, mixed $status)
- * @method private         terminateForFailedComputation(mixed $err_info = NULL)
- * @method private         terminateForFailedOperation(mixed $err_info = NULL)
- * @method private         terminateForMissingArguments(mixed $err_info = NULL)
- * @method private         terminateForMissingFields(mixed $err_info = NULL)
- * @method private         terminate(string $err_msg, mixed $err_info = NULL)
+ * @method protected responseWithSuccess(mixed $data = NULL)
+ * @method protected validateComputationData(mixed $data)
+ * @method protected validateOperationStatus(array|boolean $status)
+ * 
+ * @method private output()
+ * @method private response(array $data, mixed $status)
+ * @method private terminateForFailedComputation(mixed $err_info = NULL)
+ * @method private terminateForFailedOperation(mixed $err_info = NULL)
+ * @method private terminateForMissingArguments(mixed $err_info = NULL)
+ * @method private terminateForMissingFields(mixed $err_info = NULL)
+ * @method private terminate(string $err_msg, mixed $err_info = NULL)
  */
 class BaseService extends BaseController
 {
