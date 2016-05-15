@@ -34,10 +34,10 @@ class Kit
         $result = ([
             'message'       => $exception->getMessage(),
             'code'          => $exception->getCode(),
-        ]) + ($need_file_info === FALSE ? [] : [
+        ]) + (FALSE === $need_file_info ? [] : [
             'file'          => $exception->getFile(),
             'line'          => $exception->getLine(),
-        ]) + ($need_trace_info === FALSE ? [] : [
+        ]) + (FALSE === $need_trace_info ? [] : [
             'trace'         => $exception->getTrace(),
             // 'traceAsString' => $exception->getTraceAsString(),
         ]);
@@ -62,7 +62,7 @@ class Kit
      */
     public static function getRealPath($path)
     {
-        if (($_temp = realpath($path)) !== FALSE) {
+        if (FALSE !== ($_temp = realpath($path))) {
             $path = $_temp . '/';
         } else {
             $path = rtrim($path, '/') . '/';
@@ -90,11 +90,11 @@ class Kit
      */
     public static function log($data, $quotation_marks = TRUE, $env = 'TESTILEX')
     {
-        if (ENVIRONMENT === $env) {
+        if ($env === ENVIRONMENT) {
             $result = '';
-            if (is_array($data)) {
+            if (TRUE === is_array($data)) {
                 foreach ($data as $key => $value) {
-                    if ($key === 0) $result .= static::toString($value, FALSE) . ' : ';
+                    if (0 === $key) $result .= static::toString($value, FALSE) . ' : ';
                     else $result .= static::toString($value, $quotation_marks) . "\t";
                 }
                 $result .= PHP_EOL.'<br>';
@@ -124,7 +124,7 @@ class Kit
         //take a list of object['Data'=>word(from ContextCollection), 'Weight'=>int()]; randomly select one object based on object['weight']
         $sum = 0;
         foreach ($random_list as $object) $sum += $object['Weight'];
-        if ($sum == 0) return FALSE;
+        if (0 === $sum) return FALSE;
         $rand = mt_rand(1, (int) $sum);
         foreach ($random_list as $object) {
             $rand -= $object['Weight'];
@@ -174,7 +174,7 @@ class Kit
      */
     public static function time($time = FALSE, $format = 'Y-m-d H:i:s')
     {
-        if ($time === FALSE) {
+        if (FALSE === $time) {
             $time = time();
         }
         return date($format, $time);
@@ -188,7 +188,7 @@ class Kit
      */
     public static function toString($data, $quotation_marks = TRUE)
     {
-        if (is_array($data)) {
+        if (TRUE === is_array($data)) {
             array_walk(
                 $data,
                 function(&$datum, $index, $quotation_marks) {
@@ -197,11 +197,11 @@ class Kit
                 $quotation_marks
             );
         }
-        if (Validator::isList($data)) {
-            if (count($data) === 0) return '[]';
+        if (TRUE === Validator::isList($data)) {
+            if (0 === count($data)) return '[]';
             return '[ ' . join(', ', $data) . ' ]';
         }
-        else if (Validator::isDict($data)) {
+        else if (TRUE === Validator::isDict($data)) {
             return '{ '
                 . join(', ',
                     array_map(
@@ -214,12 +214,12 @@ class Kit
                 ) . ' }';
             
         }
-        else if ($data instanceof \Closure) return '\Closure';
-        else if (is_object($data) AND method_exists($data, '__toString') === FALSE)
+        else if (TRUE === $data instanceof \Closure) return '\Closure';
+        else if (TRUE === is_object($data) AND FALSE === method_exists($data, '__toString'))
             return '\Object' . '(' . get_class($data) . ')';
-        else if (is_bool($data)) return $data ? 'TRUE' : 'FALSE';
-        else if (is_null($data)) return 'NULL';
-        else if (is_string($data)) return $quotation_marks ? ('\'' . $data . '\'') : $data;
+        else if (TRUE === is_bool($data)) return TRUE === $data ? 'TRUE' : 'FALSE';
+        else if (TRUE === is_null($data)) return 'NULL';
+        else if (TRUE === is_string($data)) return TRUE === $quotation_marks ? ('\'' . $data . '\'') : $data;
         else return strval($data);
     }
 }

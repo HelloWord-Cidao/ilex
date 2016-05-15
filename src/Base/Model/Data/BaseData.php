@@ -54,7 +54,7 @@ class BaseData extends BaseModel
      */
     protected function validateExistArguments($argument_names)
     {
-        if (!$this->Input->hasGet($argument_names)) {
+        if (FALSE === $this->Input->hasGet($argument_names)) {
             $arguments = $this->Input->get();
             unset($arguments['_url']);
             $err_info = [
@@ -83,7 +83,7 @@ class BaseData extends BaseModel
      */
     protected function validateExistFields($field_names)
     {
-        if (!$this->Input->hasPost($field_names)) {
+        if (FALSE === $this->Input->hasPost($field_names)) {
             $err_info = [
                 'missingFields' => $this->Input->missPost($field_names),
                 'givenFields'   => array_keys($this->Input->post()),
@@ -100,7 +100,7 @@ class BaseData extends BaseModel
     {
         $arguments = [];
         foreach ($argument_names as $argument_name)
-            if ($this->Input->hasGet([$argument_name]))
+            if (TRUE === $this->Input->hasGet([$argument_name]))
                 $arguments[$argument_name] = $this->Input->get($argument_name);
         return $arguments;
     }
@@ -113,7 +113,7 @@ class BaseData extends BaseModel
     {
         $post_data = [];
         foreach ($field_names as $field_name)
-            if ($this->Input->hasPost([$field_name]))
+            if (TRUE === $this->Input->hasPost([$field_name]))
                 $post_data[$field_name] = $this->Input->post($field_name);
         return $post_data;
     }

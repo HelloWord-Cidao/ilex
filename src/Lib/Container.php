@@ -71,7 +71,7 @@ class Container
     {
         $missing_keys = [];
         foreach ($keys as $key) {
-            if (isset($this->data[$key]) === FALSE) {
+            if (FALSE === isset($this->data[$key])) {
                 $missing_keys[] = $key;
             }
         }
@@ -107,7 +107,7 @@ class Container
     public function has()
     {
         foreach (func_get_args() as $key) {
-            if (isset($this->data[$key]) === FALSE) {
+            if (FALSE === isset($this->data[$key])) {
                 return FALSE;
             }
         }
@@ -121,9 +121,9 @@ class Container
      */
     public function get($key = NULL, $default = NULL)
     {
-        return is_null($key) ?
+        return TRUE === is_null($key) ?
             $this->data :
-            (isset($this->data[$key]) ? $this->data[$key] : $default);
+            (TRUE === isset($this->data[$key]) ? $this->data[$key] : $default);
     }
 
     /**
@@ -142,7 +142,7 @@ class Container
      */
     public function delete($key)
     {
-        if (!isset($this->data[$key])) return FALSE;
+        if (FALSE === isset($this->data[$key])) return FALSE;
         else unset($this->data[$key]);
         return TRUE;
     }

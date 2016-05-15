@@ -32,7 +32,7 @@ class Autoloader
         // If a service controller is called, then it will response the HTTP request and exit before return anything. Other cases unknown.
         return static::resolve(
             $_SERVER['REQUEST_METHOD'], // i.e.  'GET' | 'POST' | 'PUT' | 'DELETE'
-            isset($_GET['_url']) ? $_GET['_url'] : '/'
+            TRUE === isset($_GET['_url']) ? $_GET['_url'] : '/'
         );
     }
 

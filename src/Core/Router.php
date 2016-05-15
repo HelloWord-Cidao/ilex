@@ -85,7 +85,7 @@ class Router
      */
     public function __call($name, $arguments)
     {
-        if ($this->settled === FALSE) {
+        if (FALSE === $this->settled) {
             Kit::log([__METHOD__, [
                 'args'    => $arguments,
                 'method'  => $this->method,
@@ -93,12 +93,12 @@ class Router
                 'settled' => $this->settled,
             ]]);
             
-            if ($name === 'any' OR $name === strtolower($this->method)) {
+            if ('any' === $name OR strtolower($this->method) === $name) {
             // $arguments must consists of two or three argument.
                 Kit::log([__METHOD__, 'call fitGeneral'], FALSE);
                 call_user_func_array([$this, 'fitGeneral'], $arguments);
             
-            } else if ($name === 'controller' OR $name === 'group') {
+            } else if ('controller' === $name OR 'group' === $name) {
             // $arguments must consists of exactly two argument.
                 $description = $arguments[0];
                 $handler     = $arguments[1];
@@ -108,7 +108,7 @@ class Router
                  *     $this->uris  : []
                  *     $description : '/about'
                  */
-                if ($this->resolveRestURI($description) === FALSE) {
+                if (FALSE === $this->resolveRestURI($description)) {
                 // $description IS NOT a prefix of $this->uri, CAN NOT FIT!
                     Kit::log([__METHOD__, '$description IS NOT a prefix of $this->uri, CAN NOT FIT!']);
                     return;
@@ -119,14 +119,14 @@ class Router
                  *     $this->uris  : ['/about/join/whatever']
                  *     $description : '/about'
                  */
-                if ($name === 'controller') {
+                if ('controller' === $name) {
                     // eg. $description : '/about'
                     //     $handler     : 'About'
                     Kit::log([__METHOD__, 'call fitController'], FALSE);
                     $this->fitController($description, $handler);
                 }
             
-                if ($name === 'group') {
+                if ('group' === $name) {
                 // Group routes should implemented in order!!!
                     // eg. $description : '/whatever'
                     //     $handler     : an anonymous function usually with an argument: $Router
@@ -163,7 +163,7 @@ class Router
             $this->uris[] = $this->uri;
             // The second of three places where $this->uri is assigned.
             $this->uri = (
-                ($uri = substr($this->uri, $length)) === FALSE ? '/' : $uri
+                FALSE === ($uri = substr($this->uri, $length)) ? '/' : $uri
             );
             return TRUE;
         }
@@ -177,7 +177,7 @@ class Router
     public function back()
     {
         Kit::log([__METHOD__]);
-        if ($this->settled) {
+        if (TRUE === $this->settled) {
             Kit::log([__METHOD__, 'return FALSE'], FALSE);
             return FALSE;
         } else {
@@ -205,7 +205,7 @@ class Router
     {
         Kit::log([__METHOD__, ['result' => $result]]);
         // @TODO: what? when to use $this->cancelled?
-        if ($this->cancelled) {
+        if (TRUE === $this->cancelled) {
             // @TODO: need test!
             $this->cancelled = FALSE;
         } else {
@@ -242,7 +242,7 @@ class Router
          */
         $pattern = $this->getPattern($description); // It will attempt to match the whole $this->uri string.
         $uri     = rtrim($this->uri, '/'); // $this->uri contains no GET arguments.
-        if (preg_match($pattern, $uri, $matches)) {
+        if (1 === preg_match($pattern, $uri, $matches)) {
             preg_match_all('@([^:\(\)]+):([^:\(\)]+)@', $description, $m, PREG_SET_ORDER);
             $mapping = [];
             foreach ($m as $value) {
@@ -250,9 +250,9 @@ class Router
             }
             $Input = Loader::model('System/Input');
             foreach ($matches as $key => $value) {
-                if (is_int($key)) {
+                if (TRUE === is_int($key)) {
                     unset($matches[$key]);
-                } elseif ($mapping[$key] === 'num') {
+                } elseif ('num' === $mapping[$key]) {
                     $Input->setInput($key, intval($value));
                 } else {
                     $Input->setInput($key, $value);
@@ -262,21 +262,21 @@ class Router
             Kit::log([__METHOD__, 'after merge', ['params' => $this->params]]);
             // eg. $this->params : ['12']
             
-            if (is_string($handler) OR ($handler instanceof \Closure) === FALSE) {
+            if (TRUE === is_string($handler) OR FALSE === ($handler instanceof \Closure)) {
             // $handler is a string or IS NOT an anonymous function, i.e., an instance.
                 Kit::log([__METHOD__, '$handler is a string or IS NOT an anonymous function, i.e., an instance.'], FALSE);
                 Kit::log([__METHOD__, 'call end', [
-                    'function' => is_null($function) ? 'index' : $function,
-                    'handler'  => is_string($handler) ? Loader::controller($handler) : $handler,
+                    'function' => TRUE === is_null($function) ? 'index' : $function,
+                    'handler'  => TRUE === is_string($handler) ? Loader::controller($handler) : $handler,
                     'params'   => $this->params,
                 ]]);
                 $this->end(
                     call_user_func_array([
-                        is_string($handler) ? Loader::controller($handler) : $handler, // The controller is loaded HERE!
-                        is_null($function) ? 'index' : $function // The default function is method 'index' of the handler.
+                        TRUE === is_string($handler) ? Loader::controller($handler) : $handler, // The controller is loaded HERE!
+                        TRUE === is_null($function) ? 'index' : $function // The default function is method 'index' of the handler.
                     ], $this->params)
                 );
-            } elseif (is_callable($handler)) {
+            } elseif (TRUE === is_callable($handler)) {
             // $handler is an anonymous function.
                 Kit::log([__METHOD__, '$handler is an anonymous function.'], FALSE);
                 Kit::log([__METHOD__, 'call end', [
@@ -350,7 +350,7 @@ class Router
 
         $function = $this->getFunction($this->uri);
         Kit::log([__METHOD__, ['function' => $function]]);
-        if (is_array($function)) {
+        if (TRUE === is_array($function)) {
             // CAN NOT change order!
             $params   = $function[1];
             $function = $function[0];
@@ -371,13 +371,13 @@ class Router
         $combination = strtolower($this->method) . ucfirst($function); // eg. 'postJoin'
         Kit::log([__METHOD__, ['controller' => $controller, 'combination' => $combination]]);
         // @TODO: possibly conflict!? Test cases concerned with the default method: 'get'!
-        if (method_exists($controller, $combination)) { // eg. AboutController::postJoin().
+        if (TRUE === method_exists($controller, $combination)) { // eg. AboutController::postJoin().
             Kit::log([__METHOD__, 'method_exists($controller, $combination)'], FALSE);
             $fn = $combination;
-        } elseif (method_exists($controller, $function)) { // eg. AboutController::join()
+        } elseif (TRUE === method_exists($controller, $function)) { // eg. AboutController::join()
             Kit::log([__METHOD__, 'method_exists($controller, $function)'], FALSE);
             $fn = $function;
-        } elseif (method_exists($controller, 'resolve')) { // eg. AboutController::resolve()
+        } elseif (TRUE === method_exists($controller, 'resolve')) { // eg. AboutController::resolve()
             Kit::log([__METHOD__, 'method_exists($controller, \'resolve\')'], FALSE);
             $fn = 'resolve';
             $params = [$this];
@@ -412,9 +412,9 @@ class Router
     {
         Kit::log([__METHOD__, ['uri' => $uri]]);
         $index = strpos($uri, '/');
-        if ($index === 0) {
+        if (0 === $index) {
         // $uri begins with '/'.
-            if (($uri = substr($uri, 1)) === FALSE) {
+            if (FALSE === ($uri = substr($uri, 1))) {
                 // Fails to exclude '/' because $uri is '/'.
                 $uri = '';
                 $index = FALSE;
@@ -423,14 +423,14 @@ class Router
                 $index = strpos($uri, '/');
             }
         }
-        if ($index === FALSE) {
+        if (FALSE === $index) {
         // '/' NOT found.
             $function = $uri; // It will be '' if $uri was '/' at the beginning!
             $params   = [];   // eg. '/user' => 'user' with no params
         } else {
         // '/' found.
             $function = substr($uri, 0, $index); // eg. 'user'
-            if (($paramRaw = substr($uri, $index + 1)) === FALSE) {
+            if (FALSE === ($paramRaw = substr($uri, $index + 1))) {
                 // @TODO: need test!
                 $params = []; // eg. '/user/' => 'user/' with no params
             } else {
@@ -438,11 +438,11 @@ class Router
                 $params = explode('/', substr($uri, $index + 1)); // eg. ['page', '12']
             }
         }
-        if ($function === '') {
+        if ('' === $function) {
             $function = 'index'; // $uri was '/' at the beginning.
         }
         Kit::log([__METHOD__, ['function' => $function, 'params' => $params]]);
-        return count($params) ? [$function, $params] : $function;
+        return count($params) > 0 ? [$function, $params] : $function;
     }
 
     private function pop()

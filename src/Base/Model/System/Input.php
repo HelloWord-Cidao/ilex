@@ -42,10 +42,10 @@ class Input extends BaseModel
     public function __construct()
     {
         unset($_GET['_url']);
-        $this->getData   = new Container($_GET);
-        $this->postData  = new Container($_POST);
+        $this->getData  = new Container($_GET);
+        $this->postData = new Container($_POST);
         $data = json_decode(file_get_contents('php://input'), TRUE);
-        if (!is_null($data)) $this->merge('post', $data);
+        if (FALSE === is_null($data)) $this->merge('post', $data);
         $this->inputData = new Container($this->postData->get() + $this->getData->get());
     }
 

@@ -52,16 +52,16 @@ class MongoDBCollection extends BaseModel
             $cursor = $this->collection->find($criterion, $projection);
         } catch (\Exception $e) {
             // @TODO: must be the case $this->collection is null?
-            // if ($to_count === TRUE) return 0;
-            // if ($to_array === TRUE) return [];
+            // if (TRUE === $to_count) return 0;
+            // if (TRUE === $to_array) return [];
             // else return FALSE;
             return Kit::extractException($e);
         }
-        if (!is_null($sort_by)) $cursor = $cursor->sort($sort_by);
-        if (!is_null($skip)) $cursor = $cursor->skip($skip);
-        if (!is_null($limit)) $cursor = $cursor->limit($limit);
-        if ($to_count === TRUE) return count(iterator_to_array($cursor)); // @todo: check efficiency
-        return $to_array ? array_values(iterator_to_array($cursor)) : $cursor;
+        if (FALSE === is_null($sort_by)) $cursor = $cursor->sort($sort_by);
+        if (FALSE === is_null($skip)) $cursor = $cursor->skip($skip);
+        if (FALSE === is_null($limit)) $cursor = $cursor->limit($limit);
+        if (TRUE === $to_count) return count(iterator_to_array($cursor)); // @todo: check efficiency
+        return TRUE === $to_array ? array_values(iterator_to_array($cursor)) : $cursor;
     }
 
     /**
@@ -71,7 +71,7 @@ class MongoDBCollection extends BaseModel
     protected function insert($document)
     {
         $document = $this->setRetractId($document);
-        if (!isset($document['Meta'])) $document['Meta'] = [];
+        if (FALSE === isset($document['Meta'])) $document['Meta'] = [];
         $document['Meta']['CreateTime'] = new \MongoDate(time());
         try {
             // @todo: should really return such detail info?
@@ -88,7 +88,7 @@ class MongoDBCollection extends BaseModel
      */
     private function setRetractId($data)
     {
-        if (isset($data['_id'])) {
+        if (TRUE === isset($data['_id'])) {
             $data['_id'] = $this->getId($data['_id']);
         }
         return $data;
@@ -101,7 +101,7 @@ class MongoDBCollection extends BaseModel
      */
     private function getId($id)
     {
-        if (is_string($id)) {
+        if (TRUE === is_string($id)) {
             try {
                 return new \MongoId($id);
             } catch (\Exception $e) {

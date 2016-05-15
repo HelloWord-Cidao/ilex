@@ -27,9 +27,9 @@ class LogCollection extends BaseCollection
      */
     public function addLog($log)
     {
-        if (!isset($log['Meta']))
+        if (FALSE === isset($log['Meta']))
             $log['Meta'] = [];
-        if (!isset($log['Meta']['Type']))
+        if (FALSE === isset($log['Meta']['Type']))
             $log['Meta']['Type'] = 'Log';
         return $this->add($log);
     }

@@ -101,18 +101,18 @@ class Session extends BaseModel
      */
     public function boot()
     {
-        if ($this->booted === FALSE) {
+        if (FALSE === $this->booted) {
             $this->start();
             $this->booted = TRUE;
-            if (ENVIRONMENT !== 'TESTILEX') {
+            if ('TESTILEX' !== ENVIRONMENT) {
                 $this->fakeSession = &$_SESSION;
             } else {
                 $this->fakeSession = [];
             }
-            if ($this->has($this->SID) === FALSE) {
+            if (FALSE === $this->has($this->SID)) {
                 $this->newSid();
             }
-            if ($this->has($this->USERID) === FALSE) {
+            if (FALSE === $this->has($this->USERID)) {
                 $this->makeGuest();
             }
         }
@@ -131,7 +131,7 @@ class Session extends BaseModel
      */
     public function forget()
     {
-        if (ENVIRONMENT !== 'TESTILEX') {
+        if ('TESTILEX' !== ENVIRONMENT) {
             session_unset();
             session_destroy();
         }
@@ -146,7 +146,7 @@ class Session extends BaseModel
      */
     private function start()
     {
-        if (ENVIRONMENT !== 'TESTILEX') {
+        if ('TESTILEX' !== ENVIRONMENT) {
             session_name(SYS_SESSNAME); // Defined in \Ilex\Core\Constant.
             session_start();
         }
@@ -179,7 +179,7 @@ class Session extends BaseModel
      */
     public function has($key)
     {
-        return isset($this->fakeSession[$key]);
+        return TRUE === isset($this->fakeSession[$key]);
     }
 
     /**
@@ -191,8 +191,8 @@ class Session extends BaseModel
      */
     public function get($key = FALSE, $default = FALSE)
     {
-        return $key ?
-            (isset($this->fakeSession[$key]) ? $this->fakeSession[$key] : $default) :
+        return FALSE !== $key ?
+            (TRUE === isset($this->fakeSession[$key]) ? $this->fakeSession[$key] : $default) :
             $this->fakeSession;
     }
 

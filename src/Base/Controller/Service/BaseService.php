@@ -44,7 +44,7 @@ class BaseService extends BaseController
 
     public function __call($method_name, $args) 
     {
-        if (in_array($method_name, get_class_methods($this)) === FALSE) return;
+        if (FALSE === in_array($method_name, get_class_methods($this))) return;
         $handler_prefix = Loader::getHandlerPrefixFromPath(get_called_class(), '\\', ['Service']);
         $arguments = []; $post_data = [];
         call_user_func_array([$this, $method_name], [&$arguments, &$post_data]);
@@ -64,7 +64,7 @@ class BaseService extends BaseController
      */
     protected function validateComputationData($computation_data)
     {
-        if (is_array($computation_data) && $computation_data[T_IS_ERROR] === TRUE)
+        if (TRUE === is_array($computation_data) AND TRUE === $computation_data[T_IS_ERROR])
             $this->terminate('Computation failed.', $computation_data);
     }
 
@@ -78,8 +78,11 @@ class BaseService extends BaseController
      */
     protected function validateOperationStatus($operation_status)
     {
-        if (!($operation_status === TRUE 
-            || (is_array($operation_status) && $operation_status[T_IS_ERROR] === FALSE))) {
+        if (FALSE === 
+            (TRUE === $operation_status OR 
+                (TRUE === is_array($operation_status) AND FALSE === $operation_status[T_IS_ERROR])
+            )
+        ) {
             $this->terminate('Operation failed.', $operation_status);
         }
     }
@@ -92,7 +95,7 @@ class BaseService extends BaseController
     {
         $result = ['success' => FALSE, 'errMsg' => $err_msg];
         unset($err_info[T_IS_ERROR]);
-        if (ENVIRONMENT === 'TEST' && !is_null($err_info))
+        if ('TEST' === ENVIRONMENT AND FALSE === is_null($err_info))
             $result['errInfo'] = $err_info;
         $this->response($result, 200);
     }
@@ -110,9 +113,9 @@ class BaseService extends BaseController
         $result = ['success' => TRUE];
         unset($computation_data[T_IS_ERROR]);
         unset($operation_status[T_IS_ERROR]);
-        // if (!is_null($computation_data))
+        // if (FALSE === is_null($computation_data))
             $result['data'] = $computation_data;
-        if (!is_null($operation_status))
+        if (FALSE === is_null($operation_status))
             $result['status'] = $operation_status;
         $this->response($result, 200);
     }
@@ -123,7 +126,7 @@ class BaseService extends BaseController
      */
     private function response($result, $status_code)
     {
-        if (is_numeric($status_code) === FALSE) {
+        if (FALSE === is_numeric($status_code)) {
         // @todo: which case is not numeric?
             $this->statusCode = 400;
         } else {

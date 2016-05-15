@@ -23,7 +23,7 @@ class Base
     {
         $params = [];
         foreach (func_get_args() as $index => $value) {
-            if ($index === 0) {
+            if (0 === $index) {
                 $path = $value;
             } else {
                 $params[] = $value;
@@ -33,6 +33,6 @@ class Base
         /**
          * @todo maybe should add suffix to $name, i.e., 'Session' => 'SessionModel'?
          */
-        return is_null($this->$name) ? ($this->$name = Loader::model($path, $params)) : $this->$name;
+        return TRUE === is_null($this->$name) ? ($this->$name = Loader::model($path, $params)) : $this->$name;
     }
 }

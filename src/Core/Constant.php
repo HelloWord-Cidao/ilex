@@ -24,9 +24,9 @@ class Constant
             'SYS_SESSNAME' => 'ILEX_SESSION',
             'ENVIRONMENT'  => 'DEVELOPMENT',
             
-            'ENV_HOST'     => (isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost'),
-            'ENV_SSL'      => (bool)(isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] === 443),
-            // 'ENV_HOST_URL' => ENV_SSL ? 'https' : 'http') . '://' . ENV_HOST,
+            'ENV_HOST'     => (TRUE === isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost'),
+            'ENV_SSL'      => (bool)(TRUE === isset($_SERVER['SERVER_PORT']) AND 443 === $_SERVER['SERVER_PORT']),
+            // 'ENV_HOST_URL' => TRUE === ENV_SSL ? 'https' : 'http') . '://' . ENV_HOST,
 
             /*
              * -----------------------
@@ -49,7 +49,7 @@ class Constant
         ];
         require_once(Loader::APPPATH() . 'Config/Const.php');
         foreach ($constants as $name => $value) {
-            if (defined($name) === FALSE) {
+            if (FALSE === defined($name)) {
                 define($name, $value);
             }
         }

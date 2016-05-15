@@ -96,7 +96,7 @@ class Loader
      */
     public static function db()
     {
-        if (self::has('db')) {
+        if (TRUE === self::has('db')) {
             return self::get('db');
         } else {
             $mongo = new \MongoClient(SVR_MONGO_HOST . ':' . SVR_MONGO_PORT, [
@@ -114,9 +114,9 @@ class Loader
      * @param array  $params
      * @return object
      */
-    public static function controller($path, $params = [])
+    public static function controller($path, $params = [], $construct = TRUE)
     {
-        return self::loadWithBase($path, 'Controller', $params);
+        return self::loadWithBase($path, 'Controller', $params, $construct);
     }
 
     /**
@@ -124,9 +124,9 @@ class Loader
      * @param array  $params
      * @return object
      */
-    public static function model($path, $params = [])
+    public static function model($path, $params = [], $construct = TRUE)
     {
-        return self::loadWithBase($path, 'Model', $params);
+        return self::loadWithBase($path, 'Model', $params, $construct);
     }
 
      /**
@@ -138,18 +138,18 @@ class Loader
       * @param array  $params
       * @return object
       */
-    private static function loadWithBase($path, $type, $params = [])
+    private static function loadWithBase($path, $type, $params, $construct)
     {
         // If $type is not 'Controller' or 'Model', it will throw an exception.
         $typeEntities = self::get($type);
-        if ($typeEntities->has($path)) {
+        if (TRUE === $typeEntities->has($path)) {
             return $typeEntities->get($path);
         } else {
             $className = self::load($path, $type);
-            if ($className === FALSE) {
+            if (FALSE === $className) {
                 throw new \Exception(ucfirst($type) . ' ' . $path . ' not found.');
             }
-            $instance = self::createInstance($className, $params);
+            $instance = self::createInstance($className, $params, $construct);
             return self::setSet($type, $path, $instance);
         }
     }
@@ -176,7 +176,7 @@ class Loader
                 'path' => self::get('ILEXPATH') . 'Base/' . $type . '/' . $path . '.php',
             ]
         ] as $item) {
-            if (file_exists($item['path'])) {
+            if (TRUE === file_exists($item['path'])) {
                 // Now include the app class here, then it can be used somewhere else!
                 // @todo: should only include once?
                 includeFile($item['path']);
@@ -191,10 +191,11 @@ class Loader
      * @param array  $params
      * @return object
      */
-    private static function createInstance($class, $params)
+    private static function createInstance($class, $params, $construct)
     {
         $reflection_class = new ReflectionClass($class);
-        return $reflection_class->newInstanceArgs($params);
+        if (TRUE === $construct) return $reflection_class->newInstanceArgs($params);
+        else return $reflection_class->newInstanceWithoutConstructor();
     }
 
     /**
@@ -207,7 +208,7 @@ class Loader
     public static function getHandlerFromPath($path, $delimiter = '/')
     {
         $handler = strrchr($path, $delimiter);
-        return $handler === FALSE ? $path : substr($handler, 1);
+        return FALSE === $handler ? $path : substr($handler, 1);
     }
 
     /**
@@ -224,11 +225,11 @@ class Loader
         $handler     = static::getHandlerFromPath($path, $delimiter);
         $title_words = Kit::separateTitleWords($handler);
         while (count($title_words) > 0) {
-            if (in_array(Kit::last($title_words), $suffix_list)) {
+            if (TRUE === in_array(Kit::last($title_words), $suffix_list)) {
                 array_pop($title_words);
             } else break;
         }
-        if (count($title_words) === 0) return '';
+        if (0 === count($title_words)) return '';
         return join($title_words);
     }
 
@@ -306,6 +307,7 @@ class Loader
 /**
  * Scope isolated include.
  * Prevents access to $this/self from included files.
+ * @param string $file
  */
 function includeFile($file)
 {

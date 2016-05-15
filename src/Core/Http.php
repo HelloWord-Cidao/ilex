@@ -26,7 +26,7 @@ class Http
      */
     public static function redirect($url)
     {
-        if (ENVIRONMENT !== 'TEST') {
+        if ('TEST' !== ENVIRONMENT) {
             header('Location: ' . $url);
         }
     }

@@ -44,16 +44,16 @@ class Validator
     {
         $errors = [];
         foreach ($rule_packages as $i => $rule_package) {
-            $name = isset($rule_package['name']) ? $rule_package['name'] : $i;
+            $name = TRUE === isset($rule_package['name']) ? $rule_package['name'] : $i;
 
             /**
              * @todo: what?
              */
-            if (isset($values[$name]) === FALSE) {
-                if (isset($rule_package['default'])) {
+            if (FALSE === isset($values[$name])) {
+                if (TRUE === isset($rule_package['default'])) {
                     $values[$name] = $rule_package['default'];
                 } else {
-                    if (isset($rule_package['require'])) {
+                    if (TRUE === isset($rule_package['require'])) {
                         $errors[$name] = [$rule_package['require']['message']];
                     }
                 }
@@ -61,11 +61,11 @@ class Validator
             }
 
             $results = self::package($values[$name], $rule_package);
-            if ($results !== TRUE) {
+            if (TRUE !== $results) {
                 $errors[$name] = $results;
             }
         }
-        return count($errors) ? $errors : TRUE;
+        return count($errors) > 0 ? $errors : TRUE;
     }
 
     /**
@@ -79,21 +79,21 @@ class Validator
         foreach ($rule_package as $rule_name => $rule) {
             if (in_array($rule_name, ['name', 'require', 'default'])) { // ignore some reserved names
                 continue;
-            } elseif ($rule_name === 'all') {
+            } elseif ('all' === $rule_name) {
                 foreach ($value as $valueItem) {
                     $result = self::package($valueItem, $rule);
-                    if ($result !== TRUE) {
+                    if (TRUE !== $result) {
                         $errors += $result;
                     }
                 }
             } else {
                 $result = self::rule($value, $rule_name, $rule, $rule['message']);
-                if ($result !== TRUE) {
+                if (TRUE !== $result) {
                     $errors[] = $result;
                 }
             }
         }
-        return count($errors) ? $errors : TRUE;
+        return count($errors) > 0 ? $errors : TRUE;
     }
 
     /**
@@ -105,7 +105,7 @@ class Validator
      */
     public static function rule(&$value, $rule_name, $rule, $message = FALSE)
     {
-        return self::$rule_name($value, $rule) ? TRUE : $message;
+        return TRUE === self::$rule_name($value, $rule) ? TRUE : $message;
     }
 
     /*
@@ -123,14 +123,14 @@ class Validator
     {
         switch ($rule['type']) {
             case 'int':
-                if (self::is_int($value)) {
+                if (TRUE === self::is_int($value)) {
                     $value = intval($value); // Convert to int!
                     return TRUE;
                 } else {
                     return FALSE;
                 }
             case 'float':
-                if (self::is_float($value)) {
+                if (TRUE === self::is_float($value)) {
                     $value = floatval($value); // Convert to float!
                     return TRUE;
                 } else {
@@ -150,10 +150,10 @@ class Validator
      */
     public static function re($value, $rule)
     {
-        return preg_match(
-            isset($rule['pattern']) ? $rule['pattern'] : self::$patterns[$rule['type']],
+        return 1 === preg_match(
+            TRUE === isset($rule['pattern']) ? $rule['pattern'] : self::$patterns[$rule['type']],
             $value
-        ) === 1;
+        );
     }
 
     public static function eq($value, $rule)   { return $value ==  $rule['value']; }
@@ -205,9 +205,9 @@ class Validator
      */
     public static function isInt($value)
     {
-        if (is_int($value)) {
+        if (TRUE === is_int($value)) {
             return TRUE;
-        } elseif (preg_match('@^\d+$@', $value) === 1) {
+        } elseif (1 === preg_match('@^\d+$@', $value)) {
             return TRUE;
         } else {
             return FALSE;
@@ -220,9 +220,9 @@ class Validator
      */
     public static function isFloat($value)
     {
-        if (is_float($value) OR is_int($value)) {
+        if (TRUE === is_float($value) OR TRUE === is_int($value)) {
             return TRUE;
-        } elseif (preg_match('@^(\d+(\.\d*)?|\.\d+)$@', $value) === 1) {
+        } elseif (1 === preg_match('@^(\d+(\.\d*)?|\.\d+)$@', $value)) {
             return TRUE;
         } else {
             return FALSE;
@@ -236,9 +236,9 @@ class Validator
      */
     public static function isDict($value)
     {
-        if (is_array($value) === FALSE) return FALSE;
-        if (count($value) === 0) return TRUE;
-        return !self::isList($value);
+        if (FALSE === is_array($value)) return FALSE;
+        if (0 === count($value)) return TRUE;
+        return FALSE === self::isList($value);
     }
 
     /**
@@ -248,8 +248,8 @@ class Validator
      */
     public static function isList($value)
     {
-        if (is_array($value) === FALSE) return FALSE;
-        if (count($value) === 0) return TRUE;
+        if (FALSE === is_array($value)) return FALSE;
+        if (0 === count($value)) return TRUE;
         return array_keys($value) === range(0, count($value) - 1);
     }
 }

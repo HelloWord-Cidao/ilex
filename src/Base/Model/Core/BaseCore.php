@@ -13,7 +13,7 @@ class BaseCore extends BaseModel
 {
     protected function checkError($return_value)
     {
-        if (is_array($return_value) && $return_value[T_IS_ERROR] === TRUE) return TRUE;
+        if (TRUE === is_array($return_value) AND TRUE === $return_value[T_IS_ERROR]) return TRUE;
         return FALSE;
     }
 }
