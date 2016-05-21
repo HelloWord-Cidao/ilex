@@ -2,36 +2,37 @@
 
 namespace app\Controller;
 
+use \Ilex\Base\Controller\BaseController;
 use \Ilex\Lib\Kit;
 
 /**
  * Class PlayController
  * @package app\Controller
  * 
- * @method public resolve(\Ilex\Core\Router $Router)
- * @method public view(string $id)
+ * @method final public static resolve(\Ilex\Core\Router $Router)
+ * @method final public static view(string $id)
  */
-class PlayController extends \Ilex\Base\Controller\Base
+final class PlayController extends BaseController
 {
     /**
      * @param \Ilex\Core\Router $Router
      */
-    public function resolve($Router)
+    final public static function resolve($Router)
     {
         Kit::log([__METHOD__, 'get / func'], FALSE);
         $Router->get('/', function () {
             return ('Come and play!');
         });
         
-        Kit::log([__METHOD__, 'get /(num) $this, view'], FALSE);
-        $Router->get('/(num)', $this, 'view');
+        Kit::log([__METHOD__, 'get /(id:num) self, view'], FALSE);
+        $Router->get('/(id:num)', self, 'view');
 
         // Just a test for `group` inside a controller's `resolve`...
         Kit::log([__METHOD__, 'group /play func'], FALSE);
         $Router->group('/play', function ($Router) {
             /** @var \Ilex\Core\Router $Router */
-            Kit::log([__METHOD__, 'get /(num) $this view'], FALSE);
-            $Router->get('/(num)', $this, 'view');
+            Kit::log([__METHOD__, 'get /(id:num) self view'], FALSE);
+            $Router->get('/(id:num)', self, 'view');
             $Router->back();
             return $Router->result();
         });
@@ -51,8 +52,8 @@ class PlayController extends \Ilex\Base\Controller\Base
             return $Router->result();
         });
 
-        Kit::log([__METHOD__, 'get (all) func'], FALSE);
-        $Router->get('(all)', function ($url) {
+        Kit::log([__METHOD__, 'get (uri:all) func'], FALSE);
+        $Router->get('(uri:all)', function ($url) {
             return ('Sorry but "' . substr($url, 1) . '" is not here. 404.');
         });
 
@@ -63,7 +64,7 @@ class PlayController extends \Ilex\Base\Controller\Base
     /**
      * @param string $id
      */
-    public function view($id)
+    final public static function view($id)
     {
         return ('Play No.' . $id . '?');
     }

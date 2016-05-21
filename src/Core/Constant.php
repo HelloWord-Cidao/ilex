@@ -9,13 +9,13 @@ use \Ilex\Core\Loader;
  * The class in charge of initializing const variables.
  * @package Ilex\Core
  * 
- * @method public static initialize()
+ * @method final public static initialize()
  */
-class Constant
+final class Constant
 {
-    public static function initialize()
+    final public static function initialize()
     {
-        $constants = [
+        $constant_list = [
             /*
              * -----------------------
              * System
@@ -48,7 +48,7 @@ class Constant
             'T_IS_ERROR'        => 'T_IS_ERROR',
         ];
         require_once(Loader::APPPATH() . 'Config/Const.php');
-        foreach ($constants as $name => $value) {
+        foreach ($constant_list as $name => $value) {
             if (FALSE === defined($name)) {
                 define($name, $value);
             }

@@ -8,19 +8,36 @@ use \Ilex\Lib\Validator;
  * A kit class.
  * @package Ilex\Lib
  * 
- * @method public static array          extractException(\Exception $exception)
- * @method public static string         escape(string $data)
- * @method public static string         getRealPath(string $path)
- * @method public static mixed|NULL     last(array $array, int $offset = 1)
- * @method public static                log(mixed $data, boolean $quotation_marks = TRUE, string $env = 'TEST')
- * @method public array|FALSE           randomByWeight(array $random_list)
- * @method public static array          recoverMongoDBQuery(array $query)
- * @method public static array          separateTitleWords(string $string)
- * @method public static string         time(int|boolean $time = FALSE, string $format = 'Y-m-d H:i:s')
- * @method public static string         toString(mixed $data, boolean $quotation_marks = TRUE)
+ * @method final public static array      generateErrorInfo(string $description, mixed $detail)
+ * @method final public static array      extractException(\Exception $exception)
+ * @method final public static array      extractException(\Exception $exception)
+ * @method final public static string     escape(string $data)
+ * @method final public static string     getRealPath(string $path)
+ * @method final public static mixed|NULL last(array $array, int $offset = 1)
+ * @method final public static            log(mixed $data, boolean $quotation_mark_list = TRUE, string $env = 'TEST')
+ * @method final public array|FALSE       randomByWeight(array $random_list)
+ * @method final public static array      recoverMongoDBQuery(array $query)
+ * @method final public static array      separateTitleWords(string $string)
+ * @method final public static string     time(int|boolean $time = FALSE, string $format = 'Y-m-d H:i:s')
+ * @method final public static string     toString(mixed $data, boolean $quotation_mark_list = TRUE)
  */
-class Kit
+final class Kit
 {
+
+    /**
+     * Generates error info with the given description.
+     * @param string $description
+     * @param mixed  $detail
+     * @return array
+     */
+    final public static function generateErrorInfo($description, $detail = NULL)
+    {
+        return [
+            T_IS_ERROR => TRUE,
+            'desc'     => $description,
+            // 'trace'    => array_slice(debug_backtrace(), 1),
+        ] + (FALSE === is_null($detail) ? ['detail' => $detail] : []);
+    }
 
     /**
      * Extracts useful info from an exception.
@@ -29,7 +46,7 @@ class Kit
      * @param boolean    $need_trace_info
      * @return array
      */
-    public static function extractException($exception, $need_file_info = FALSE, $need_trace_info = FALSE)
+    final public static function extractException($exception, $need_file_info = FALSE, $need_trace_info = FALSE)
     {
         $result = ([
             'message'       => $exception->getMessage(),
@@ -49,7 +66,7 @@ class Kit
      * @param string $data
      * @return string
      */
-    public static function escape($data)
+    final public static function escape($data)
     {
         return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
     }
@@ -60,7 +77,7 @@ class Kit
      * @param string $path
      * @return string
      */
-    public static function getRealPath($path)
+    final public static function getRealPath($path)
     {
         if (FALSE !== ($_temp = realpath($path))) {
             $path = $_temp . '/';
@@ -76,30 +93,30 @@ class Kit
      * @param int   $offset
      * @return mixed|NULL
      */
-    public function last($array, $offset = 1)
+    final public function last($array, $offset = 1)
     {
         if ($offset > count($array)) return NULL;
-        return array_slice($array, -$offset)[0];
+        return array_slice($array, - $offset)[0];
     }
 
     /**
      * This mehtod logs debug info.
      * @param mixed  $data
-     * @param boolean $quotation_marks indicates whether to include quotation marks when dealing with strings
+     * @param boolean $quotation_mark_list indicates whether to include quotation marks when dealing with strings
      * @param string $env
      */
-    public static function log($data, $quotation_marks = TRUE, $env = 'TESTILEX')
+    final public static function log($data, $quotation_mark_list = TRUE, $env = 'TESTILEX')
     {
         if ($env === ENVIRONMENT) {
             $result = '';
             if (TRUE === is_array($data)) {
                 foreach ($data as $key => $value) {
-                    if (0 === $key) $result .= static::toString($value, FALSE) . ' : ';
-                    else $result .= static::toString($value, $quotation_marks) . "\t";
+                    if (0 === $key) $result .= self::toString($value, FALSE) . ' : ';
+                    else $result .= self::toString($value, $quotation_mark_list) . "\t";
                 }
                 $result .= PHP_EOL.'<br>';
             } else {
-                $result .= static::toString($data, FALSE) . PHP_EOL.'<br>';
+                $result .= self::toString($data, FALSE) . PHP_EOL.'<br>';
             }
             echo $result;
         }
@@ -119,9 +136,9 @@ class Kit
      * @param array $random_list
      *@return FALSE|array
      */
-    public static function randomByWeight($random_list)
+    final public static function randomByWeight($random_list)
     {
-        //take a list of object['Data'=>word(from ContextCollection), 'Weight'=>int()]; randomly select one object based on object['weight']
+        //take a list of object['Data' => word (from ContextCollection), 'Weight' => int]; randomly select one object based on object['weight']
         $sum = 0;
         foreach ($random_list as $object) $sum += $object['Weight'];
         if (0 === $sum) return FALSE;
@@ -137,7 +154,7 @@ class Kit
      * @param array $query
      * @return array
      */
-    public static function recoverMongoDBQuery($query)
+    final public static function recoverMongoDBQuery($query)
     {
         foreach ($query as $key => $value) {
             unset($query[$key]);
@@ -151,15 +168,15 @@ class Kit
      * @param string $string
      * @return array
      */
-    public static function separateTitleWords($string)
+    final public static function separateTitleWords($string)
     {
-        $matches = [];
-        preg_match_all('/[A-Z][a-z]*/', $string, $matches, PREG_OFFSET_CAPTURE);
-        $matches = $matches[0];
-        if (count($matches) > 0) {
+        $match_list = [];
+        preg_match_all('/[A-Z][a-z]*/', $string, $match_list, PREG_OFFSET_CAPTURE);
+        $match_list = $match_list[0];
+        if (count($match_list) > 0) {
             $result = [];
-            if ($matches[0][1] > 0) $result[] = substr($string, 0, $matches[0][1]);
-            foreach ($matches as $match) $result[] = $match[0];
+            if ($match_list[0][1] > 0) $result[] = substr($string, 0, $match_list[0][1]);
+            foreach ($match_list as $match) $result[] = $match[0];
             return $result;
         } else {
             return [$string];
@@ -172,7 +189,7 @@ class Kit
      * @param string      $format
      * @return string
      */
-    public static function time($time = FALSE, $format = 'Y-m-d H:i:s')
+    final public static function time($time = FALSE, $format = 'Y-m-d H:i:s')
     {
         if (FALSE === $time) {
             $time = time();
@@ -183,18 +200,18 @@ class Kit
     /**
      * Generates the string form of data.
      * @param mixed   $data
-     * @param boolean $quotation_marks indicates whether to include quotation marks when dealing with strings
+     * @param boolean $quotation_mark_list indicates whether to include quotation marks when dealing with strings
      * @return string
      */
-    public static function toString($data, $quotation_marks = TRUE)
+    final public static function toString($data, $quotation_mark_list = TRUE)
     {
         if (TRUE === is_array($data)) {
             array_walk(
                 $data,
-                function(&$datum, $index, $quotation_marks) {
-                    $datum = static::toString($datum, $quotation_marks);
+                function(&$datum, $index, $quotation_mark_list) {
+                    $datum = self::toString($datum, $quotation_mark_list);
                 },
-                $quotation_marks
+                $quotation_mark_list
             );
         }
         if (TRUE === Validator::isList($data)) {
@@ -206,7 +223,7 @@ class Kit
                 . join(', ',
                     array_map(
                         function($key, $value) {
-                            return static::toString($key, FALSE) . ' : ' . $value;
+                            return self::toString($key, FALSE) . ' : ' . $value;
                         },
                         array_keys($data),
                         array_values($data)
@@ -219,7 +236,7 @@ class Kit
             return '\Object' . '(' . get_class($data) . ')';
         else if (TRUE === is_bool($data)) return TRUE === $data ? 'TRUE' : 'FALSE';
         else if (TRUE === is_null($data)) return 'NULL';
-        else if (TRUE === is_string($data)) return TRUE === $quotation_marks ? ('\'' . $data . '\'') : $data;
+        else if (TRUE === is_string($data)) return TRUE === $quotation_mark_list ? ('\'' . $data . '\'') : $data;
         else return strval($data);
     }
 }

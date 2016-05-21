@@ -14,12 +14,7 @@ use \Ilex\Base\Model\Database\BaseCollection;
  */
 class LogCollection extends BaseCollection
 {
-    protected $collectionName = 'Log';
-
-    public function __construct()
-    {
-        $this->initialize($this->collectionName);
-    }
+    protected static $collectionName = 'Log';
 
     /**
      * @param array $log

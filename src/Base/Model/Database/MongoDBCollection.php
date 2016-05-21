@@ -23,16 +23,11 @@ use \Ilex\Lib\Kit;
  */
 class MongoDBCollection extends BaseModel
 {
-    protected $collectionName;
-    
     private $collection;
 
-    /**
-     * @param string $collection_name
-     */
-    protected function initialize($collection_name)
+    public function __construct()
     {
-        $this->collection = Loader::db()->selectCollection($collection_name);
+        $this->collection = Loader::db()->selectCollection(static::$collectionName);
     }
 
     /**
@@ -47,7 +42,7 @@ class MongoDBCollection extends BaseModel
     protected function find($criterion = [], $projection = [], $sort_by = NULL
         , $skip = NULL, $limit = NULL, $to_count = FALSE, $to_array = TRUE)
     {
-        $criterion = $this->setRetractId($criterion);
+        $criterion = self::setRetractId($criterion);
         try {
             $cursor = $this->collection->find($criterion, $projection);
         } catch (\Exception $e) {
@@ -70,7 +65,7 @@ class MongoDBCollection extends BaseModel
      */
     protected function insert($document)
     {
-        $document = $this->setRetractId($document);
+        $document = self::setRetractId($document);
         if (FALSE === isset($document['Meta'])) $document['Meta'] = [];
         $document['Meta']['CreateTime'] = new \MongoDate(time());
         try {
@@ -86,10 +81,10 @@ class MongoDBCollection extends BaseModel
      * @param array $data
      * @return array
      */
-    private function setRetractId($data)
+    private static function setRetractId($data)
     {
         if (TRUE === isset($data['_id'])) {
-            $data['_id'] = $this->getId($data['_id']);
+            $data['_id'] = self::getId($data['_id']);
         }
         return $data;
     }
@@ -99,7 +94,7 @@ class MongoDBCollection extends BaseModel
      * @param mixed $id
      * @return mixed
      */
-    private function getId($id)
+    private static function getId($id)
     {
         if (TRUE === is_string($id)) {
             try {

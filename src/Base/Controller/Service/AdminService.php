@@ -13,14 +13,8 @@ class AdminService extends BaseService
     public function __construct()
     {
         parent::__construct();
-        $this->loadModel('System/Admin');
-    }
-
-    protected function countCollection(&$arguments, &$post_data)
-    {
-        $this->validateExistArguments(['collection_name']);
-        $arguments = $this->fetchAllArguments();
-        $post_data = $this->tryFetchPostData(['Criterion', 'Limit']);
+        $this->loadModel('Data/AdminData');
+        $this->loadModel('Core/Admin');
     }
 
     protected function getCollection(&$arguments, &$post_data)

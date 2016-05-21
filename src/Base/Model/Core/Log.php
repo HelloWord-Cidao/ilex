@@ -14,7 +14,6 @@ use \Ilex\Base\Model\Core\BaseCore;
  */
 class Log extends BaseCore
 {
-    protected $LogCollection;
 
     public function __construct()
     {

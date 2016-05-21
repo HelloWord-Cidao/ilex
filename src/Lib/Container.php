@@ -11,26 +11,26 @@ use \Ilex\Lib\Kit;
  * 
  * @property private array $data
  * 
- * @method public         __construct(array $data = [])
- * @method public mixed   __get(mixed $key)
- * @method public mixed   __set(mixed $key, mixed $value)
- * @method public string  __toString()
- * @method public this    assign(array $data = [])
- * @method public mixed   get(mixed $key = NULL, mixed $default = NULL)
- * @method public boolean has(IMPLICIT)
- * @method public this    merge(array $data)
- * @method public array   miss(array $keys)
- * @method public mixed   set(mixed $key, mixed $value)
- * @method public boolean delete(mixed $key)
+ * @method final public         __construct(array $data = [])
+ * @method final public mixed   __get(mixed $key)
+ * @method final public mixed   __set(mixed $key, mixed $value)
+ * @method final public string  __toString()
+ * @method final public self    assign(array $data = [])
+ * @method final public mixed   get(mixed $key = NULL, mixed $default = NULL)
+ * @method final public boolean has(IMPLICIT)
+ * @method final public self    merge(array $data)
+ * @method final public array   miss(array $key_list)
+ * @method final public mixed   set(mixed $key, mixed $value)
+ * @method final public boolean delete(mixed $key)
  */
-class Container
+final class Container
 {
     private $data;
 
     /**
      * @param array $data
      */
-    public function __construct($data = [])
+    final public function __construct($data = [])
     {
         $this->assign($data);
     }
@@ -39,7 +39,7 @@ class Container
      * @param mixed $key
      * @return mixed
      */
-    public function __get($key)
+    final public function __get($key)
     {
         return $this->get($key, NULL);
     }
@@ -49,7 +49,7 @@ class Container
      * @param mixed $value
      * @return mixed
      */
-    public function __set($key, $value)
+    final public function __set($key, $value)
     {
         return $this->set($key, $value);
     }
@@ -57,32 +57,32 @@ class Container
     /**
      * @return string
      */
-    public function __toString()
+    final public function __toString()
     {
         return Kit::toString($this->data);
     }
 
     /**
-     * Returns the params that do not exist as keys in $this->data.
-     * @param array $keys
+     * Returns the params that do not exist as key_list in $this->data.
+     * @param array $key_list
      * @return array
      */
-    public function miss($keys)
+    final public function miss($key_list)
     {
-        $missing_keys = [];
-        foreach ($keys as $key) {
+        $missing_key_list = [];
+        foreach ($key_list as $key) {
             if (FALSE === isset($this->data[$key])) {
-                $missing_keys[] = $key;
+                $missing_key_list[] = $key;
             }
         }
-        return $missing_keys;
+        return $missing_key_list;
     }
 
     /**
      * @param array $data
-     * @return this
+     * @return self
      */
-    public function merge($data)
+    final public function merge($data)
     {
         // @todo: use array_merge or '+' operator?
         $this->assign($this->data + $data);
@@ -91,20 +91,20 @@ class Container
 
     /**
      * @param array $data
-     * @return this
+     * @return self
      */
-    public function assign($data = [])
+    final public function assign($data = [])
     {
         $this->data = $data;
         return $this;
     }
 
     /**
-     * Checks if all the params exist as keys in $this->data.
+     * Checks if all the params exist as key_list in $this->data.
      * @param mixed $key IMPLICIT MULTIPLE
      * @return boolean
      */
-    public function has()
+    final public function has()
     {
         foreach (func_get_args() as $key) {
             if (FALSE === isset($this->data[$key])) {
@@ -119,7 +119,7 @@ class Container
      * @param mixed $default
      * @return mixed
      */
-    public function get($key = NULL, $default = NULL)
+    final public function get($key = NULL, $default = NULL)
     {
         return TRUE === is_null($key) ?
             $this->data :
@@ -131,7 +131,7 @@ class Container
      * @param mixed $value
      * @return mixed
      */
-    public function set($key, $value)
+    final public function set($key, $value)
     {
         return ($this->data[$key] = $value);
     }
@@ -140,7 +140,7 @@ class Container
      * @param mixed $key
      * @return boolean
      */
-    public function delete($key)
+    final public function delete($key)
     {
         if (FALSE === isset($this->data[$key])) return FALSE;
         else unset($this->data[$key]);

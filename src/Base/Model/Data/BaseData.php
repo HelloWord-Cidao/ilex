@@ -3,6 +3,8 @@
 namespace Ilex\Base\Model\Data;
 
 use \Ilex\Base\Model\BaseModel;
+use \Ilex\Lib\Kit;
+use \Ilex\Lib\Validator;
 
 /**
  * Class BaseData
@@ -18,35 +20,17 @@ use \Ilex\Base\Model\BaseModel;
 class BaseData extends BaseModel
 {
 
-    /**
-     * @return array
-     */
-    protected function fetchAllArguments()
+    public function __construct()
     {
-        $arguments = $this->Input->get();
-        unset($arguments['_url']);
-        return $arguments;
+
     }
 
-    /**
-     * @return array
-     */
-    protected function fetchAllPostData()
+    public function validateInput($method_name, $input)
     {
-        return $this->Input->post();
-    }
-
-    /**
-     * @param array[] $argument_names
-     * @return array
-     */
-    protected function fetchArguments($argument_names)
-    {
-        $this->validateExistArguments($argument_names);
-        $arguments = [];
-        foreach ($argument_names as $argument_name)
-            $arguments[$argument_name] = $this->Input->get($argument_name);
-        return $arguments;
+        if (FALSE === isset($this->inputDataPatternList[$method_name]))
+            return Kit::generateErrorInfo("InputDataPattern is not set for method: $method_name.");
+        $pattern = $this->inputDataPatternList[$method_name];
+        return Validator::validate($pattern, $input);
     }
 
     /**
@@ -67,19 +51,6 @@ class BaseData extends BaseModel
 
     /**
      * @param array[] $field_names
-     * @return array
-     */
-    protected function fetchPostData($field_names)
-    {
-        $this->validateExistFields($field_names);
-        $post_data = [];
-        foreach ($field_names as $field_name)
-            $post_data[$field_name] = $this->Input->post($field_name);
-        return $post_data;
-    }
-
-    /**
-     * @param array[] $field_names
      */
     protected function validateExistFields($field_names)
     {
@@ -90,32 +61,6 @@ class BaseData extends BaseModel
             ];
             $this->terminate('Missing fields.', $err_info);
         }
-    }
-
-    /**
-     * @param array[] $argument_names
-     * @return array
-     */
-    protected function tryFetchArguments($argument_names)
-    {
-        $arguments = [];
-        foreach ($argument_names as $argument_name)
-            if (TRUE === $this->Input->hasGet([$argument_name]))
-                $arguments[$argument_name] = $this->Input->get($argument_name);
-        return $arguments;
-    }
-
-    /**
-     * @param array[] $field_names
-     * @return array
-     */
-    protected function tryFetchPostData($field_names)
-    {
-        $post_data = [];
-        foreach ($field_names as $field_name)
-            if (TRUE === $this->Input->hasPost([$field_name]))
-                $post_data[$field_name] = $this->Input->post($field_name);
-        return $post_data;
     }
 
 }

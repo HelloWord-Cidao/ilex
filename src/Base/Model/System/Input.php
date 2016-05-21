@@ -11,99 +11,88 @@ use \Ilex\Lib\Kit;
  * Encapsulation of system input, such as $_GET, $_POST.
  * @package Ilex\Base\Model\System
  * 
- * @property private \Ilex\Lib\Container $getData
- * @property private \Ilex\Lib\Container $postData
- * @property private \Ilex\Lib\Container $inputData
+ * @property private static \Ilex\Lib\Container $getData
+ * @property private static \Ilex\Lib\Container $postData
+ * @property private static \Ilex\Lib\Container $inputData
  * 
- * @method public         __construct()
- * @method public string  __toString()
- * @method public this    clear(string $name = '')
- * @method public mixed   get(string $key = NULL, mixed $default = NULL)
- * @method public boolean hasGet(array $keys)
- * @method public boolean hasInput(array $keys)
- * @method public boolean hasPost(array $keys)
- * @method public mixed   input(string $key = NULL, mixed $default = NULL)
- * @method public this    merge(string $name, array $data = [])
- * @method public array   missGet(array $keys)
- * @method public array   missInput(array $keys)
- * @method public array   missPost(array $keys)
- * @method public mixed   post(string $key = NULL, mixed $default = NULL)
- * @method public mixed   setInput(mixed $key, mixed $value)
- * @method public boolean deleteInput(mixed $key)
+ * @method final public                __construct()
+ * @method final public static self    clear(string $name = NULL)
+ * @method final public static mixed   get(string $key = NULL, mixed $default = NULL)
+ * @method final public static boolean hasGet(array $key_list)
+ * @method final public static boolean hasInput(array $key_list)
+ * @method final public static boolean hasPost(array $key_list)
+ * @method final public static mixed   input(string $key = NULL, mixed $default = NULL)
+ * @method final public static self    merge(string $name, array $data = [])
+ * @method final public static array   missGet(array $key_list)
+ * @method final public static array   missInput(array $key_list)
+ * @method final public static array   missPost(array $key_list)
+ * @method final public static mixed   post(string $key = NULL, mixed $default = NULL)
+ * @method final public static mixed   setInput(mixed $key, mixed $value)
+ * @method final public static boolean deleteInput(mixed $key)
  */
 class Input extends BaseModel
 {
-    private $getData;
-    private $postData;
+    private static $getData;
+    private static $postData;
+    private static $inputData;
 
     /**
      * Encapsulates global variables.
      */
-    public function __construct()
+    final public function __construct()
     {
         unset($_GET['_url']);
-        $this->getData  = new Container($_GET);
-        $this->postData = new Container($_POST);
+        self::$getData  = new Container($_GET);
+        self::$postData = new Container($_POST);
         $data = json_decode(file_get_contents('php://input'), TRUE);
-        if (FALSE === is_null($data)) $this->merge('post', $data);
-        $this->inputData = new Container($this->postData->get() + $this->getData->get());
-    }
-
-    /**
-     * @return string
-     */
-    public function __toString()
-    {
-        return Kit::toString([
-            'get'  => $this->getData,
-            'post' => $this->postData,
-            'input' => $this->inputData,
-        ]);
+        if (FALSE === is_null($data)) self::merge('post', $data);
+        self::$inputData = new Container(self::$postData->get() + self::$getData->get());
     }
 
     /**
      * If $name is NOT assigned, $getData, $postData and $inputData will both be cleared.
      * @param string $name
-     * @return this
+     * @return self
      */
-    public function clear($name = '')
+    final public static function clear($name = NULL)
     {
-        if ($name) {
+        if (FALSE === is_null($name)
+            AND TRUE === in_array($name, ['get', 'post', 'input'])) {
             $name .= 'Data';
-            $this->$name->assign();
+            self::$$name->assign();
         } else {
-            $this->getData->assign();
-            $this->postData->assign();
-            $this->inputData->assign();
+            self::$getData->assign();
+            self::$postData->assign();
+            self::$inputData->assign();
         }
         return $this;
     }
 
     /**
-     * @param array $keys
+     * @param array $key_list
      * @return boolean
      */
-    public function hasInput($keys)
+    final public static function hasInput($key_list)
     {
-        return call_user_func_array([$this->inputData, 'has'], $keys);
+        return call_user_func_array([self::$inputData, 'has'], $key_list);
     }
     
     /**
-     * @param array $keys
+     * @param array $key_list
      * @return boolean
      */
-    public function hasGet($keys)
+    final public static function hasGet($key_list)
     {
-        return call_user_func_array([$this->getData, 'has'], $keys);
+        return call_user_func_array([self::$getData, 'has'], $key_list);
     }
 
     /**
-     * @param array $keys
+     * @param array $key_list
      * @return boolean
      */
-    public function hasPost($keys)
+    final public static function hasPost($key_list)
     {
-        return call_user_func_array([$this->postData, 'has'], $keys);
+        return call_user_func_array([self::$postData, 'has'], $key_list);
     }
 
     /**
@@ -111,9 +100,9 @@ class Input extends BaseModel
      * @param mixed  $default
      * @return mixed
      */
-    public function input($key = NULL, $default = NULL)
+    final public static function input($key = NULL, $default = NULL)
     {
-        return $this->inputData->get($key, $default);
+        return self::$inputData->get($key, $default);
 
     }
 
@@ -122,9 +111,9 @@ class Input extends BaseModel
      * @param mixed  $default
      * @return mixed
      */
-    public function get($key = NULL, $default = NULL)
+    final public static function get($key = NULL, $default = NULL)
     {
-        return $this->getData->get($key, $default);
+        return self::$getData->get($key, $default);
     }
 
     /**
@@ -132,9 +121,9 @@ class Input extends BaseModel
      * @param mixed  $default
      * @return mixed
      */
-    public function post($key = NULL, $default = NULL)
+    final public static function post($key = NULL, $default = NULL)
     {
-        return $this->postData->get($key, $default);
+        return self::$postData->get($key, $default);
     }
 
     /**
@@ -142,56 +131,58 @@ class Input extends BaseModel
      * @param mixed  $value
      * @return mixed
      */
-    public function setInput($key, $value)
+    final public static function setInput($key, $value)
     {
-        return $this->inputData->set($key, $value);
+        return self::$inputData->set($key, $value);
     }
 
     /**
      * @param string $key
      * @return boolean
      */
-    public function deleteInput($key)
+    final public static function deleteInput($key)
     {
-        return $this->inputData->delete($key);
+        return self::$inputData->delete($key);
     }
 
     /**
      * @param string $name
      * @param array  $data
-     * @return this
+     * @return self
      */
-    public function merge($name, $data = [])
+    final public static function merge($name, $data = [])
     {
-        $name .= 'Data';
-        $this->$name->merge($data);
+        if (TRUE === in_array($name, ['get', 'post', 'input'])) {
+            $name .= 'Data';
+            self::$$name->merge($data);
+        }
         return $this;
     }
 
     /**
-     * @param array $keys
+     * @param array $key_list
      * @return array
      */
-    public function missGet($keys)
+    final public static function missInput($key_list)
     {
-        return $this->getData->miss($keys);
+        return self::$inputData->miss($key_list);
     }
 
     /**
-     * @param array $keys
+     * @param array $key_list
      * @return array
      */
-    public function missInput($keys)
+    final public static function missGet($key_list)
     {
-        return $this->inputData->miss($keys);
+        return self::$getData->miss($key_list);
     }
 
     /**
-     * @param array $keys
+     * @param array $key_list
      * @return array
      */
-    public function missPost($keys)
+    final public static function missPost($key_list)
     {
-        return $this->postData->miss($keys);
+        return self::$postData->miss($key_list);
     }
 }

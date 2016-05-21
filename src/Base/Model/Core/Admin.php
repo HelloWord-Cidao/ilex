@@ -2,14 +2,14 @@
 
 // @TODO: add comments
 
-namespace Ilex\Base\Model\System;
+namespace Ilex\Base\Model\Core;
 
 use \Ilex\Base\Model\BaseModel;
 use \Ilex\Lib\Kit;
 
 /**
  * Class Admin
- * @package Ilex\Base\Model\System
+ * @package Ilex\Base\Model\Core
  */
 class Admin extends BaseModel
 {
@@ -34,7 +34,7 @@ class Admin extends BaseModel
 
         $data = $this->$collection_name->count($criterion, $skip, $limit);
 
-        if (FALSE === is_numeric($data)) $data = $this->generateErrorInfo('$data is not numeric.');
+        if (FALSE === is_numeric($data)) $data = Kit::generateErrorInfo('$data is not numeric.');
     }
 
     public function getCollection($arguments, $post_data, &$data, &$status)
@@ -59,6 +59,6 @@ class Admin extends BaseModel
 
         $data = $this->$collection_name->get($criterion, $projection, $sort_by, $skip, $limit);
 
-        if (FALSE === is_array($data)) $data = $this->generateErrorInfo('$data is not array.');
+        if (FALSE === is_array($data)) $data = Kit::generateErrorInfo('$data is not array.');
     }
 }

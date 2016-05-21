@@ -16,18 +16,14 @@ use \Ilex\Core\Loader;
  * @property private int     $statusCode
  *
  * @method public __construct()
+ * @method public __call(string $method_name, array $args)
  * 
- * @method protected responseWithSuccess(mixed $data = NULL)
- * @method protected validateComputationData(mixed $data)
- * @method protected validateOperationStatus(array|boolean $status)
- * 
+ * @method private fail(string $err_msg, mixed $err_info = NULL)
  * @method private output()
  * @method private response(array $data, mixed $status)
- * @method private terminateForFailedComputation(mixed $err_info = NULL)
- * @method private terminateForFailedOperation(mixed $err_info = NULL)
- * @method private terminateForMissingArguments(mixed $err_info = NULL)
- * @method private terminateForMissingFields(mixed $err_info = NULL)
- * @method private terminate(string $err_msg, mixed $err_info = NULL)
+ * @method private success(mixed $data = NULL)
+ * @method private validateComputationData(mixed $data)
+ * @method private validateOperationStatus(array|boolean $status)
  */
 class BaseService extends BaseController
 {
@@ -44,17 +40,20 @@ class BaseService extends BaseController
 
     public function __call($method_name, $args) 
     {
-        if (FALSE === in_array($method_name, get_class_methods($this))) return;
+        // if (FALSE === in_array($method_name, get_class_methods($this))) return;
         $handler_prefix = Loader::getHandlerPrefixFromPath(get_called_class(), '\\', ['Service']);
-        $arguments = []; $post_data = [];
-        call_user_func_array([$this, $method_name], [&$arguments, &$post_data]);
+        $input = $this->Input->input();
+        $validation_result = call_user_func([
+            $this->{$handler_prefix . 'Data'}, 'validateInput'
+        ], $method_name, $input);
+        exit();
         $computation_data = NULL; $operation_status = TRUE;
         call_user_func_array([$this->$handler_prefix, $method_name]
             , [$arguments, $post_data, &$computation_data, &$operation_status]);
         $this->validateComputationData($computation_data);
         $this->validateOperationStatus($operation_status);
         $this->Log->logRequest($operation_status, $arguments, $post_data);
-        $this->responseWithSuccess($computation_data, $operation_status);
+        $this->success($computation_data, $operation_status);
     }
 
     /**
@@ -62,10 +61,10 @@ class BaseService extends BaseController
      *        mixed                      ok
      *        array [T_IS_ERROR => TRUE] error
      */
-    protected function validateComputationData($computation_data)
+    private function validateComputationData($computation_data)
     {
         if (TRUE === is_array($computation_data) AND TRUE === $computation_data[T_IS_ERROR])
-            $this->terminate('Computation failed.', $computation_data);
+            $this->fail('Computation failed.', $computation_data);
     }
 
     /**
@@ -76,14 +75,14 @@ class BaseService extends BaseController
      *        array   [T_IS_ERROR => TRUE]  error
      *        other   other                 error
      */
-    protected function validateOperationStatus($operation_status)
+    private function validateOperationStatus($operation_status)
     {
         if (FALSE === 
             (TRUE === $operation_status OR 
                 (TRUE === is_array($operation_status) AND FALSE === $operation_status[T_IS_ERROR])
             )
         ) {
-            $this->terminate('Operation failed.', $operation_status);
+            $this->fail('Operation failed.', $operation_status);
         }
     }
 
@@ -91,7 +90,7 @@ class BaseService extends BaseController
      * @param string $err_msg
      * @param mixed  $err_info
      */
-    private function terminate($err_msg, $err_info = NULL)
+    private function fail($err_msg, $err_info = NULL)
     {
         $result = ['success' => FALSE, 'errMsg' => $err_msg];
         unset($err_info[T_IS_ERROR]);
@@ -108,7 +107,7 @@ class BaseService extends BaseController
      *        array   [T_IS_ERROR => FALSE] ok
      *        NULL                          no $operation_status
      */
-    protected function responseWithSuccess($computation_data, $operation_status)
+    private function success($computation_data, $operation_status)
     {
         $result = ['success' => TRUE];
         unset($computation_data[T_IS_ERROR]);

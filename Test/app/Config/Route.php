@@ -18,8 +18,8 @@ $Router->get('/', function () {
     return ('Hello world!');
 });
 
-Kit::log('#2 post /user/(any) func');
-$Router->post('/user/(any)', function ($name) {
+Kit::log('#2 post /user/(uid:any) func');
+$Router->post('/user/(uid:any)', function ($name) {
     /**
      * Model 'System/Input' has already been loaded in \Ilex\Tester::boot(),
      * and been updated in \Ilex\Tester::run(),
@@ -38,8 +38,8 @@ $Router->post('/user/(any)', function ($name) {
 Kit::log('#3 get /projects Project');
 $Router->get('/projects', 'Project'); // This will invoke ProjectController::index().
 
-Kit::log('#4 get /project/(num) Project view');
-$Router->get('/project/(num)', 'Project', 'view'); // This will invoke ProjectController::view(num).
+Kit::log('#4 get /project/(pid:num) Project view');
+$Router->get('/project/(pid:num)', 'Project', 'view'); // This will invoke ProjectController::view(num).
 
 // @TODO: what is the situation of usage of route of type: group??
 Kit::log('#5 group /planet func');
@@ -59,7 +59,7 @@ $Router->controller('/about', 'About'); // This will invoke AboutController.
 Kit::log('#7 controller /play Play');
 $Router->controller('/play', 'Play'); // This will invoke PlayController.
 
-Kit::log('#8 get (all) func');
-$Router->get('(all)', function ($url) {
+Kit::log('#8 get (uri:all) func');
+$Router->get('(uri:all)', function ($url) {
     return ('Oops, 404! "' . $url . '" does not exist.');
 });

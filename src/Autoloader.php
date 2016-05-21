@@ -11,26 +11,25 @@ use \Ilex\Lib\Kit;
  * Class Autoloader
  * @package Ilex
  * 
- * @method public static        initialize(string $APPPATH, string $RUNTIMEPATH)
- * @method public static mixed  resolve(string $method, string $url)
- * @method public static string run(string $APPPATH, string $RUNTIMEPATH)
+ * @method final public static        initialize(string $APPPATH, string $RUNTIMEPATH)
+ * @method final public static mixed  resolve(string $method, string $url)
+ * @method final public static string run(string $APPPATH, string $RUNTIMEPATH)
  */
-class Autoloader
+final class Autoloader
 {
 
     /**
-     * @todo check inheritance of Autoloader! static:: or self:: ?
      * @param string $APPPATH
      * @param string $RUNTIMEPATH
      * @param string $APPNAME
      * @return string
      */
-    public static function run($APPPATH, $RUNTIMEPATH, $APPNAME)
+    final public static function run($APPPATH, $RUNTIMEPATH, $APPNAME)
     {
-        static::initialize($APPPATH, $RUNTIMEPATH, $APPNAME);
+        self::initialize($APPPATH, $RUNTIMEPATH, $APPNAME);
         // @todo: how to handle the return value? check other project.
         // If a service controller is called, then it will response the HTTP request and exit before return anything. Other cases unknown.
-        return static::resolve(
+        return self::resolve(
             $_SERVER['REQUEST_METHOD'], // i.e.  'GET' | 'POST' | 'PUT' | 'DELETE'
             TRUE === isset($_GET['_url']) ? $_GET['_url'] : '/'
         );
@@ -41,7 +40,7 @@ class Autoloader
      * @param string $url
      * @return mixed
      */
-    public static function resolve($method, $url)
+    final public static function resolve($method, $url)
     {
         Kit::log([__METHOD__, [
             'method' => $method,
@@ -58,7 +57,7 @@ class Autoloader
      * @param string $RUNTIMEPATH
      * @param string $APPNAME
      */
-    public static function initialize($APPPATH, $RUNTIMEPATH, $APPNAME)
+    final public static function initialize($APPPATH, $RUNTIMEPATH, $APPNAME)
     {
         $APPPATH     = Kit::getRealPath($APPPATH);
         $ILEXPATH    = Kit::getRealPath(__DIR__);

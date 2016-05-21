@@ -2,6 +2,7 @@
 
 namespace Ilex\Base;
 
+use ReflectionClass;
 use \Ilex\Core\Loader;
 
 /**
@@ -9,30 +10,31 @@ use \Ilex\Core\Loader;
  * Base class of controllers and models.
  * @package Ilex\Base
  * 
- * @method protected object loadModel(IMPLICIT)
+ * @method final protected static object loadModel(IMPLICIT)
  */
-class Base
+abstract class Base
 {
     /**
-     * Protected method that can be called by the controllers in APPPATH/Controller.
      * @param string $path  IMPLICIT
      * @param mixed  $param IMPLICIT MULTIPLE
      * @return object
      */
-    protected function loadModel()
+    final protected static function loadModel()
     {
-        $params = [];
+        $param_list = [];
         foreach (func_get_args() as $index => $value) {
             if (0 === $index) {
                 $path = $value;
             } else {
-                $params[] = $value;
+                $param_list[] = $value;
             }
         }
         $name = Loader::getHandlerFromPath($path);
-        /**
-         * @todo maybe should add suffix to $name, i.e., 'Session' => 'SessionModel'?
-         */
-        return TRUE === is_null($this->$name) ? ($this->$name = Loader::model($path, $params)) : $this->$name;
+        // $reflection_class = new ReflectionClass(get_called_class());
+        // var_dump($reflection_class->)
+        // exit();
+        return (TRUE === is_null(static::$$name)) ?
+            (static::$$name = Loader::model($path, $param_list)) :
+            (static::$$name);
     }
 }

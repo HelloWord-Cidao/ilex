@@ -2,37 +2,34 @@
 
 namespace Ilex;
 
+use ReflectionClass;
 use \Ilex\Autoloader;
-use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
+use \Ilex\Base\Base;
 
 /**
  * Class Tester
  * @package Ilex
  * 
- * @property private static \Ilex\Base\Model\System\Input   $Input
- * @property private static \Ilex\Base\Model\System\Session $Session
- * 
- * @method public static        boot($APPPATH, $RUNTIMEPATH)
- * @method public static string run($url = '/', $method = 'GET', $postData = [], $getData = [])
+ * @method final public static        boot($APPPATH, $RUNTIMEPATH)
+ * @method final public static string run($url = '/', $method = 'GET', $postData = [], $getData = [])
  */
-class Tester
+final class Tester extends Base
 {
-    private static $Input;
-    private static $Session;
+    public static $Input;
+    // protected static $Input;
 
     /**
      * @param string $APPPATH
      * @param string $RUNTIMEPATH
      * @param string $APPNAME
      */
-    public static function boot($APPPATH, $RUNTIMEPATH, $APPNAME)
+    final public static function boot($APPPATH, $RUNTIMEPATH, $APPNAME)
     {
         Autoloader::initialize($APPPATH, $RUNTIMEPATH, $APPNAME);
         // Now Loader has been initialized by Autoloader::initialize().
-        // @todo: static or self?
-        static::$Input   = Loader::model('System/Input');
-        static::$Session = Loader::model('System/Session');
+        self::loadModel('System/Input');
+        var_dump((new ReflectionClass(get_called_class()))->getProperty('Input')->getValue());
     }
 
     /**
@@ -42,7 +39,7 @@ class Tester
      * @param array  $getData
      * @return string
      */
-    public static function run($url = '/', $method = 'GET', $postData = [], $getData = [])
+    final public static function run($url = '/', $method = 'GET', $postData = [], $getData = [])
     {
         Kit::log([__METHOD__, [
             'getData'  => $getData,
@@ -50,8 +47,8 @@ class Tester
             'postData' => $postData,
             'url'      => $url,
         ]]);
-        static::$Input->clear()->merge('post', $postData)->merge('get', $getData);
-        Kit::log([__METHOD__, ['static::$Input' => static::$Input]]);
+        self::$Input->clear()->merge('post', $postData)->merge('get', $getData);
+        Kit::log([__METHOD__, ['self::$Input' => self::$Input]]);
         // $_SERVER['REQUEST_URI'] =  ENV_HOST . '/' . $url; // @todo: what?
         return Autoloader::resolve($method, $url);
     }

@@ -7,6 +7,7 @@ use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
 
 /**
+ * @todo: check calling final vs. normal methods using static:: vs. self::
  * Class Session
  * Encapsulation of session.
  * @package Ilex\Base\Model\System
@@ -16,23 +17,20 @@ use \Ilex\Lib\Kit;
  * @property const string USERID
  * @property const string USERNAME
  *
- * @property private boolean $booted
- * @property private array   $fakeSession
+ * @property private static boolean $booted
+ * @property private static array   $fakeSession
  * 
- * @method public         __construct()
- * @method public mixed   __get(string $key)
- * @method public mixed   __set(string $key, mixed $value)
- * @method public string  __toString()
- * @method public         assign(array $vars)
- * @method public         boot()
- * @method public         forget()
- * @method public mixed   get(string|boolean $key = FALSE, mixed $default = FALSE)
- * @method public boolean has(string $key)
- * @method public         makeGuest()
- * @method public string  newSid()
- * @method public mixed   set(string $key, mixed $value)
+ * @method final public                __construct()
+ * @method final public static         assign(array $var_list)
+ * @method final public static         boot()
+ * @method final public static         forget()
+ * @method final public static mixed   get(string|boolean $key = FALSE, mixed $default = FALSE)
+ * @method final public static boolean has(string $key)
+ * @method final public static         makeGuest()
+ * @method final public static string  newSid()
+ * @method final public static mixed   set(string $key, mixed $value)
  *
- * @method private start()
+ * @method private static start()
  */
 class Session extends BaseModel
 {
@@ -41,87 +39,57 @@ class Session extends BaseModel
     const USERID   = 'userId';
     const USERNAME = 'username';
 
-    private $booted = FALSE;
-    private $fakeSession; // @todo: use \Ilex\Lib\Container
+    private static $booted = FALSE;
+    private static $fakeSession; // @todo: use \Ilex\Lib\Container
 
-    public function __construct()
+    final public function __construct()
     {
-        $this->boot();
+        self::boot();
     }
 
     /**
-     * @param string $key
-     * @return mixed
-     */
-    public function __get($key)
-    {
-        return $this->get($key);
-    }
-
-    /**
-     * @param string $key
-     * @param mixed  $value
-     * @return mixed
-     */
-    public function __set($key, $value)
-    {
-        return $this->set($key, $value);
-    }
-
-    /**
-     * @return string
-     */
-    public function __toString()
-    {
-        return Kit::toString([
-            'booted'      => $this->booted,
-            'fakeSession' => $this->fakeSession,
-        ]);
-    }
-
-    /**
-     * Assigns $vars to $_SESSION or $fakeSession.
+     * Assigns $var_list to $_SESSION or $fakeSession.
      * @uses ENVIRONMENT
-     * @param array $vars
+     * @param array $var_list
      */
-    public function assign($vars)
+    final public static function assign($var_list)
     {
         // @todo: use array_merge or '+' operator?
-        $tmp = $this->fakeSession + $vars;
+        $tmp = self::$fakeSession + $var_list;
         if (ENVIRONMENT !== 'TESTILEX') {
             $_SESSION = $tmp;
-            $this->fakeSession = &$_SESSION;
+            self::$fakeSession = &$_SESSION;
         } else {
-            $this->fakeSession = $tmp;
+            self::$fakeSession = $tmp;
         }
     }
 
     /**
      * @uses ENVIRONMENT
      */
-    public function boot()
+    final public static function boot()
     {
-        if (FALSE === $this->booted) {
-            $this->start();
-            $this->booted = TRUE;
+        if (FALSE === self::$booted) {
+            self::start();
+            self::$booted = TRUE;
             if ('TESTILEX' !== ENVIRONMENT) {
-                $this->fakeSession = &$_SESSION;
+                self::$fakeSession = &$_SESSION;
             } else {
-                $this->fakeSession = [];
+                self::$fakeSession = [];
             }
-            if (FALSE === $this->has($this->SID)) {
-                $this->newSid();
+            if (FALSE === self::has(self::SID)) {
+                self::newSid();
             }
-            if (FALSE === $this->has($this->USERID)) {
-                $this->makeGuest();
+            if (FALSE === self::has(self::USERID)) {
+                self::makeGuest();
             }
         }
         /*
          * Now the following fields have been assigned:
-         * $this->LOGIN
-         * $this->SID
-         * $this->USERID
-         * $this->USERNAME
+         * self::LOGIN
+         * self::SID
+         * self::USERID
+         * self::USERNAME
          */
     }
 
@@ -129,22 +97,22 @@ class Session extends BaseModel
      * Resets status.
      * @uses ENVIRONMENT
      */
-    public function forget()
+    final public static function forget()
     {
         if ('TESTILEX' !== ENVIRONMENT) {
             session_unset();
             session_destroy();
         }
-        $this->start();
-        $this->newSid();
-        $this->makeGuest();
+        self::start();
+        self::newSid();
+        self::makeGuest();
     }
 
     /**
      * Starts the session.
      * @uses ENVIRONMENT, SYS_SESSNAME
      */
-    private function start()
+    final private static function start()
     {
         if ('TESTILEX' !== ENVIRONMENT) {
             session_name(SYS_SESSNAME); // Defined in \Ilex\Core\Constant.
@@ -156,20 +124,20 @@ class Session extends BaseModel
      * Generates new sid.
      * @return string
      */
-    public function newSid()
+    final public static function newSid()
     {
-        return $this->set($this->SID, sha1(uniqid() . mt_rand()));
+        return self::set(self::SID, sha1(uniqid() . mt_rand()));
     }
 
     /**
      * Sets guest status.
      * @uses USERID, USERNAME, LOGIN
      */
-    public function makeGuest()
+    final public static function makeGuest()
     {
-        $this->set($this->LOGIN, FALSE);
-        $this->set($this->USERID, 0);
-        $this->set($this->USERNAME, 'Guest');
+        self::set(self::LOGIN, FALSE);
+        self::set(self::USERID, 0);
+        self::set(self::USERNAME, 'Guest');
     }
 
     /**
@@ -177,9 +145,9 @@ class Session extends BaseModel
      * @param string $key
      * @return boolean
      */
-    public function has($key)
+    final public static function has($key)
     {
-        return TRUE === isset($this->fakeSession[$key]);
+        return isset(self::$fakeSession[$key]);
     }
 
     /**
@@ -189,11 +157,11 @@ class Session extends BaseModel
      * @param mixed          $default
      * @return mixed
      */
-    public function get($key = FALSE, $default = FALSE)
+    final public static function get($key = FALSE, $default = FALSE)
     {
-        return FALSE !== $key ?
-            (TRUE === isset($this->fakeSession[$key]) ? $this->fakeSession[$key] : $default) :
-            $this->fakeSession;
+        return (FALSE !== $key) ?
+            (TRUE === isset(self::$fakeSession[$key]) ? self::$fakeSession[$key] : $default) :
+            (self::$fakeSession);
     }
 
     /**
@@ -202,8 +170,8 @@ class Session extends BaseModel
      * @param mixed  $value
      * @return mixed
      */
-    public function set($key, $value)
+    final public static function set($key, $value)
     {
-        return ($this->fakeSession[$key] = $value);
+        return (self::$fakeSession[$key] = $value);
     }
 }
