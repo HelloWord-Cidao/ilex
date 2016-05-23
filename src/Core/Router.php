@@ -12,13 +12,12 @@ use \Ilex\Lib\Kit;
  * 
  * @property private boolean $cancelled
  * @property private string  $method
- * @property private array   $paramList
  * @property private         $result
  * @property private boolean $settled
  * @property private string  $uri
  * @property private array   $uriList
  * 
- * @method final public          __call(string $name, array $args)
+ * @method final public          __call(string $method_name, array $args)
  * @method final public          __construct(string $method, string $uri)
  * @method final public  string  __toString()
  * Methods derived from __call():
@@ -32,18 +31,16 @@ use \Ilex\Lib\Kit;
  *
  * @method final private              end(mixed $result)
  * @method final private boolean      fitController(string $description, string $handler)
- * @method final private boolean      fitGeneral(string $description, mixed $handler, string $function = NULL)
+ * @method final private boolean      fitGeneral(string $description, mixed $handler, string $function, boolean $is_time_consuming = FALSE)
  * @method final private array|string getFunction(string $uri)
  * @method final private string       getPattern(string $description)
- * @method final private              merge(array $vars)
- * @method final private              pop()
+ * @method final private              popUriList()
  * @method final private boolean      resolveRestURI(string $description)
  */
 final class Router
 {
     private $cancelled = FALSE; // @TODO: what?
     private $method;            // i.e.  'GET' | 'HEAD' | 'POST' | 'PUT'
-    private $paramList = [];
     private $result    = NULL;
     private $settled   = FALSE;
     private $uri;
@@ -69,7 +66,6 @@ final class Router
         $result  = PHP_EOL . '\Router {' . PHP_EOL;
         $result .= "\tcancelled : " . Kit::toString($this->cancelled) . PHP_EOL;
         $result .= "\tmethod    : " . Kit::toString($this->method)    . PHP_EOL;
-        $result .= "\tparamList : " . Kit::toString($this->paramList) . PHP_EOL;
         $result .= "\tresult    : " . Kit::toString($this->result)    . PHP_EOL;
         $result .= "\tsettled   : " . Kit::toString($this->settled)   . PHP_EOL;
         $result .= "\turi       : " . Kit::toString($this->uri)       . PHP_EOL;
@@ -80,25 +76,25 @@ final class Router
 
     /**
      * Checks the method and then attempts to fit the request..
-     * @param string $name      i.e. 'any' | 'get' | 'post' | 'controller' | 'group'
+     * @param string $method_name i.e. 'any' | 'get' | 'post' | 'controller' | 'group'
      * @param array  $args
      */
-    final public function __call($name, $args)
+    final public function __call($method_name, $args)
     {
         if (FALSE === $this->settled) {
             Kit::log([__METHOD__, [
                 'args'    => $args,
                 'method'  => $this->method,
-                'name'    => $name,
+                'name'    => $method_name,
                 'settled' => $this->settled,
             ]]);
             
-            if ('any' === $name OR strtolower($this->method) === $name) {
+            if ('any' === $method_name OR strtolower($this->method) === $method_name) {
             // $args must consists of two or three argument.
                 Kit::log([__METHOD__, 'call fitGeneral'], FALSE);
                 call_user_func_array([$this, 'fitGeneral'], $args);
             
-            } else if ('controller' === $name OR 'group' === $name) {
+            } else if ('controller' === $method_name OR 'group' === $method_name) {
             // $args must consists of exactly two argument.
                 $description = $args[0];
                 $handler     = $args[1];
@@ -119,14 +115,14 @@ final class Router
                  *     $this->uriList : ['/about/join/whatever']
                  *     $description   : '/about'
                  */
-                if ('controller' === $name) {
+                if ('controller' === $method_name) {
                     // eg. $description : '/about'
                     //     $handler     : 'About'
                     Kit::log([__METHOD__, 'call fitController'], FALSE);
                     $this->fitController($description, $handler);
                 }
             
-                if ('group' === $name) {
+                if ('group' === $method_name) {
                 // Group routes should implemented in order!!!
                     // eg. $description : '/whatever'
                     //     $handler     : an anonymous function usually with an argument: $Router
@@ -182,9 +178,9 @@ final class Router
             return FALSE;
         } else {
             // @TODO: need test!
-            $this->pop();
+            $this->popUriList();
             $this->cancelled = TRUE;
-            Kit::log([__METHOD__, 'self::pop()', 'cancelled = TRUE', 'return TRUE'], FALSE);
+            Kit::log([__METHOD__, 'self::popUriList()', 'cancelled = TRUE', 'return TRUE'], FALSE);
             return TRUE;
         }
     }
@@ -216,29 +212,29 @@ final class Router
     }
 
     /**
-     * Extracts param_list and handles the request,
+     * Extracts parameters and handles the request,
      * by choosing the appropriate handler,
      * and calling the appropriate method
-     * (calling `index` method if $function IS NOT defined),
      * if $description CAN fit $this->uri.
-     * @param string $description eg. '/project/(num)', '/(num)', '/', '/user/(any)', '(all)'
-     * @param mixed  $handler     eg. 'Project',        $this,    an anonymous function
-     * @param string $function    eg. 'view'
+     * @param string  $description eg. '/project/(num)', '/(num)', '/', '/user/(any)', '(all)'
+     * @param mixed   $handler     eg. 'Project',        $this,    an anonymous function
+     * @param string  $function    eg. 'view'
+     * @param boolean $is_time_consuming
      * @return boolean
      */
-    final private function fitGeneral($description, $handler, $function = NULL)
+    final private function fitGeneral($description, $handler, $function, $is_time_consuming = FALSE)
     {
         Kit::log([__METHOD__, [
-            'desc'     => $description,
-            'function' => $function,
-            'handler'  => $handler,
+            'description'       => $description,
+            'function'          => $function,
+            'handler'           => $handler,
+            'is_time_consuming' => $is_time_consuming,
         ]]);
         Kit::log([__METHOD__, ['this' => $this]]);
         /**
-         * eg. $description     : '/project/(num)' => '/project/([0-9]+?)'
-         *     $this->uri       : 'http://www.test.com/project/12' or '/project/12'?
-         *     $this->paramList : []
-         *     $match_list      : ['/project/12', '12']
+         * eg. $description : '/project/(id:num)' => '/project/([0-9]+?)'
+         *     $this->uri   : '/project/12'
+         *     $match_list  : ['/project/12', '12']
          */
         $pattern = $this->getPattern($description); // It will attempt to match the whole $this->uri string.
         $uri     = rtrim($this->uri, '/'); // $this->uri contains no GET args.
@@ -250,10 +246,10 @@ final class Router
             preg_match_all('@([^:\(\)]+):([^:\(\)]+)@', $description, $m, PREG_SET_ORDER);
             $mapping = [];
             foreach ($m as $value) {
-                $mapping[$value[1]] = $value[2];
+                $mapping[$value[1]] = $value[2]; // 'id' => 'num'
             }
             $Input = Loader::model('System/Input');
-            foreach ($match_list as $key => $value) {
+            foreach ($match_list as $key => $value) { // [0 => 12, 'id' => 12]
                 if (TRUE === is_int($key)) {
                     unset($match_list[$key]);
                 } elseif ('num' === $mapping[$key]) {
@@ -262,32 +258,28 @@ final class Router
                     $Input->setInput($key, $value);
                 }
             }
-            $this->merge($match_list); // $this->paramList updated.
-            Kit::log([__METHOD__, 'after merge', ['paramList' => $this->paramList]]);
-            // eg. $this->paramList : ['12']
-            
             if (TRUE === is_string($handler) OR FALSE === ($handler instanceof \Closure)) {
             // $handler is a string or IS NOT an anonymous function, i.e., an instance.
                 Kit::log([__METHOD__, '$handler is a string or IS NOT an anonymous function, i.e., an instance.'], FALSE);
                 Kit::log([__METHOD__, 'call end', [
-                    'function'   => TRUE === is_null($function) ? 'index' : $function,
+                    'function'   => $function,
                     'handler'    => TRUE === is_string($handler) ? Loader::controller($handler) : $handler,
-                    'paramList' => $this->paramList,
+                    'param_list' => [$is_time_consuming],
                 ]]);
                 $this->end(
                     call_user_func_array([
                         TRUE === is_string($handler) ? Loader::controller($handler) : $handler, // The controller is loaded HERE!
-                        TRUE === is_null($function) ? 'index' : $function // The default function is method 'index' of the handler.
-                    ], $this->paramList)
+                        $function
+                    ], [$is_time_consuming])
                 );
             } elseif (TRUE === is_callable($handler)) {
             // $handler is an anonymous function.
                 Kit::log([__METHOD__, '$handler is an anonymous function.'], FALSE);
                 Kit::log([__METHOD__, 'call end', [
                     'handler'   => $handler,
-                    'paramList' => $this->paramList,
+                    'paramList' => [$is_time_consuming],
                 ]]);
-                $this->end(call_user_func_array($handler, $this->paramList));
+                $this->end(call_user_func_array($handler, $is_time_consuming));
             }
             Kit::log([__METHOD__, 'CAN FIT!'], FALSE);
             return TRUE;
@@ -318,16 +310,6 @@ final class Router
         }
         $description = rtrim($description, '/');
         return '@^' . $description . '$@';
-    }
-
-    /**
-     * @param array $var
-     */
-    final private function merge($var_list)
-    {
-        // The only place where $this->paramList is updated.
-        // @todo: use array_merge or '+' operator?
-        $this->paramList += $var_list;
     }
 
     /**
@@ -388,11 +370,11 @@ final class Router
         } else {
             // CAN NOT FIT! Rollback!
             // @TODO: need test!
-            Kit::log([__METHOD__, 'call pop', ['this' => $this]]);
-            $this->pop();
+            Kit::log([__METHOD__, 'call popUriList', ['this' => $this]]);
+            $this->popUriList();
             // eg. $this->uri     : '/about/join/whatever'
             //     $this->uriList : []
-            Kit::log([__METHOD__, 'after pop', ['this' => $this]]);
+            Kit::log([__METHOD__, 'after popUriList', ['this' => $this]]);
             Kit::log([__METHOD__, 'CAN NOT FIT! Rollback!'], FALSE);
             return FALSE;
         }
@@ -420,7 +402,7 @@ final class Router
         // $uri begins with '/'.
             if (FALSE === ($uri = substr($uri, 1))) {
                 // Fails to exclude '/' because $uri is '/'.
-                $uri = '';
+                $uri   = '';
                 $index = FALSE;
             } else {
                 // Now the first '/' is excluded. Search for the second '/' in $uri.
@@ -434,7 +416,7 @@ final class Router
         } else {
         // '/' found.
             $function = substr($uri, 0, $index); // eg. 'user'
-            if (FALSE === ($paramRaw = substr($uri, $index + 1))) {
+            if (FALSE === ($param_raw = substr($uri, $index + 1))) {
                 // @TODO: need test!
                 $param_list = []; // eg. '/user/' => 'user/' with no param_list
             } else {
@@ -449,7 +431,7 @@ final class Router
         return count($param_list) > 0 ? [$function, $param_list] : $function;
     }
 
-    final private function pop()
+    final private function popUriList()
     {
         // The last of three places where $this->uri is assigned.
         // The last of two places where $this->uriList is updated.

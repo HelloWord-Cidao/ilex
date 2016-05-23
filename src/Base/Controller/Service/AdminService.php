@@ -6,18 +6,18 @@ use \Ilex\Base\Controller\Service\BaseService;
 
 /**
  * Class AdminService
- * @package HelloWord\Controller\Service
+ * @package Ilex\Base\Controller\Service
  */
 class AdminService extends BaseService
 {
-    public function __construct()
+    final public function __construct()
     {
         parent::__construct();
-        $this->loadModel('Data/AdminData');
-        $this->loadModel('Core/Admin');
+        self::loadModel('Data/AdminData');
+        self::loadModel('Feature/Core/Admin');
     }
 
-    protected function getCollection(&$arguments, &$post_data)
+    final protected function getCollection(&$arguments, &$post_data)
     {
         $this->validateExistArguments(['collection_name']);
         $arguments = $this->fetchAllArguments();

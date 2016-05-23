@@ -7,7 +7,6 @@ use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
 
 /**
- * @todo: check calling final vs. normal methods using static:: vs. self::
  * Class Session
  * Encapsulation of session.
  * @package Ilex\Base\Model\System
@@ -32,7 +31,7 @@ use \Ilex\Lib\Kit;
  *
  * @method private static start()
  */
-class Session extends BaseModel
+final class Session extends BaseModel
 {
     const LOGIN    = 'login';
     const SID      = 'sid';

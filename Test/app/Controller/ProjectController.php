@@ -8,12 +8,12 @@ use \Ilex\Base\Controller\BaseController;
  * Class ProjectController
  * @package app\Controller
  *
- * @method final public static index()
- * @method final public static view(mixed $id)
+ * @method final public index()
+ * @method final public view(mixed $id)
  */
 final class ProjectController extends BaseController
 {
-    final public static function index()
+    final public function index()
     {
         return ('See all projects.');
     }
@@ -21,7 +21,7 @@ final class ProjectController extends BaseController
     /**
      * @param mixed $id
      */
-    final public static function view($id)
+    final public function view($id)
     {
         return ('You\'re looking at Project-' . strval($id));
     }

@@ -7,13 +7,13 @@ use \Ilex\Base\Controller\BaseController;
  * Class AboutController
  * @package app\Controller
  *
- * @method final public static index()
- * @method final public static join(string $group = 'tech')
- * @method final public static postJoin(string $group = 'tech')
+ * @method final public index()
+ * @method final public join(string $group = 'tech')
+ * @method final public postJoin(string $group = 'tech')
  */
 final class AboutController extends BaseController
 {
-    final public static function index()
+    final public function index()
     {
         return ('about');
     }
@@ -21,7 +21,7 @@ final class AboutController extends BaseController
     /**
      * @param string $group
      */
-    final public static function join($group = 'tech')
+    final public function join($group = 'tech')
     {
         return ('Join ' . $group . '!');
     }
@@ -29,9 +29,9 @@ final class AboutController extends BaseController
     /**
      * @param string $group
      */
-    final public static function postJoin($group = 'tech')
+    final public function postJoin($group = 'tech')
     {
-        // This will assign the instance of the loaded model to $this->Input.
+        // This will assign the instance of the loaded model to self::Input.
         self::loadModel('System/Input');
         return ('Welcome to ' . $group . ', ' . self::$Input->post('name', 'Jack') . '!');
     }

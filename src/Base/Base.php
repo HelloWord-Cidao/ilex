@@ -10,31 +10,22 @@ use \Ilex\Core\Loader;
  * Base class of controllers and models.
  * @package Ilex\Base
  * 
- * @method final protected static object loadModel(IMPLICIT)
+ * @method final protected static object loadModel(string $path, array $param_list)
  */
 abstract class Base
 {
     /**
-     * @param string $path  IMPLICIT
-     * @param mixed  $param IMPLICIT MULTIPLE
+     * @param string $path
+     * @param array  $param_list 
      * @return object
      */
-    final protected static function loadModel()
+    final protected function loadModel($path, $param_list = [])
     {
-        $param_list = [];
-        foreach (func_get_args() as $index => $value) {
-            if (0 === $index) {
-                $path = $value;
-            } else {
-                $param_list[] = $value;
-            }
+        $name  = Loader::getHandlerFromPath($path);
+        if (TRUE === is_null(static::$$name)) {
+            return (static::$$name = Loader::model($path, $param_list));
+        } else {
+            return static::$$name;
         }
-        $name = Loader::getHandlerFromPath($path);
-        // $reflection_class = new ReflectionClass(get_called_class());
-        // var_dump($reflection_class->)
-        // exit();
-        return (TRUE === is_null(static::$$name)) ?
-            (static::$$name = Loader::model($path, $param_list)) :
-            (static::$$name);
     }
 }

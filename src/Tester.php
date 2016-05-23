@@ -3,9 +3,9 @@
 namespace Ilex;
 
 use ReflectionClass;
+use \Ilex\Core\Loader;
 use \Ilex\Autoloader;
 use \Ilex\Lib\Kit;
-use \Ilex\Base\Base;
 
 /**
  * Class Tester
@@ -14,11 +14,8 @@ use \Ilex\Base\Base;
  * @method final public static        boot($APPPATH, $RUNTIMEPATH)
  * @method final public static string run($url = '/', $method = 'GET', $postData = [], $getData = [])
  */
-final class Tester extends Base
+final class Tester
 {
-    public static $Input;
-    // protected static $Input;
-
     /**
      * @param string $APPPATH
      * @param string $RUNTIMEPATH
@@ -28,8 +25,6 @@ final class Tester extends Base
     {
         Autoloader::initialize($APPPATH, $RUNTIMEPATH, $APPNAME);
         // Now Loader has been initialized by Autoloader::initialize().
-        self::loadModel('System/Input');
-        var_dump((new ReflectionClass(get_called_class()))->getProperty('Input')->getValue());
     }
 
     /**
@@ -47,8 +42,11 @@ final class Tester extends Base
             'postData' => $postData,
             'url'      => $url,
         ]]);
-        self::$Input->clear()->merge('post', $postData)->merge('get', $getData);
-        Kit::log([__METHOD__, ['self::$Input' => self::$Input]]);
+        $Input = Loader::model('System/Input');
+        $Input->clear();
+        $Input->merge('post', $postData);
+        $Input->merge('get', $getData);
+        Kit::log([__METHOD__, ['$Input' => $Input]]);
         // $_SERVER['REQUEST_URI'] =  ENV_HOST . '/' . $url; // @todo: what?
         return Autoloader::resolve($method, $url);
     }

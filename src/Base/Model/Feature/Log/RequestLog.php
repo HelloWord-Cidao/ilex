@@ -1,43 +1,33 @@
 <?php
 
-namespace Ilex\Base\Model\Core;
+namespace Ilex\Base\Model\Feature\Log;
 
-use \Ilex\Base\Model\Core\BaseCore;
+use \Ilex\Base\Model\Feature\Log\BaseLog;
 /**
- * Class LogModel
+ * Class RequestLog
  * Encapsulation of system log, such as HTTP requests, etc.
- * @package HelloWord\Model\Core
+ * @package Ilex\Base\Model\Feature\Log
  *
- * @method public               __construct()
- * 
- * @method private array|boolean logRequest(array $log)
+ * @method final protected static array|boolean logRequest(array $input, array $operation_status)
  */
-class Log extends BaseCore
+final class RequestLog extends BaseLog
 {
-
-    public function __construct()
-    {
-        $this->loadModel('Database/LogCollection');
-    }
 
     /**
      * @TODO: check efficiency
-     * @param string $handler
+     * @param array  $input
      * @param array  $operation_status
-     * @param mixed  $post_data
-     * @param array  $arguments
      * @return array|boolean
      */
-    public function logRequest($operation_status, $arguments, $post_data)
+    final protected static function addRequestLog($input, $operation_status)
     {
         $debug_backtrace = debug_backtrace()[1];
         $handler = get_class($debug_backtrace['object']) . '::' . $debug_backtrace['args'][0];
         $log = [
             'Content' => [
                 'Handler'         => $handler,
+                'Input'           => $input,
                 'OperationStatus' => $operation_status,
-                'Arguments'       => $arguments,
-                'PostData'        => $post_data,
                 'RequestInfo'     => [
                     'RequestMethod' => $_SERVER['REQUEST_METHOD'],
                     'RequestURI'    => $_SERVER['REQUEST_URI'],
@@ -49,11 +39,11 @@ class Log extends BaseCore
                 ],
             ],
             'Meta' => [
-                'Type'          => 'HttpRequestLog',
+                'Type'          => 'Request',
                 'SystemVersion' => SYS_VERSION,
             ],
         ];
-        return $this->LogCollection->addLog($log);
+        return self::$LogCollection->addLog($log);
     }
 
 }

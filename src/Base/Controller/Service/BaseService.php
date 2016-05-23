@@ -2,9 +2,9 @@
 
 namespace Ilex\Base\Controller\Service;
 
-use \Ilex\Base\Controller\BaseController;
 use \Ilex\Core\Http;
 use \Ilex\Core\Loader;
+use \Ilex\Base\Controller\BaseController;
 
 /**
  * Class BaseService
@@ -15,45 +15,59 @@ use \Ilex\Core\Loader;
  * @property private array   $jsonData
  * @property private int     $statusCode
  *
- * @method public __construct()
- * @method public __call(string $method_name, array $args)
+ * @method final public __construct()
+ * @method final public __call(string $method_name, array $args)
  * 
- * @method private fail(string $err_msg, mixed $err_info = NULL)
- * @method private output()
- * @method private response(array $data, mixed $status)
- * @method private success(mixed $data = NULL)
- * @method private validateComputationData(mixed $data)
- * @method private validateOperationStatus(array|boolean $status)
+ * @method final private fail(string $err_msg, mixed $err_info = NULL)
+ * @method final private output()
+ * @method final private response(array $data, mixed $status)
+ * @method final private success(mixed $data = NULL)
+ * @method final private validateComputationData(mixed $data)
+ * @method final private validateOperationStatus(array|boolean $status)
  */
-class BaseService extends BaseController
+abstract class BaseService extends BaseController
 {
     private $closeCgiOnly = FALSE; // 不exit, fast_cgi_close.让后面的脚本继续run
-    private $jsonData   = [];
-    private $statusCode = 200;
+    private $jsonData     = [];
+    private $statusCode   = 200;
 
-    public function __construct()
+    final public function __construct()
     {
-        $this->loadModel('System/Input');
-        $this->loadModel('System/Session');
-        $this->loadModel('Core/Log');
+        self::loadModel('System/Input');
+        self::loadModel('System/Session');
+        self::loadModel('Feature/Log/RequestLog');
     }
 
-    public function __call($method_name, $args) 
+    final public function __call($method_name, $args) 
     {
-        // if (FALSE === in_array($method_name, get_class_methods($this))) return;
+        $is_time_consuming = $args[0];
         $handler_prefix = Loader::getHandlerPrefixFromPath(get_called_class(), '\\', ['Service']);
-        $input = $this->Input->input();
+        $input = self::$Input->input();
+        $data_model_name = $handler_prefix . 'Data';
+        $core_model_name = $handler_prefix . 'Core';
+        self::loadModel("Data/$data_model_name");
+
         $validation_result = call_user_func([
-            $this->{$handler_prefix . 'Data'}, 'validateInput'
-        ], $method_name, $input);
+            self::$$data_model_name, 'validateInput'
+            ], $method_name, $input
+        );
         exit();
+        if (TRUE === $is_time_consuming) {
+
+        }
         $computation_data = NULL; $operation_status = TRUE;
-        call_user_func_array([$this->$handler_prefix, $method_name]
-            , [$arguments, $post_data, &$computation_data, &$operation_status]);
+        call_user_func_array([
+            self::$$core_model_name, $method_name
+            ], [$arguments, $post_data, &$computation_data, &$operation_status]);
         $this->validateComputationData($computation_data);
         $this->validateOperationStatus($operation_status);
-        $this->Log->logRequest($operation_status, $arguments, $post_data);
+        self::$RequestLog->addRequestLog($input, $operation_status);
         $this->success($computation_data, $operation_status);
+    }
+
+    public function setCloseCgiOnly()
+    {
+        $this->_close_cgi_only = TRUE;
     }
 
     /**
@@ -61,7 +75,7 @@ class BaseService extends BaseController
      *        mixed                      ok
      *        array [T_IS_ERROR => TRUE] error
      */
-    private function validateComputationData($computation_data)
+    final private function validateComputationData($computation_data)
     {
         if (TRUE === is_array($computation_data) AND TRUE === $computation_data[T_IS_ERROR])
             $this->fail('Computation failed.', $computation_data);
@@ -75,7 +89,7 @@ class BaseService extends BaseController
      *        array   [T_IS_ERROR => TRUE]  error
      *        other   other                 error
      */
-    private function validateOperationStatus($operation_status)
+    final private function validateOperationStatus($operation_status)
     {
         if (FALSE === 
             (TRUE === $operation_status OR 
@@ -90,7 +104,7 @@ class BaseService extends BaseController
      * @param string $err_msg
      * @param mixed  $err_info
      */
-    private function fail($err_msg, $err_info = NULL)
+    final private function fail($err_msg, $err_info = NULL)
     {
         $result = ['success' => FALSE, 'errMsg' => $err_msg];
         unset($err_info[T_IS_ERROR]);
@@ -107,7 +121,7 @@ class BaseService extends BaseController
      *        array   [T_IS_ERROR => FALSE] ok
      *        NULL                          no $operation_status
      */
-    private function success($computation_data, $operation_status)
+    final private function success($computation_data, $operation_status)
     {
         $result = ['success' => TRUE];
         unset($computation_data[T_IS_ERROR]);
@@ -123,7 +137,7 @@ class BaseService extends BaseController
      * @param array $result
      * @param mixed $status_code
      */
-    private function response($result, $status_code)
+    final private function response($result, $status_code)
     {
         if (FALSE === is_numeric($status_code)) {
         // @todo: which case is not numeric?
@@ -135,11 +149,11 @@ class BaseService extends BaseController
         $this->output();
     }
 
-    private function output()
+    final private function output()
     {
         header('Content-Type : application/json', TRUE, $this->statusCode);
         Http::json($this->jsonData);
-        if ($this->closeCgiOnly) {
+        if (TRUE === $this->closeCgiOnly) {
             fastcgi_finish_request();
             // DO NOT exit in order to run the subsequent scripts.
         } else exit();

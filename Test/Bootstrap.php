@@ -18,17 +18,16 @@ use \Ilex\Test\ValidatorTester as VT;
 
 Tester::boot(__DIR__ . '/app', __DIR__ . '/runtime', 'app');
 
+// RT::testHelloWorld();
+// RT::testPost();
+// RT::testCallingController();
+// RT::testControllerIndex();
+// RT::testControllerFunction();
+// RT::testControllerResolve();
+// RT::testGroup();
+// echo 'Router Test Passed.' . PHP_EOL;
 
-RT::testHelloWorld();
-RT::testPost();
-RT::testCallingController();
-RT::testControllerIndex();
-RT::testControllerFunction();
-RT::testControllerResolve();
-RT::testGroup();
-echo 'Router Test Passed.' . PHP_EOL;
+VT::test('countCollection');
 
-// VT::test('countCollection');
-
-// echo 'Validator Test Passed.' . PHP_EOL;
+echo 'Validator Test Passed.' . PHP_EOL;
 

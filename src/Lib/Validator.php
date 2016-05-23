@@ -79,16 +79,16 @@ final class Validator
     private static $patternTagNameList;
     private static $patternTagValueList;
 
-    private static $constantList = [
-        V_EXISTENCE, V_EXISTENCE_REQUIRE, V_EXISTENCE_NOT_REQUIRE, V_EXISTENCE_OPTIONAL, 
-        V_TYPE, V_TYPE_NUMERIC, V_TYPE_INT, V_TYPE_FLOAT, V_TYPE_STRING, V_TYPE_BOOLEAN, V_TYPE_ARRAY, V_TYPE_LIST, V_TYPE_DICT, V_TYPE_OBJECTID, V_TYPE_DATETIME, 
-        V_VALUE, V_VALUE_AND, V_VALUE_OR, V_VALUE_NOT, V_VALUE_E, V_VALUE_NE, V_VALUE_LTE, V_VALUE_GTE, V_VALUE_LT, V_VALUE_GT, V_VALUE_LENGTH, V_VALUE_REGEX, V_VALUE_ANY, 
-        V_CAST, V_CAST_INT, V_CAST_FLOAT, V_CAST_STRING, V_CAST_BOOLEAN, V_CAST_OBJECTID, V_CAST_DATETIME, V_CAST_OPTIONAL_DROP, 
-        V_DEFAULT_VALUE, 
-        V_CHILDREN, 
-        V_REST, V_REST_REQUIRE, V_REST_NOT_REQUIRE, 
-        V_VERSION, V_VERSION_DEFAULT,
-    ];
+    // private static $constantList = [
+    //     V_EXISTENCE, V_EXISTENCE_REQUIRE, V_EXISTENCE_NOT_REQUIRE, V_EXISTENCE_OPTIONAL, 
+    //     V_TYPE, V_TYPE_NUMERIC, V_TYPE_INT, V_TYPE_FLOAT, V_TYPE_STRING, V_TYPE_BOOLEAN, V_TYPE_ARRAY, V_TYPE_LIST, V_TYPE_DICT, V_TYPE_OBJECTID, V_TYPE_DATETIME, 
+    //     V_VALUE, V_VALUE_AND, V_VALUE_OR, V_VALUE_NOT, V_VALUE_E, V_VALUE_NE, V_VALUE_LTE, V_VALUE_GTE, V_VALUE_LT, V_VALUE_GT, V_VALUE_LENGTH, V_VALUE_REGEX, V_VALUE_ANY, 
+    //     V_CAST, V_CAST_INT, V_CAST_FLOAT, V_CAST_STRING, V_CAST_BOOLEAN, V_CAST_OBJECTID, V_CAST_DATETIME, V_CAST_OPTIONAL_DROP, 
+    //     V_DEFAULT_VALUE, 
+    //     V_CHILDREN, 
+    //     V_REST, V_REST_REQUIRE, V_REST_NOT_REQUIRE, 
+    //     V_VERSION, V_VERSION_DEFAULT,
+    // ];
 
     /**
      * 
@@ -99,14 +99,12 @@ final class Validator
      */
     final public static function validate($pattern, $data)
     {
-        if (TRUE === is_null(self::$patternTagNameList)) {
-
-        }
-        if (TRUE === is_null(self::$patternTagValueList)) {
-            
-        }
-
-        if (count($unknown_tag_list = array_diff(array_keys($pattern), self::$constantList)) > 0)
+        if (TRUE === is_null(self::$patternTagNameList))
+            self::$patternTagNameList = array_keys((new ReflectionClass(get_class()))->getConstants());
+        if (TRUE === is_null(self::$patternTagValueList))
+            self::$patternTagValueList = array_values((new ReflectionClass(get_class()))->getConstants());
+        $tag_list = self::$patternTagNameList + self::$patternTagValueList;
+        if (count($unknown_tag_list = array_diff(array_keys($pattern), $tag_list)) > 0)
             return Kit::generateErrorInfo('Unknown pattern tag found.', $unknown_tag_list);
         return TRUE;
     }

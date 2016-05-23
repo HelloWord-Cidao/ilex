@@ -2,19 +2,19 @@
 
 // @TODO: add comments
 
-namespace Ilex\Base\Model\Core;
+namespace Ilex\Base\Model\Feature\Core;
 
-use \Ilex\Base\Model\BaseModel;
 use \Ilex\Lib\Kit;
+use \Ilex\Base\Model\Feature\Core\BaseCore;
 
 /**
- * Class Admin
- * @package Ilex\Base\Model\Core
+ * Class AdminCore
+ * @package Ilex\Base\Model\Feature\Core
  */
-class Admin extends BaseModel
+class AdminCore extends BaseCore
 {
 
-    public function countCollection($arguments, $post_data, &$data, &$status)
+    final protected static function countCollection($arguments, $post_data, &$data, &$status)
     {
         $collection_name = $arguments['collection_name'] . 'Collection';
         unset($arguments['collection_name']);
@@ -30,14 +30,15 @@ class Admin extends BaseModel
         unset($arguments['limit']);
         $criterion += Kit::recoverMongoDBQuery($arguments);
 
-        $this->loadModel("Database/$collection_name");
+        self::loadModel("Database/$collection_name");
 
-        $data = $this->$collection_name->count($criterion, $skip, $limit);
+        $data = self::$$collection_name->count($criterion, $skip, $limit);
 
-        if (FALSE === is_numeric($data)) $data = Kit::generateErrorInfo('$data is not numeric.');
+        if (FALSE === is_numeric($data))
+            $data = Kit::generateErrorInfo('$data is not numeric.');
     }
 
-    public function getCollection($arguments, $post_data, &$data, &$status)
+    final protected static function getCollection($arguments, $post_data, &$data, &$status)
     {
         $collection_name = $arguments['collection_name'] . 'Collection';
         unset($arguments['collection_name']);
@@ -55,10 +56,11 @@ class Admin extends BaseModel
         unset($arguments['limit']);
         $criterion += Kit::recoverMongoDBQuery($arguments);
 
-        $this->loadModel("Database/$collection_name");
+        self::loadModel("Database/$collection_name");
 
-        $data = $this->$collection_name->get($criterion, $projection, $sort_by, $skip, $limit);
+        $data = self::$$collection_name->get($criterion, $projection, $sort_by, $skip, $limit);
 
-        if (FALSE === is_array($data)) $data = Kit::generateErrorInfo('$data is not array.');
+        if (FALSE === is_array($data))
+            $data = Kit::generateErrorInfo('$data is not array.');
     }
 }

@@ -16,13 +16,13 @@ use \Ilex\Lib\Kit;
  * @property private static \Ilex\Lib\Container $inputData
  * 
  * @method final public                __construct()
- * @method final public static self    clear(string $name = NULL)
+ * @method final public static boolean clear(string $name = NULL)
  * @method final public static mixed   get(string $key = NULL, mixed $default = NULL)
  * @method final public static boolean hasGet(array $key_list)
  * @method final public static boolean hasInput(array $key_list)
  * @method final public static boolean hasPost(array $key_list)
  * @method final public static mixed   input(string $key = NULL, mixed $default = NULL)
- * @method final public static self    merge(string $name, array $data = [])
+ * @method final public static boolean merge(string $name, array $data = [])
  * @method final public static array   missGet(array $key_list)
  * @method final public static array   missInput(array $key_list)
  * @method final public static array   missPost(array $key_list)
@@ -56,16 +56,19 @@ class Input extends BaseModel
      */
     final public static function clear($name = NULL)
     {
-        if (FALSE === is_null($name)
-            AND TRUE === in_array($name, ['get', 'post', 'input'])) {
-            $name .= 'Data';
-            self::$$name->assign();
+        if (FALSE === is_null($name)) {
+
+            if (TRUE === in_array($name, ['get', 'post', 'input'])) {
+                $name .= 'Data';
+                self::$$name->assign();
+                return TRUE;
+            } else return FALSE;
         } else {
             self::$getData->assign();
             self::$postData->assign();
             self::$inputData->assign();
+            return TRUE;
         }
-        return $this;
     }
 
     /**
@@ -148,15 +151,16 @@ class Input extends BaseModel
     /**
      * @param string $name
      * @param array  $data
-     * @return self
+     * @return boolean
      */
     final public static function merge($name, $data = [])
     {
         if (TRUE === in_array($name, ['get', 'post', 'input'])) {
             $name .= 'Data';
             self::$$name->merge($data);
-        }
-        return $this;
+            self::$inputData->merge(self::$postData->get() + self::$getData->get());
+            return TRUE;
+        } else return FALSE;
     }
 
     /**
