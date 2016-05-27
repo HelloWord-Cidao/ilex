@@ -11,7 +11,7 @@ use \Ilex\Base\Model\Data\BaseData;
 class AdminData extends BaseData
 {
     
-    protected static $inputDataPatternList = [
+    protected $inputDataPatternList = [
         // 'countCollection' => 
     ];
     

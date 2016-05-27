@@ -12,62 +12,98 @@ use \Ilex\Base\Controller\BaseController;
  * @package Ilex\Base\Controller\Service
  *
  * @property private boolean $closeCgiOnly
- * @property private array   $jsonData
  * @property private int     $statusCode
  *
  * @method final public __construct()
  * @method final public __call(string $method_name, array $args)
  * 
  * @method final private fail(string $err_msg, mixed $err_info = NULL)
- * @method final private output()
  * @method final private response(array $data, mixed $status)
- * @method final private success(mixed $data = NULL)
+ * @method final private setCloseCgiOnly()
+ * @method final private succeed(mixed $data = NULL)
  * @method final private validateComputationData(mixed $data)
  * @method final private validateOperationStatus(array|boolean $status)
  */
 abstract class BaseService extends BaseController
 {
     private $closeCgiOnly = FALSE; // 不exit, fast_cgi_close.让后面的脚本继续run
-    private $jsonData     = [];
-    private $statusCode   = 200;
 
     final public function __construct()
     {
-        self::loadModel('System/Input');
-        self::loadModel('System/Session');
-        self::loadModel('Feature/Log/RequestLog');
+        $this->loadModel('System/Input');
+        $this->loadModel('System/Session');
+        $this->loadModel('Feature/Log/RequestLog');
     }
 
     final public function __call($method_name, $args) 
     {
-        $is_time_consuming = $args[0];
         $handler_prefix = Loader::getHandlerPrefixFromPath(get_called_class(), '\\', ['Service']);
-        $input = self::$Input->input();
-        $data_model_name = $handler_prefix . 'Data';
-        $core_model_name = $handler_prefix . 'Core';
-        self::loadModel("Data/$data_model_name");
+        
+        $config_model_name = $handler_prefix . 'Config';
+        $data_model_name   = $handler_prefix . 'Data';
+        $core_model_name   = $handler_prefix . 'Core';
 
-        $validation_result = call_user_func([
-            self::$$data_model_name, 'validateInput'
-            ], $method_name, $input
-        );
-        exit();
+        // $input_config = call_user_func([
+        //     $this->$config_model_name, 'getInputConfig'
+        //     ], $method_name
+        // );
+        $input_config = NULL;
+        $input = $this->$Input->input();
+        // $validation_result = call_user_func([
+        //     $this->$data_model_name, 'validateInput'
+        //     ], $method_name, $input, $input_config
+        // );
+        $validation_result = TRUE;
+        if (TRUE === $validation_result) { // @todo: more complicated structure of result
+            // $input = call_user_func([
+            //     $this->$data_model_name, 'sanitizeInput'
+            //     ], $method_name, $input, $input_config, $validation_result
+            // );
+        } else $this->fail('Input validation failed.', $validation_result);
+
+        // @todo: validate feature priviledge, via priviledge model?
+        // @todo: validate data priviledge, via priviledge model?
+        
+        $is_time_consuming = $args[0];
         if (TRUE === $is_time_consuming) {
-
+            $this->setCloseCgiOnly();
+            $this->succeed(NULL, 'Request data received successfully, operation has started.')
         }
+
         $computation_data = NULL; $operation_status = TRUE;
-        call_user_func_array([
-            self::$$core_model_name, $method_name
-            ], [$arguments, $post_data, &$computation_data, &$operation_status]);
+        $execution_result = call_user_func_array([
+            $this->$core_model_name, $method_name
+            ], [$input, $feature_config, &$computation_data, &$operation_status, TRUE]
+        );
+        $this->validateExecutionResult($execution_result);
         $this->validateComputationData($computation_data);
         $this->validateOperationStatus($operation_status);
-        self::$RequestLog->addRequestLog($input, $operation_status);
-        $this->success($computation_data, $operation_status);
+        $this->$RequestLog->addRequestLog($input, $operation_status);
+        $this->succeed($computation_data, $operation_status);
     }
 
-    public function setCloseCgiOnly()
+    final private function setCloseCgiOnly()
     {
-        $this->_close_cgi_only = TRUE;
+        $this->closeCgiOnly = TRUE;
+    }
+
+    /**
+     * @param array|boolean $execution_result
+     *        boolean TRUE                  ok
+     *        array   [T_IS_ERROR => FALSE] ok
+     *        boolean FALSE                 error
+     *        array   [T_IS_ERROR => TRUE]  error
+     *        other   other                 error
+     */
+    final private function validateExecutionResult($execution_result)
+    {
+        if (FALSE === 
+            (TRUE === $execution_result OR 
+                (TRUE === is_array($execution_result) AND FALSE === $execution_result[T_IS_ERROR])
+            )
+        ) {
+            $this->fail('Execution failed.', $execution_result);
+        }
     }
 
     /**
@@ -121,14 +157,14 @@ abstract class BaseService extends BaseController
      *        array   [T_IS_ERROR => FALSE] ok
      *        NULL                          no $operation_status
      */
-    final private function success($computation_data, $operation_status)
+    final private function succeed($computation_data, $operation_status)
     {
         $result = ['success' => TRUE];
         unset($computation_data[T_IS_ERROR]);
         unset($operation_status[T_IS_ERROR]);
         // if (FALSE === is_null($computation_data))
             $result['data'] = $computation_data;
-        if (FALSE === is_null($operation_status))
+        // if (FALSE === is_null($operation_status))
             $result['status'] = $operation_status;
         $this->response($result, 200);
     }
@@ -139,23 +175,12 @@ abstract class BaseService extends BaseController
      */
     final private function response($result, $status_code)
     {
-        if (FALSE === is_numeric($status_code)) {
-        // @todo: which case is not numeric?
-            $this->statusCode = 400;
-        } else {
-            $this->statusCode = $status_code;
-        }
-        $this->jsonData = $result;
-        $this->output();
-    }
-
-    final private function output()
-    {
-        header('Content-Type : application/json', TRUE, $this->statusCode);
-        Http::json($this->jsonData);
+        header('Content-Type : application/json', TRUE, $status_code);
+        Http::json($result);
         if (TRUE === $this->closeCgiOnly) {
             fastcgi_finish_request();
             // DO NOT exit in order to run the subsequent scripts.
         } else exit();
     }
+
 }

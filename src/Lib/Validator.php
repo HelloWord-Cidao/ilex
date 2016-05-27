@@ -105,7 +105,7 @@ final class Validator
             self::$patternTagValueList = array_values((new ReflectionClass(get_class()))->getConstants());
         $tag_list = self::$patternTagNameList + self::$patternTagValueList;
         if (count($unknown_tag_list = array_diff(array_keys($pattern), $tag_list)) > 0)
-            return Kit::generateErrorInfo('Unknown pattern tag found.', $unknown_tag_list);
+            return Kit::generateError('Unknown pattern tag found.', $unknown_tag_list);
         return TRUE;
     }
 

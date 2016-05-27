@@ -8,7 +8,7 @@ use \Ilex\Base\Model\Feature\Log\BaseLog;
  * Encapsulation of system log, such as HTTP requests, etc.
  * @package Ilex\Base\Model\Feature\Log
  *
- * @method final protected static array|boolean logRequest(array $input, array $operation_status)
+ * @method protected array|boolean logRequest(array $input, array $operation_status)
  */
 final class RequestLog extends BaseLog
 {
@@ -19,7 +19,7 @@ final class RequestLog extends BaseLog
      * @param array  $operation_status
      * @return array|boolean
      */
-    final protected static function addRequestLog($input, $operation_status)
+    protected function addRequestLog($input, $operation_status)
     {
         $debug_backtrace = debug_backtrace()[1];
         $handler = get_class($debug_backtrace['object']) . '::' . $debug_backtrace['args'][0];
@@ -43,7 +43,7 @@ final class RequestLog extends BaseLog
                 'SystemVersion' => SYS_VERSION,
             ],
         ];
-        return self::$LogCollection->addLog($log);
+        return $this->LogCollection->addLog($log);
     }
 
 }

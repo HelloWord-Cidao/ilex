@@ -16,12 +16,12 @@ abstract class BaseLog extends BaseFeature
 
     final public function __construct()
     {
-        self::loadModel('Feature/Database/LogCollection');
+        $this->loadModel('Feature/Database/LogCollection');
     }
 
-    final protected static function addLog($log)
+    final protected function addLog($log)
     {
-        return self::$LogCollection->addLog($log);
+        return $this->LogCollection->addLog($log);
     }
 
 }

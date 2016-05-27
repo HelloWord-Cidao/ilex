@@ -99,13 +99,13 @@ final class Loader
         if (TRUE === self::has('db')) {
             return self::get('db');
         } else {
-            $mongo = new \MongoClient(SVR_MONGO_HOST . ':' . SVR_MONGO_PORT, [
+            $mongo_client = new \MongoClient(SVR_MONGO_HOST . ':' . SVR_MONGO_PORT, [
                 'username'         => SVR_MONGO_USER,
                 'password'         => SVR_MONGO_PASS,
                 'db'               => SVR_MONGO_DB,
                 'connectTimeoutMS' => SVR_MONGO_TIMEOUT,
             ]);
-            return self::set('db', $mongo->selectDB(SVR_MONGO_DB));
+            return self::set('db', $mongo_client->selectDB(SVR_MONGO_DB));
         }
     }
 

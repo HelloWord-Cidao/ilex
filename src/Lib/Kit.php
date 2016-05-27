@@ -8,7 +8,8 @@ use \Ilex\Lib\Validator;
  * A kit class.
  * @package Ilex\Lib
  * 
- * @method final public static array      generateErrorInfo(string $description, mixed $detail)
+ * @method final public static boolean    checkIsError(mixed $return_value)
+ * @method final public static array      generateError(string $description, mixed $detail)
  * @method final public static array      extractException(\Exception $exception)
  * @method final public static array      extractException(\Exception $exception)
  * @method final public static string     escape(string $data)
@@ -25,12 +26,23 @@ final class Kit
 {
 
     /**
+     * Checks if $return_value is an error info.
+     * @param mixed $return_value
+     * @return boolean
+     */
+    final public static function checkIsError($return_value)
+    {
+        if (TRUE === is_array($return_value) AND TRUE === $return_value[T_IS_ERROR]) return TRUE;
+        else return FALSE;
+    }
+
+    /**
      * Generates error info with the given description.
      * @param string $description
      * @param mixed  $detail
      * @return array
      */
-    final public static function generateErrorInfo($description, $detail = NULL)
+    final public static function generateError($description, $detail = NULL)
     {
         return [
             T_IS_ERROR => TRUE,

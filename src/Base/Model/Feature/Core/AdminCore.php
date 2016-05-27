@@ -14,7 +14,7 @@ use \Ilex\Base\Model\Feature\Core\BaseCore;
 class AdminCore extends BaseCore
 {
 
-    final protected static function countCollection($arguments, $post_data, &$data, &$status)
+    final protected function countCollection($arguments, $post_data, &$data, &$status)
     {
         $collection_name = $arguments['collection_name'] . 'Collection';
         unset($arguments['collection_name']);
@@ -30,12 +30,12 @@ class AdminCore extends BaseCore
         unset($arguments['limit']);
         $criterion += Kit::recoverMongoDBQuery($arguments);
 
-        self::loadModel("Database/$collection_name");
+        $this->loadModel("Database/$collection_name");
 
-        $data = self::$$collection_name->count($criterion, $skip, $limit);
+        $data = $this->$collection_name->count($criterion, $skip, $limit);
 
         if (FALSE === is_numeric($data))
-            $data = Kit::generateErrorInfo('$data is not numeric.');
+            $data = Kit::generateError('$data is not numeric.');
     }
 
     final protected static function getCollection($arguments, $post_data, &$data, &$status)
@@ -56,11 +56,11 @@ class AdminCore extends BaseCore
         unset($arguments['limit']);
         $criterion += Kit::recoverMongoDBQuery($arguments);
 
-        self::loadModel("Database/$collection_name");
+        $this->loadModel("Database/$collection_name");
 
-        $data = self::$$collection_name->get($criterion, $projection, $sort_by, $skip, $limit);
+        $data = $this->$collection_name->get($criterion, $projection, $sort_by, $skip, $limit);
 
         if (FALSE === is_array($data))
-            $data = Kit::generateErrorInfo('$data is not array.');
+            $data = Kit::generateError('$data is not array.');
     }
 }

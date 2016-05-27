@@ -20,10 +20,11 @@ abstract class BaseData extends BaseModel
 
     final protected static function validateInput($method_name, $input)
     {
-        if (FALSE === isset(self::$inputDataPatternList[$method_name]))
-            return Kit::generateErrorInfo("InputDataPattern is not set for method: $method_name.");
-        $pattern = self::$inputDataPatternList[$method_name];
-        return Validator::validate($pattern, $input);
+        // if (FALSE === isset(self::$inputDataPatternList[$method_name]))
+        //     return Kit::generateError("InputDataPattern is not set for method: $method_name.");
+        // $pattern = self::$inputDataPatternList[$method_name];
+        // return Validator::validate($pattern, $input);
+        return TRUE;
     }
 
     // /**
