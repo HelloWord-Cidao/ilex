@@ -5,6 +5,7 @@ namespace Ilex\Lib;
 use \Ilex\Lib\Kit;
 
 /**
+ * @todo: method arg type validate
  * Class Container
  * Implementation of an abstract container.
  * @package Ilex\Lib
@@ -59,6 +60,7 @@ final class Container
      */
     final public function __toString()
     {
+        // @todo: use json_encode
         return Kit::toString($this->data);
     }
 

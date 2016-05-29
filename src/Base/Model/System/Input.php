@@ -7,6 +7,7 @@ use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
 
 /**
+ * @todo: method arg type validate
  * Class Input
  * Encapsulation of system input, such as $_GET, $_POST.
  * @package Ilex\Base\Model\System

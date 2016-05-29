@@ -7,6 +7,7 @@ use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
 
 /**
+ * @todo: method arg type validate
  * Class Session
  * Encapsulation of session.
  * @package Ilex\Base\Model\System

@@ -2,8 +2,8 @@
 
 namespace Ilex\Base\Controller\Service;
 
-use \Ilex\Core\Http;
 use \Ilex\Core\Loader;
+use \Ilex\Lib\Http;
 use \Ilex\Base\Controller\BaseController;
 
 /**
@@ -43,12 +43,12 @@ abstract class BaseService extends BaseController
         $data_model_name   = $handler_prefix . 'Data';
         $core_model_name   = $handler_prefix . 'Core';
 
+        $input = $this->$Input->input();
         // $input_config = call_user_func([
         //     $this->$config_model_name, 'getInputConfig'
         //     ], $method_name
         // );
         $input_config = NULL;
-        $input = $this->$Input->input();
         // $validation_result = call_user_func([
         //     $this->$data_model_name, 'validateInput'
         //     ], $method_name, $input, $input_config

@@ -32,6 +32,8 @@ final class UserException extends Exception
     // However, if the try block has a return that has to be evaluated in-line (e.g. return $foo+0;),
     // finally's changes to $foo will /not/ affect the return value.
     
+    private $method;
+    private $args;
     private $detail;
 
     /**
@@ -40,11 +42,22 @@ final class UserException extends Exception
      * @param int       $code
      * @param Exception $previous
      */
-    public function __construct($message, $detail = NULL, $code = 0, Exception $previous = NULL)
+    public function __construct($message, $detail = NULL, $code = 0, $previous = NULL)
     {
-        $this->detail = $detail;
+        if (FALSE === is_string($message))
+            throw new UserException('$message is not a string');
+        if (FALSE === ($previous instanceof Exception))
+            throw new UserException('$previous is not an Exception');
         parent::__construct($message, $code, $previous);
+        $this->detail = $detail;
+        // @todo: set method name, args, called_class
+        // $this->method = $this->getTrace();
     }
+
+    //@todo: set for __call
+    // public function setClass
+    // public function setMethod
+    // public function setArgs
 
     /**
      * @return mixed

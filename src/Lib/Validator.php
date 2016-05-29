@@ -6,6 +6,7 @@ use \Ilex\Lib\Kit;
 use ReflectionClass;
 
 /**
+ * @todo: method arg type validate
  * Class Validator
  * A tool used to validate data efficiently.
  * @package Ilex\Lib

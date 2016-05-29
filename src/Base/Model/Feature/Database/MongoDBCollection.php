@@ -39,8 +39,8 @@ use \Ilex\Base\Model\Feature\Database\MongoDBCursor;
  * @method final protected        array               getTheOnlyOne(array $criterion = []
  *                                                        , array $projection = [])
  * @method final protected        array               update(array $criterion
-         *                                                , array $update
-         *                                                , boolean $multiple = FALSE)
+ *                                                        , array $update
+ *                                                        , boolean $multiple = FALSE)
  * @method final protected static array               sanitizeCriterion(array $criterion)
  * 
  * @method final private int                 mongoCount(array $criterion = []
