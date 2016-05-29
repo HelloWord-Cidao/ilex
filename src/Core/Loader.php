@@ -140,7 +140,7 @@ final class Loader
       */
     final private static function load($path, $type, $param_list, $with_construct)
     {
-        // If $type is not 'Controller' or 'Model', it will throw an exception.
+        // @todo: If $type is not 'Controller' or 'Model', it will throw an exception.
         $type_entity_list = self::get($type);
         if (TRUE === $type_entity_list->has($path)) {
             return $type_entity_list->get($path);
@@ -258,7 +258,7 @@ final class Loader
      */
     final private static function isLoaded($path, $type)
     {
-        // If $type is not 'Controller' or 'Model', it will throw an exception.
+        // @todo: If $type is not 'Controller' or 'Model', it will throw an exception.
         $type_entity_list = self::get($type);
         return $type_entity_list->has($path);
     }
@@ -299,7 +299,7 @@ final class Loader
      */
     final private static function setSet($key, $keyKey, $value)
     {
-        // If the existence is not guaranteed, it will throw an exception.
+        // @todo: If the existence is not guaranteed, it will throw an exception.
         return self::$container->get($key)->set($keyKey, $value);
     }
 }

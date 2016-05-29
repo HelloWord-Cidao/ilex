@@ -59,7 +59,7 @@ final class MongoDBCursor extends BaseFeature {
     {
         try {
             return $this->cursor->count(TRUE);
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             return Kit::generateError('MongoDB Cursor operation(count) failed.', [
                 'found_only' => $document,
                 'info'       => $this->getInfo(),
@@ -92,7 +92,7 @@ final class MongoDBCursor extends BaseFeature {
     {
         try {
             return $this->cursor->hasNext();
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             return Kit::generateError('MongoDB Cursor operation(hasNext) failed.', [
                 'info'      => $this->getInfo(),
                 'exception' => Kit::extractException($e),
@@ -110,7 +110,7 @@ final class MongoDBCursor extends BaseFeature {
     {
         try {
             return $this->cursor->next();
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             return Kit::generateError('MongoDB Cursor operation(next) failed.', [
                 'info'      => $this->getInfo(),
                 'exception' => Kit::extractException($e),
@@ -127,7 +127,7 @@ final class MongoDBCursor extends BaseFeature {
     {
         try {
             $this->rewind();
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             return Kit::generateError('MongoDB Cursor operation(rewind) failed.', [
                 'info'      => $this->getInfo(),
                 'exception' => Kit::extractException($e),
