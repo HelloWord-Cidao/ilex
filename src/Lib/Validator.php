@@ -2,8 +2,8 @@
 
 namespace Ilex\Lib;
 
-use \Ilex\Lib\Kit;
-use ReflectionClass;
+use \ReflectionClass;
+use \Ilex\Lib\UserException;
 
 /**
  * @todo: method arg type validate
@@ -13,14 +13,14 @@ use ReflectionClass;
  * 
  * @property public array $patternList
  *
- * @method final public static boolean type(mixed &$value, array $rule)
- * @method final public static boolean re(mixed $value, array $rule)
+ * @method public static boolean type(mixed &$value, array $rule)
+ * @method public static boolean re(mixed $value, array $rule)
  * More methods ignored.
  * 
- * @method final public static boolean isInt(mixed $value)
- * @method final public static boolean isFloat(mixed $value)
- * @method final public static boolean isDict(mixed $value)
- * @method final public static boolean isList(mixed $value)
+ * @method public static boolean isInt(mixed $value)
+ * @method public static boolean isFloat(mixed $value)
+ * @method public static boolean isDict(mixed $value)
+ * @method public static boolean isList(mixed $value)
  */
 final class Validator
 {
@@ -96,9 +96,10 @@ final class Validator
      * check all array keys and values in $pattern being consts in this class
      * check all array values in $pattern using several 'if'. DO NOT use 'else'
      * @param 
-     * @return 
+     * @return boolean
+     * @throws UserException if there is unknown pattern tag found.
      */
-    final public static function validate($pattern, $data)
+    public static function validate($pattern, $data)
     {
         if (TRUE === is_null(self::$patternTagNameList))
             self::$patternTagNameList = array_keys((new ReflectionClass(get_class()))->getConstants());
@@ -106,7 +107,7 @@ final class Validator
             self::$patternTagValueList = array_values((new ReflectionClass(get_class()))->getConstants());
         $tag_list = self::$patternTagNameList + self::$patternTagValueList;
         if (count($unknown_tag_list = array_diff(array_keys($pattern), $tag_list)) > 0)
-            return Kit::generateError('Unknown pattern tag found.', $unknown_tag_list);
+            throw new UserException('Unknown pattern tag found.', $unknown_tag_list);
         return TRUE;
     }
 
@@ -145,7 +146,7 @@ final class Validator
      * @param array $rule
      * @return boolean
      */
-    final public static function type(&$value, $rule)
+    public static function type(&$value, $rule)
     {
         switch ($rule['type']) {
             case 'int':
@@ -174,7 +175,7 @@ final class Validator
      * @param array $rule
      * @return boolean
      */
-    final public static function re($value, $rule)
+    public static function re($value, $rule)
     {
         return 1 === preg_match(
             TRUE === isset($rule['pattern']) ? $rule['pattern'] : self::$patternList[$rule['type']],
@@ -182,42 +183,42 @@ final class Validator
         );
     }
 
-    final public static function           eq($value, $rule) { return           $value  ==  $rule['value']; }
-    final public static function           ne($value, $rule) { return           $value  !=  $rule['value']; }
-    final public static function         same($value, $rule) { return           $value  === $rule['value']; }
-    final public static function         diff($value, $rule) { return           $value  !== $rule['value']; }
+    public static function           eq($value, $rule) { return           $value  ==  $rule['value']; }
+    public static function           ne($value, $rule) { return           $value  !=  $rule['value']; }
+    public static function         same($value, $rule) { return           $value  === $rule['value']; }
+    public static function         diff($value, $rule) { return           $value  !== $rule['value']; }
 
-    final public static function           gt($value, $rule) { return           $value  >   $rule['value']; }
-    final public static function           lt($value, $rule) { return           $value  <   $rule['value']; }
-    final public static function           ge($value, $rule) { return           $value  >=  $rule['value']; }
-    final public static function           le($value, $rule) { return           $value  <=  $rule['value']; }
+    public static function           gt($value, $rule) { return           $value  >   $rule['value']; }
+    public static function           lt($value, $rule) { return           $value  <   $rule['value']; }
+    public static function           ge($value, $rule) { return           $value  >=  $rule['value']; }
+    public static function           le($value, $rule) { return           $value  <=  $rule['value']; }
 
-    final public static function       int_gt($value, $rule) { return    intval($value) >   $rule['value']; }
-    final public static function       int_lt($value, $rule) { return    intval($value) <   $rule['value']; }
-    final public static function       int_ge($value, $rule) { return    intval($value) >=  $rule['value']; }
-    final public static function       int_le($value, $rule) { return    intval($value) <=  $rule['value']; }
+    public static function       int_gt($value, $rule) { return    intval($value) >   $rule['value']; }
+    public static function       int_lt($value, $rule) { return    intval($value) <   $rule['value']; }
+    public static function       int_ge($value, $rule) { return    intval($value) >=  $rule['value']; }
+    public static function       int_le($value, $rule) { return    intval($value) <=  $rule['value']; }
 
-    final public static function     float_gt($value, $rule) { return  floatval($value) >   $rule['value']; }
-    final public static function     float_lt($value, $rule) { return  floatval($value) <   $rule['value']; }
-    final public static function     float_ge($value, $rule) { return  floatval($value) >=  $rule['value']; }
-    final public static function     float_le($value, $rule) { return  floatval($value) <=  $rule['value']; }
+    public static function     float_gt($value, $rule) { return  floatval($value) >   $rule['value']; }
+    public static function     float_lt($value, $rule) { return  floatval($value) <   $rule['value']; }
+    public static function     float_ge($value, $rule) { return  floatval($value) >=  $rule['value']; }
+    public static function     float_le($value, $rule) { return  floatval($value) <=  $rule['value']; }
 
-    final public static function     count_gt($value, $rule) { return     count($value) >   $rule['value']; }
-    final public static function     count_lt($value, $rule) { return     count($value) <   $rule['value']; }
-    final public static function     count_ge($value, $rule) { return     count($value) >=  $rule['value']; }
-    final public static function     count_le($value, $rule) { return     count($value) <=  $rule['value']; }
+    public static function     count_gt($value, $rule) { return     count($value) >   $rule['value']; }
+    public static function     count_lt($value, $rule) { return     count($value) <   $rule['value']; }
+    public static function     count_ge($value, $rule) { return     count($value) >=  $rule['value']; }
+    public static function     count_le($value, $rule) { return     count($value) <=  $rule['value']; }
 
-    final public static function    length_gt($value, $rule) { return    strlen($value) >   $rule['value']; }
-    final public static function    length_lt($value, $rule) { return    strlen($value) <   $rule['value']; }
-    final public static function    length_ge($value, $rule) { return    strlen($value) >=  $rule['value']; }
-    final public static function    length_le($value, $rule) { return    strlen($value) <=  $rule['value']; }
-    final public static function    length_eq($value, $rule) { return    strlen($value) === $rule['value']; }
+    public static function    length_gt($value, $rule) { return    strlen($value) >   $rule['value']; }
+    public static function    length_lt($value, $rule) { return    strlen($value) <   $rule['value']; }
+    public static function    length_ge($value, $rule) { return    strlen($value) >=  $rule['value']; }
+    public static function    length_le($value, $rule) { return    strlen($value) <=  $rule['value']; }
+    public static function    length_eq($value, $rule) { return    strlen($value) === $rule['value']; }
 
-    final public static function mb_length_gt($value, $rule) { return mb_strlen($value) >   $rule['value']; }
-    final public static function mb_length_lt($value, $rule) { return mb_strlen($value) <   $rule['value']; }
-    final public static function mb_length_ge($value, $rule) { return mb_strlen($value) >=  $rule['value']; }
-    final public static function mb_length_le($value, $rule) { return mb_strlen($value) <=  $rule['value']; }
-    final public static function mb_length_eq($value, $rule) { return mb_strlen($value) === $rule['value']; }
+    public static function mb_length_gt($value, $rule) { return mb_strlen($value) >   $rule['value']; }
+    public static function mb_length_lt($value, $rule) { return mb_strlen($value) <   $rule['value']; }
+    public static function mb_length_ge($value, $rule) { return mb_strlen($value) >=  $rule['value']; }
+    public static function mb_length_le($value, $rule) { return mb_strlen($value) <=  $rule['value']; }
+    public static function mb_length_eq($value, $rule) { return mb_strlen($value) === $rule['value']; }
 
     /*
      * ----------------------- -----------------------
@@ -229,7 +230,7 @@ final class Validator
      * @param mixed $value
      * @return boolean
      */
-    final public static function isInt($value)
+    public static function isInt($value)
     {
         if (TRUE === is_int($value)) {
             return TRUE;
@@ -244,7 +245,7 @@ final class Validator
      * @param mixed $value
      * @return boolean
      */
-    final public static function isFloat($value)
+    public static function isFloat($value)
     {
         if (TRUE === is_float($value) OR TRUE === is_int($value)) {
             return TRUE;
@@ -260,7 +261,7 @@ final class Validator
      * @param mixed $value
      * @return boolean
      */
-    final public static function isDict($value)
+    public static function isDict($value)
     {
         if (FALSE === is_array($value)) return FALSE;
         if (0 === count($value)) return TRUE;
@@ -272,7 +273,7 @@ final class Validator
      * @param mixed $value
      * @return boolean
      */
-    final public static function isList($value)
+    public static function isList($value)
     {
         if (FALSE === is_array($value)) return FALSE;
         if (0 === count($value)) return TRUE;

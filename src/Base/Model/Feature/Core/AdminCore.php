@@ -1,7 +1,5 @@
 <?php
 
-// @TODO: add comments
-
 namespace Ilex\Base\Model\Feature\Core;
 
 use \Ilex\Lib\Kit;
@@ -13,22 +11,28 @@ use \Ilex\Base\Model\Feature\Core\BaseCore;
  */
 class AdminCore extends BaseCore
 {
+    const METHODS_VISIBILITY = [
+        self::V_PUBLIC => [
+            'countCollection',
+            'getCollection',
+        ],
+    ];
 
-    final protected function countCollection($arguments, $post_data, &$data, &$status)
+    final protected function countCollection($input)
     {
-        $collection_name = $arguments['collection_name'] . 'Collection';
-        unset($arguments['collection_name']);
-        $criterion       = TRUE === isset($post_data['Criterion']) ? $post_data['Criterion'] : [];
-        $skip            = TRUE === isset($post_data['Skip']) ? $post_data['Skip'] : NULL;
-        $limit           = TRUE === isset($post_data['Limit']) ? $post_data['Limit'] : NULL;
-        if (TRUE === is_null($skip) AND TRUE === isset($arguments['skip'])) $skip = $arguments['skip'];
+        $collection_name = $input['collection_name'] . 'Collection';
+        unset($input['collection_name']);
+        $criterion       = TRUE === isset($input['Criterion']) ? $input['Criterion'] : [];
+        $skip            = TRUE === isset($input['Skip']) ? $input['Skip'] : NULL;
+        $limit           = TRUE === isset($input['Limit']) ? $input['Limit'] : NULL;
+        if (TRUE === is_null($skip) AND TRUE === isset($input['skip'])) $skip = $input['skip'];
         if (FALSE === is_null($skip)) $skip = intval($skip);
-        unset($arguments['skip']);
+        unset($input['skip']);
 
-        if (TRUE === is_null($limit) AND TRUE === isset($arguments['limit'])) $limit = $arguments['limit'];
+        if (TRUE === is_null($limit) AND TRUE === isset($input['limit'])) $limit = $input['limit'];
         if (FALSE === is_null($limit)) $limit = intval($limit);
-        unset($arguments['limit']);
-        $criterion += Kit::recoverMongoDBQuery($arguments);
+        unset($input['limit']);
+        $criterion += Kit::recoverMongoDBQuery($input);
 
         $this->loadModel("Database/$collection_name");
 
@@ -38,23 +42,23 @@ class AdminCore extends BaseCore
             $data = Kit::generateError('$data is not numeric.');
     }
 
-    final protected static function getCollection($arguments, $post_data, &$data, &$status)
+    final protected static function getCollection($input)
     {
-        $collection_name = $arguments['collection_name'] . 'Collection';
-        unset($arguments['collection_name']);
-        $criterion       = TRUE === isset($post_data['Criterion']) ? $post_data['Criterion'] : [];
-        $projection      = TRUE === isset($post_data['Projection']) ? $post_data['Projection'] : [];
-        $sort_by         = TRUE === isset($post_data['SortBy']) ? $post_data['SortBy'] : NULL;
-        $skip            = TRUE === isset($post_data['Skip']) ? $post_data['Skip'] : NULL;
-        $limit           = TRUE === isset($post_data['Limit']) ? $post_data['Limit'] : NULL;
-        if (TRUE === is_null($skip) AND TRUE === isset($arguments['skip'])) $skip = $arguments['skip'];
+        $collection_name = $input['collection_name'] . 'Collection';
+        unset($input['collection_name']);
+        $criterion       = TRUE === isset($input['Criterion']) ? $input['Criterion'] : [];
+        $projection      = TRUE === isset($input['Projection']) ? $input['Projection'] : [];
+        $sort_by         = TRUE === isset($input['SortBy']) ? $input['SortBy'] : NULL;
+        $skip            = TRUE === isset($input['Skip']) ? $input['Skip'] : NULL;
+        $limit           = TRUE === isset($input['Limit']) ? $input['Limit'] : NULL;
+        if (TRUE === is_null($skip) AND TRUE === isset($input['skip'])) $skip = $input['skip'];
         if (FALSE === is_null($skip)) $skip = intval($skip);
-        unset($arguments['skip']);
+        unset($input['skip']);
 
-        if (TRUE === is_null($limit) AND TRUE === isset($arguments['limit'])) $limit = $arguments['limit'];
+        if (TRUE === is_null($limit) AND TRUE === isset($input['limit'])) $limit = $input['limit'];
         if (FALSE === is_null($limit)) $limit = intval($limit);
-        unset($arguments['limit']);
-        $criterion += Kit::recoverMongoDBQuery($arguments);
+        unset($input['limit']);
+        $criterion += Kit::recoverMongoDBQuery($input);
 
         $this->loadModel("Database/$collection_name");
 

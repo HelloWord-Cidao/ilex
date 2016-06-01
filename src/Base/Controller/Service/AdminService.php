@@ -12,8 +12,8 @@ class AdminService extends BaseService
 {
     final public function __construct()
     {
-        parent::__construct();
+        $this->loadModel('Config/AdminConfig');
         $this->loadModel('Data/AdminData');
-        $this->loadModel('Feature/Core/Admin');
+        $this->loadModel('Feature/Core/AdminCore');
     }
 }

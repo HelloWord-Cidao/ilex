@@ -8,9 +8,9 @@ namespace Ilex\Lib;
  * The class in charge of http operations.
  * @package Ilex\Lib
  * 
- * @method final public static string escape(string $data)
- * @method final public static        json(mixed $data)
- * @method final public static        redirect(string $url)
+ * @method public static string escape(string $data)
+ * @method public static        json(mixed $data)
+ * @method public static        redirect(string $url)
  */
 final class Http
 {
@@ -20,7 +20,7 @@ final class Http
      * @param string $data
      * @return string
      */
-    final public static function escape($data)
+    public static function escape($data)
     {
         return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
     }
@@ -28,7 +28,7 @@ final class Http
     /**
      * @param mixed $data
      */
-    final public static function json($data)
+    public static function json($data)
     {
         echo(json_encode($data));
     }
@@ -37,7 +37,7 @@ final class Http
      * @uses ENVIRONMENT
      * @param string $url
      */
-    final public static function redirect($url)
+    public static function redirect($url)
     {
         if ('TEST' !== ENVIRONMENT) {
             header('Location: ' . $url);

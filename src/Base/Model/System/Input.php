@@ -16,22 +16,22 @@ use \Ilex\Lib\Kit;
  * @property private static \Ilex\Lib\Container $postData
  * @property private static \Ilex\Lib\Container $inputData
  * 
- * @method final public                __construct()
- * @method final public static boolean clear(string $name = NULL)
- * @method final public static mixed   get(string $key = NULL, mixed $default = NULL)
- * @method final public static boolean hasGet(array $key_list)
- * @method final public static boolean hasInput(array $key_list)
- * @method final public static boolean hasPost(array $key_list)
- * @method final public static mixed   input(string $key = NULL, mixed $default = NULL)
- * @method final public static boolean merge(string $name, array $data = [])
- * @method final public static array   missGet(array $key_list)
- * @method final public static array   missInput(array $key_list)
- * @method final public static array   missPost(array $key_list)
- * @method final public static mixed   post(string $key = NULL, mixed $default = NULL)
- * @method final public static mixed   setInput(mixed $key, mixed $value)
- * @method final public static boolean deleteInput(mixed $key)
+ * @method public                __construct()
+ * @method public static boolean clear(string $name = NULL)
+ * @method public static mixed   get(string $key = NULL, mixed $default = NULL)
+ * @method public static boolean hasGet(array $key_list)
+ * @method public static boolean hasInput(array $key_list)
+ * @method public static boolean hasPost(array $key_list)
+ * @method public static mixed   input(string $key = NULL, mixed $default = NULL)
+ * @method public static boolean merge(string $name, array $data = [])
+ * @method public static array   missGet(array $key_list)
+ * @method public static array   missInput(array $key_list)
+ * @method public static array   missPost(array $key_list)
+ * @method public static mixed   post(string $key = NULL, mixed $default = NULL)
+ * @method public static mixed   setInput(mixed $key, mixed $value)
+ * @method public static boolean deleteInput(mixed $key)
  */
-class Input extends BaseModel
+final class Input extends BaseModel
 {
     private static $getData;
     private static $postData;
@@ -40,7 +40,7 @@ class Input extends BaseModel
     /**
      * Encapsulates global variables.
      */
-    final public function __construct()
+    public function __construct()
     {
         unset($_GET['_url']);
         self::$getData  = new Container($_GET);
@@ -55,10 +55,9 @@ class Input extends BaseModel
      * @param string $name
      * @return self
      */
-    final public static function clear($name = NULL)
+    public static function clear($name = NULL)
     {
         if (FALSE === is_null($name)) {
-
             if (TRUE === in_array($name, ['get', 'post', 'input'])) {
                 $name .= 'Data';
                 self::$$name->assign();
@@ -76,7 +75,7 @@ class Input extends BaseModel
      * @param array $key_list
      * @return boolean
      */
-    final public static function hasInput($key_list)
+    public static function hasInput($key_list)
     {
         return call_user_func_array([self::$inputData, 'has'], $key_list);
     }
@@ -85,7 +84,7 @@ class Input extends BaseModel
      * @param array $key_list
      * @return boolean
      */
-    final public static function hasGet($key_list)
+    public static function hasGet($key_list)
     {
         return call_user_func_array([self::$getData, 'has'], $key_list);
     }
@@ -94,7 +93,7 @@ class Input extends BaseModel
      * @param array $key_list
      * @return boolean
      */
-    final public static function hasPost($key_list)
+    public static function hasPost($key_list)
     {
         return call_user_func_array([self::$postData, 'has'], $key_list);
     }
@@ -104,7 +103,7 @@ class Input extends BaseModel
      * @param mixed  $default
      * @return mixed
      */
-    final public static function input($key = NULL, $default = NULL)
+    public static function input($key = NULL, $default = NULL)
     {
         return self::$inputData->get($key, $default);
 
@@ -115,7 +114,7 @@ class Input extends BaseModel
      * @param mixed  $default
      * @return mixed
      */
-    final public static function get($key = NULL, $default = NULL)
+    public static function get($key = NULL, $default = NULL)
     {
         return self::$getData->get($key, $default);
     }
@@ -125,7 +124,7 @@ class Input extends BaseModel
      * @param mixed  $default
      * @return mixed
      */
-    final public static function post($key = NULL, $default = NULL)
+    public static function post($key = NULL, $default = NULL)
     {
         return self::$postData->get($key, $default);
     }
@@ -135,7 +134,7 @@ class Input extends BaseModel
      * @param mixed  $value
      * @return mixed
      */
-    final public static function setInput($key, $value)
+    public static function setInput($key, $value)
     {
         return self::$inputData->set($key, $value);
     }
@@ -144,7 +143,7 @@ class Input extends BaseModel
      * @param string $key
      * @return boolean
      */
-    final public static function deleteInput($key)
+    public static function deleteInput($key)
     {
         return self::$inputData->delete($key);
     }
@@ -154,7 +153,7 @@ class Input extends BaseModel
      * @param array  $data
      * @return boolean
      */
-    final public static function merge($name, $data = [])
+    public static function merge($name, $data = [])
     {
         if (TRUE === in_array($name, ['get', 'post', 'input'])) {
             $name .= 'Data';
@@ -168,7 +167,7 @@ class Input extends BaseModel
      * @param array $key_list
      * @return array
      */
-    final public static function missInput($key_list)
+    public static function missInput($key_list)
     {
         return self::$inputData->miss($key_list);
     }
@@ -177,7 +176,7 @@ class Input extends BaseModel
      * @param array $key_list
      * @return array
      */
-    final public static function missGet($key_list)
+    public static function missGet($key_list)
     {
         return self::$getData->miss($key_list);
     }
@@ -186,7 +185,7 @@ class Input extends BaseModel
      * @param array $key_list
      * @return array
      */
-    final public static function missPost($key_list)
+    public static function missPost($key_list)
     {
         return self::$postData->miss($key_list);
     }

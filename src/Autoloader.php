@@ -11,9 +11,9 @@ use \Ilex\Lib\Kit;
  * Class Autoloader
  * @package Ilex
  * 
- * @method final public static        initialize(string $APPPATH, string $RUNTIMEPATH)
- * @method final public static mixed  resolve(string $method, string $url)
- * @method final public static string run(string $APPPATH, string $RUNTIMEPATH)
+ * @method public static        initialize(string $APPPATH, string $RUNTIMEPATH)
+ * @method public static mixed  resolve(string $method, string $url)
+ * @method public static mixed  run(string $APPPATH, string $RUNTIMEPATH)
  */
 final class Autoloader
 {
@@ -22,16 +22,16 @@ final class Autoloader
      * @param string $APPPATH
      * @param string $RUNTIMEPATH
      * @param string $APPNAME
-     * @return string
+     * @return mixed
      */
-    final public static function run($APPPATH, $RUNTIMEPATH, $APPNAME)
+    public static function run($APPPATH, $RUNTIMEPATH, $APPNAME)
     {
         self::initialize($APPPATH, $RUNTIMEPATH, $APPNAME);
         // @todo: how to handle the return value? check other project.
         // If a service controller is called, then it will response the HTTP request and exit before return anything. Other cases unknown.
         return self::resolve(
             $_SERVER['REQUEST_METHOD'], // i.e.  'GET' | 'POST' | 'PUT' | 'DELETE'
-            TRUE === isset($_GET['_url']) ? $_GET['_url'] : '/'
+            (TRUE === isset($_GET['_url'])) ? $_GET['_url'] : '/'
         );
     }
 
@@ -40,15 +40,10 @@ final class Autoloader
      * @param string $url
      * @return mixed
      */
-    final public static function resolve($method, $url)
+    public static function resolve($method, $url)
     {
-        Kit::log([__METHOD__, [
-            'method' => $method,
-            'url'    => $url,
-        ]]);
         $Router = new Router($method, $url);
         require(Loader::APPPATH() . 'Config/Route.php');
-        Kit::log([__METHOD__, ['$Router' => $Router]]);
         return $Router->result();
     }
 
@@ -57,10 +52,10 @@ final class Autoloader
      * @param string $RUNTIMEPATH
      * @param string $APPNAME
      */
-    final public static function initialize($APPPATH, $RUNTIMEPATH, $APPNAME)
+    public static function initialize($APPPATH, $RUNTIMEPATH, $APPNAME)
     {
         $APPPATH     = Kit::getRealPath($APPPATH);
-        $ILEXPATH    = Kit::getRealPath(__DIR__);
+        $ILEXPATH    = Kit::getRealPath(__DIR__ . 'Base/');
         $RUNTIMEPATH = Kit::getRealPath($RUNTIMEPATH);
         /**
          * Loader::initialize() should be called before Constant::initialize(), 

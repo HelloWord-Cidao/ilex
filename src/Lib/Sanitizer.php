@@ -2,9 +2,6 @@
 
 namespace Ilex\Lib;
 
-use \Ilex\Lib\Kit;
-use ReflectionClass;
-
 /**
  * @todo: method arg type validate
  * Class Sanitizer

@@ -1,22 +1,24 @@
 <?php
 
-namespace Ilex\Base\Model\Feature;
+namespace Ilex\Test;
+
+ini_set('error_reporting', E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED);
+ini_set('display_errors', 1);
+ini_set('html_errors', 0);
+session_cache_expire(240);
+// define('ENVIRONMENT', 'TESTILEX');
+
+require_once(__DIR__ . '/../../../autoload.php');
 
 use \Exception;
 use \ReflectionClass;
 use \ReflectionMethod;
-use \Ilex\Lib\Loader;
 use \Ilex\Lib\UserException;
 use \Ilex\Lib\Kit;
-use \Ilex\Base\Model\BaseModel;
 
-/**
- * Class BaseFeature
- * Base class of feature models of Ilex.
- * @package Ilex\Base\Model\Feature
- */
-abstract class BaseFeature extends BaseModel
+abstract class Base
 {
+
     const V_PUBLIC     = 'V_PUBLIC';
     const V_PROTECTED  = 'V_PROTECTED';
     const V_PRIVATE    = 'V_PRIVATE';
@@ -26,57 +28,20 @@ abstract class BaseFeature extends BaseModel
 
     final public function __call($method_name, $arg_list)
     {
+        print_r('in' . __METHOD__ . PHP_EOL);
+
         $execution_record     = self::prepareExecutionRecord($method_name, $arg_list);
         $class_name           = $execution_record['class'];
         $method_accessibility = $execution_record['method_accessibility'];
         if (FALSE === $method_accessibility) 
             throw new UserException('Method is not accessible.', $execution_record);
-        $handler_prefix       = $execution_record['handler_prefix'];
         try {
-            $config_model_name = $handler_prefix . 'Config';
-            // Method validateFeaturePrivilege should throw exception if the validation fails.
-            $execution_record['feature_privilege_validation_result']
-                = $this->$config_model_name->validateFeaturePrivilege($method_name);
-
-            $data_model_name = $handler_prefix . 'Data';
-            // Method validateArgs should throw exception if the validation fails,
-            // and it should load the config model and fetch the config info itself.
-            $execution_record['args_validation_result']
-                = $args_validation_result
-                = $this->$data_model_name->validateArgs($method_name, $arg_list);
-            // Now the validation passed.
-            // Method sanitizeArgs should load the config model and fetch the config info itself.
-            $execution_record['args_sanitization_result']
-                = $args_sanitization_result // a list
-                = $this->$data_model_name->sanitizeArgs(
-                    $method_name, $arg_list, $args_validation_result);
-            
-            $execution_record['feature_behavior']
-                = $feature_behavior
-                = $this->$config_model_name->getServerFeatureBehavior($method_name);
-            
-            $execution_record['result']
-                = $result
-                = call_user_func_array(
-                    [$this, $method_name], $args_sanitization_result + [ $feature_behavior ]);
-            
-            // Method validateResult should throw exception if the validation fails,
-            // and it should load the config model and fetch the config info itself.
-            $execution_record['result_validation_result']
-                = $result_validation_result
-                = $this->$data_model_name->validateResult($method_name, $result);
-            // Now the validation passed.
-            // Method sanitizeResult should load the config model and fetch the config info itself.
-            $execution_record['result_sanitization_result']
-                = $result_sanitization_result
-                = $this->$data_model_name->sanitizeResult(
-                    $method_name, $result, $result_validation_result);
+            $execution_record['result'] = $result
+                = call_user_func_array([$class_name, $method_name], $arg_list);
         } catch (Exception $e) {
             throw new UserException('Feature execution failed.', $execution_record, $e);
-        } finally {
-            Kit::addToTraceStack($execution_record);
         }
-        return $result;
+        Kit::addToTraceStack($execution_record);
     }
 
     final private function prepareExecutionRecord($method_name, $arg_list)
@@ -85,8 +50,6 @@ abstract class BaseFeature extends BaseModel
         $class                = new ReflectionClass($class_name);
         if (FALSE === $class->hasMethod($method_name))
             throw new UserException("Method($method_name) does not exist in class($class_name).");
-        $handler_prefix       = Loader::getHandlerPrefixFromPath(
-            $class_name, '\\', ['Core', 'Collection', 'Log']);
         $method               = new ReflectionMethod($class_name, $method_name);
         $declaring_class      = $method->getDeclaringClass();
         $declaring_class_name = $declaring_class->getName();
@@ -106,8 +69,8 @@ abstract class BaseFeature extends BaseModel
             'method_visibility'    => $method_visibility,
             'initiator_class'      => $initiator_class_name,
             'initiator_type'       => $initiator_type,
-            'handler_prefix'       => $handler_prefix,
         ];
+
         return $execution_record;
     }
 
@@ -168,5 +131,129 @@ abstract class BaseFeature extends BaseModel
         }
         throw new UserException('Method accessibility calculation failed.');
     }
+}
+
+class A1 extends Base
+{
+    const METHODS_VISIBILITY = [
+        self::V_PUBLIC    => [
+            'a11',
+        ],
+        self::V_PROTECTED => [
+            'a12',
+        ],
+    ];
+
+    protected function a11($p1, $p2)
+    {
+        print_r('in ' . __METHOD__ . PHP_EOL);
+        return 11;
+    }
+
+    protected function a12($p1, $p2)
+    {
+        print_r('in ' . __METHOD__ . PHP_EOL);
+        // $this->__call('a13', [$p1, $p2]);
+        return 12;
+    }
+
+    protected function a13($p1, $p2)
+    {
+        print_r('in ' . __METHOD__ . PHP_EOL);
+        return 13;
+    }
+}
+
+class A2 extends A1
+{
+    const METHODS_VISIBILITY = [
+        self::V_PUBLIC    => [
+            'a21',
+        ],
+        self::V_PROTECTED => [
+            'a22',
+        ],
+    ];
+
+    protected function a21($p1, $p2)
+    {
+        print_r('in ' . __METHOD__ . PHP_EOL);
+        // $this->__call('a13', [$p1, $p2]);
+        return 21;
+    }
+
+    protected function a22($p1, $p2)
+    {
+        print_r('in ' . __METHOD__ . PHP_EOL);
+        $this->__call('a12', [$p1, $p2]);
+        return 22;
+    }
+
+    protected function a13($p1, $p2)
+    {
+        print_r('in ' . __METHOD__ . PHP_EOL);
+        return 23;
+    }
+}
+
+class A3 extends A2
+{
+    const METHODS_VISIBILITY = [
+        self::V_PUBLIC    => [
+            'a31',
+        ],
+        self::V_PROTECTED => [
+            'a32',
+        ],
+    ];
+
+    protected function a31($p1, $p2)
+    {
+        print_r('in ' . __METHOD__ . PHP_EOL);
+        $this->__call('a32', [$p1, $p2]);
+        return 31;
+    }
+
+    protected function a32($p1 = 'peach', $p2 = 'hello')
+    {
+        print_r('in ' . __METHOD__ . PHP_EOL);
+        $this->__call('a22', [$p1, $p2]);
+        return 32;
+    }
+
+    protected function a33($p1, $p2)
+    {
+        print_r('in ' . __METHOD__ . PHP_EOL);
+        return 33;
+    }
+}
+
+class B extends Base
+{
+    const METHODS_VISIBILITY = [
+        self::V_PUBLIC => [
+            'b',
+        ],
+    ];
+
+    public function b($p1, $p2)
+    {
+        print_r('in ' . __METHOD__ . PHP_EOL);
+        // echo Kit::j([__LINE__, get_class(), get_called_class(), func_get_args()]);
+        $a3 = new A3();
+        $a3->a31(NULL, $p2);
+        return 'b';
+    }
 
 }
+
+Kit::clearTraceStack();
+try {
+    // $a1 = new A1();
+    // $a1->a11(111, 112);
+    $b = new B();
+    $b->b(1, 2);
+} catch (Exception $e) {
+    echo Kit::j(Kit::extractException($e, TRUE, FALSE, TRUE));
+}
+echo Kit::j(Kit::getTraceStack());

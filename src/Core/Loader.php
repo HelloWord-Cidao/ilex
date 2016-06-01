@@ -2,9 +2,11 @@
 
 namespace Ilex\Core;
 
-use ReflectionClass;
+use \ReflectionClass;
+use \MongoDB;
 use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
+use \Ilex\Lib\UserException;
 
 /**
  * Class Loader
@@ -13,27 +15,32 @@ use \Ilex\Lib\Kit;
  * 
  * @property private static \Ilex\Lib\Container $container
  * 
- * @method final public static string   APPPATH()
- * @method final public static string   APPNAME()
- * @method final public static string   ILEXPATH()
- * @method final public static string   RUNTIMEPATH()
- * @method final public static object   controller(string $path, array $param_list = [], boolean $with_construct = TRUE)
- * @method final public static \MongoDB db()
- * @method final public static string   getHandlerFromPath(string $path, string $delimiter = '/')
- * @method final public static string   getHandlerPrefixFromPath(string $path, string $delimiter = '/', array $more_suffix_list = [])
- * @method final public static          initialize(string $ILEXPATH, string $APPPATH, string $RUNTIMEPATH)
- * @method final public static boolean  isControllerLoaded(string $path)
- * @method final public static boolean  isModelLoaded(string $path)
- * @method final public static object   model(string $path, array $param_list = [], boolean $with_construct = TRUE)
+ * @method public static string   APPPATH()
+ * @method public static string   APPNAME()
+ * @method public static string   ILEXPATH()
+ * @method public static string   RUNTIMEPATH()
+ * @method public static object   controller(string $path, array $arg_list = []
+ *                                    , boolean $with_construct = TRUE)
+ * @method public static MongoDB  db()
+ * @method public static string   getHandlerFromPath(string $path, string $delimiter = '/')
+ * @method public static string   getHandlerPrefixFromPath(string $path, string $delimiter = '/'
+ *                                    , array $more_suffix_list = [])
+ * @method public static          initialize(string $ILEXPATH, string $APPPATH, string $RUNTIMEPATH)
+ * @method public static boolean  isControllerLoaded(string $path)
+ * @method public static boolean  isModelLoaded(string $path)
+ * @method public static object   model(string $path, array $arg_list = []
+ *                                    , boolean $with_construct = TRUE)
  *
- * @method final private static object         createInstance(string $class_name, array $param_list, boolean $with_construct)
- * @method final private static mixed          get(mixed $key)
- * @method final private static boolean        has(mixed $key)
- * @method final private static string|boolean includeFile(string $path, string $type)
- * @method final private static boolean        isLoaded(string $path, string $type)
- * @method final private static object         load(string $path, string $type, array $param_list = [], boolean $with_construct)
- * @method final private static mixed          set(mixed $key, mixed $value)
- * @method final private static mixed          setSet(mixed $key, mixed $keyKey, mixed $value)
+ * @method private static object         createInstance(string $class_name, array $arg_list
+ *                                           , boolean $with_construct)
+ * @method private static mixed          get(mixed $key)
+ * @method private static boolean        has(mixed $key)
+ * @method private static string         includeFile(string $path, string $type)
+ * @method private static boolean        isLoaded(string $path, string $type)
+ * @method private static object         load(string $path, string $type, array $arg_list = []
+ *                                           , boolean $with_construct)
+ * @method private static mixed          set(mixed $key, mixed $value)
+ * @method private static mixed          setSet(mixed $key, mixed $keyKey, mixed $value)
  */
 final class Loader
 {
@@ -47,7 +54,7 @@ final class Loader
      * @param string $RUNTIMEPATH
      * @param string $APPNAME
      */
-    final public static function initialize($ILEXPATH, $APPPATH, $RUNTIMEPATH, $APPNAME)
+    public static function initialize($ILEXPATH, $APPPATH, $RUNTIMEPATH, $APPNAME)
     {
         self::$container = new Container();
         self::set('ILEXPATH',    $ILEXPATH);
@@ -62,7 +69,7 @@ final class Loader
     /**
      * @return string
      */
-    final public static function APPPATH()
+    public static function APPPATH()
     {
         return self::get('APPPATH');
     }
@@ -70,7 +77,7 @@ final class Loader
     /**
      * @return string
      */
-    final public static function APPNAME()
+    public static function APPNAME()
     {
         return self::get('APPNAME');
     }
@@ -78,7 +85,7 @@ final class Loader
     /**
      * @return string
      */
-    final public static function ILEXPATH()
+    public static function ILEXPATH()
     {
         return self::get('ILEXPATH');
     }
@@ -86,15 +93,15 @@ final class Loader
     /**
      * @return string
      */
-    final public static function RUNTIMEPATH()
+    public static function RUNTIMEPATH()
     {
         return self::get('RUNTIMEPATH');
     }
 
     /**
-     * @return \MongoDB
+     * @return MongoDB
      */
-    final public static function db()
+    public static function db()
     {
         if (TRUE === self::has('db')) {
             return self::get('db');
@@ -111,22 +118,22 @@ final class Loader
 
     /**
      * @param string $path
-     * @param array  $param_list
+     * @param array  $arg_list
      * @return object
      */
-    final public static function controller($path, $param_list = [], $with_construct = TRUE)
+    public static function controller($path, $arg_list = [], $with_construct = TRUE)
     {
-        return self::load($path, 'Controller', $param_list, $with_construct);
+        return self::load($path, 'Controller', $arg_list, $with_construct);
     }
 
     /**
      * @param string $path
-     * @param array  $param_list
+     * @param array  $arg_list
      * @return object
      */
-    final public static function model($path, $param_list = [], $with_construct = TRUE)
+    public static function model($path, $arg_list = [], $with_construct = TRUE)
     {
-        return self::load($path, 'Model', $param_list, $with_construct);
+        return self::load($path, 'Model', $arg_list, $with_construct);
     }
 
      /**
@@ -135,21 +142,22 @@ final class Loader
       * The function ensures that for each model only one entity is loaded.
       * @param string $path eg. 'System/Input'
       * @param string $type eg. 'Model', 'Controller'
-      * @param array  $param_list
+      * @param array  $arg_list
       * @return object
       */
-    final private static function load($path, $type, $param_list, $with_construct)
+    private static function load($path, $type, $arg_list, $with_construct)
     {
-        // @todo: If $type is not 'Controller' or 'Model', it will throw an exception.
-        $type_entity_list = self::get($type);
-        if (TRUE === $type_entity_list->has($path)) {
-            return $type_entity_list->get($path);
+        // @todo: If $type is not 'Controller' or 'Model', it should throw an exception.
+        $instance_container = self::get($type);
+        if (TRUE === $instance_container->has($path)) {
+            return $instance_container->get($path);
         } else {
-            $class_name = self::includeFile($path, $type);
-            if (FALSE === $class_name) {
-                throw new \Exception(ucfirst($type) . ' ' . $path . ' not found.');
+            try {
+                $class_name = self::includeFile($path, $type);
+            } catch (Exception $e) {
+                throw new UserException(ucfirst($type) . ' ' . $path . ' not found.', NULL, $e);
             }
-            $instance = self::createInstance($class_name, $param_list, $with_construct);
+            $instance = self::createInstance($class_name, $arg_list, $with_construct);
             return self::setSet($type, $path, $instance);
         }
     }
@@ -158,22 +166,23 @@ final class Loader
      * Includes package and return its name, returns FALSE if fails.
      * Try APPPATH first and then ILEXPATH.
      * eg. $path = 'System/Input', $type = 'Model', 
-     *     this function will includes the file : 'ILEXPATH/Base/Model/System/Input.php', 
+     *     this function will includes the file : 'ILEXPATH/Model/System/Input.php', 
      *     and returns '\\Ilex\\Base\\Model\\System\\Input'
      * @param string $path eg. 'System/Input'
      * @param string $type eg. 'Model', 'Controller'
-     * @return string|boolean
+     * @return string
      */
-    final private static function includeFile($path, $type)
+    private static function includeFile($path, $type)
     {
         foreach ([
             'app' => [
-                'name' => '\\' . self::get('APPNAME'). '\\' . $type . '\\' . str_replace('/', '\\', $path) . $type,
-                'path' => self::get('APPPATH') . $type . '/' . $path . $type . '.php',
+                'name' => '\\' . self::get('APPNAME'). '\\' . $type . '\\'
+                    . str_replace('/', '\\', $path),
+                'path' => self::get('APPPATH') . $type . '/' . $path . '.php',
             ],
             'ilex' => [
                 'name' => '\\Ilex\\Base\\' . $type . '\\' . str_replace('/', '\\', $path),
-                'path' => self::get('ILEXPATH') . 'Base/' . $type . '/' . $path . '.php',
+                'path' => self::get('ILEXPATH') . $type . '/' . $path . '.php',
             ]
         ] as $item) {
             if (TRUE === file_exists($item['path'])) {
@@ -183,18 +192,18 @@ final class Loader
                 return $item['name'];
             }
         }
-        return FALSE;
+        throw new UserException('File does not exists.');
     }
 
     /**
      * @param string $class_name
-     * @param array  $param_list
+     * @param array  $arg_list
      * @return object
      */
-    final private static function createInstance($class_name, $param_list, $with_construct)
+    private static function createInstance($class_name, $arg_list, $with_construct)
     {
         $reflection_class = new ReflectionClass($class_name);
-        if (TRUE === $with_construct) return $reflection_class->newInstanceArgs($param_list);
+        if (TRUE === $with_construct) return $reflection_class->newInstanceArgs($arg_list);
         else return $reflection_class->newInstanceWithoutConstructor();
     }
 
@@ -205,7 +214,7 @@ final class Loader
      * @param string $delimiter
      * @return string
      */
-    final public static function getHandlerFromPath($path, $delimiter = '/')
+    public static function getHandlerFromPath($path, $delimiter = '/')
     {
         $handler = strrchr($path, $delimiter);
         return FALSE === $handler ? $path : substr($handler, 1);
@@ -216,10 +225,10 @@ final class Loader
      * eg. 'Service/AdminServiceController' => 'Admin'
      * @param string $path
      * @param string $delimiter
-     * @param array $more_suffix_list
+     * @param array  $more_suffix_list
      * @return string
      */
-    final public static function getHandlerPrefixFromPath($path, $delimiter = '/', $more_suffix_list = [])
+    public static function getHandlerPrefixFromPath($path, $delimiter = '/', $more_suffix_list = [])
     {
         $suffix_list     = array_merge(['Controller', 'Model'], $more_suffix_list);
         $handler         = self::getHandlerFromPath($path, $delimiter);
@@ -237,7 +246,7 @@ final class Loader
      * @param string $path
      * @return boolean
      */
-    final public static function isControllerLoaded($path)
+    public static function isControllerLoaded($path)
     {
         return self::isLoaded($path, 'Controller');
     }
@@ -246,7 +255,7 @@ final class Loader
      * @param string $path
      * @return boolean
      */
-    final public static function isModelLoaded($path)
+    public static function isModelLoaded($path)
     {
         return self::isLoaded($path, 'Model');
     }
@@ -256,29 +265,11 @@ final class Loader
      * @param string $type
      * @return boolean
      */
-    final private static function isLoaded($path, $type)
+    private static function isLoaded($path, $type)
     {
-        // @todo: If $type is not 'Controller' or 'Model', it will throw an exception.
-        $type_entity_list = self::get($type);
-        return $type_entity_list->has($path);
-    }
-
-    /**
-     * @param mixed $key
-     * @return mixed
-     */
-    final private static function get($key)
-    {
-        return self::$container->get($key);
-    }
-
-    /**
-     * @param mixed $key
-     * @return boolean
-     */
-    final private static function has($key)
-    {
-        return self::$container->has($key);
+        // @todo: If $type is not 'Controller' or 'Model', it should throw an exception.
+        $instance_container = self::get($type);
+        return $instance_container->has($path);
     }
 
     /**
@@ -286,7 +277,7 @@ final class Loader
      * @param mixed $value
      * @return mixed
      */
-    final private static function set($key, $value)
+    private static function set($key, $value)
     {
         return self::$container->set($key, $value);
     }
@@ -297,10 +288,28 @@ final class Loader
      * @param mixed $value
      * @return mixed
      */
-    final private static function setSet($key, $keyKey, $value)
+    private static function setSet($key, $keyKey, $value)
     {
-        // @todo: If the existence is not guaranteed, it will throw an exception.
+        // @todo: If the existence is not guaranteed, it should throw an exception.
         return self::$container->get($key)->set($keyKey, $value);
+    }
+
+    /**
+     * @param mixed $key
+     * @return boolean
+     */
+    private static function has($key)
+    {
+        return self::$container->has($key);
+    }
+
+    /**
+     * @param mixed $key
+     * @return mixed
+     */
+    private static function get($key)
+    {
+        return self::$container->get($key);
     }
 }
 

@@ -2,59 +2,56 @@
 
 namespace Ilex\Base\Model\Data;
 
-use \Ilex\Lib\Kit;
-use \Ilex\Lib\Validator;
 use \Ilex\Base\Model\BaseModel;
 
 /**
  * Class BaseData
+ * Base class of data models of Ilex.
  * @package Ilex\Base\Model\Data
  */
 abstract class BaseData extends BaseModel
 {
 
-    final public function __construct()
-    {
+    // @todo: load Config model
 
-    }
-
-    final protected static function validateInput($method_name, $input)
+    final public function validateInput($method_name, $input)
     {
-        // if (FALSE === isset(self::$inputDataPatternList[$method_name]))
-        //     return Kit::generateError("InputDataPattern is not set for method: $method_name.");
-        // $pattern = self::$inputDataPatternList[$method_name];
-        // return Validator::validate($pattern, $input);
         return TRUE;
     }
 
-    // /**
-    //  * @param array[] $argument_names
-    //  */
-    // final protected static function validateExistArguments($argument_names)
-    // {
-    //     if (FALSE === self::$Input->hasGet($argument_names)) {
-    //         $arguments = self::$Input->get();
-    //         unset($arguments['_url']);
-    //         $err_info = [
-    //             'missingArguments' => self::$Input->missGet($argument_names),
-    //             'givenArguments'   => $arguments,
-    //         ];
-    //         self::$terminate('Missing arguments.', $err_info);
-    //     }
-    // }
+    final public function sanitizeInput($method_name, $input, $input_validation_result)
+    {
+        return $input;
+    }
 
-    // /**
-    //  * @param array[] $field_names
-    //  */
-    // final protected static function validateExistFields($field_names)
-    // {
-    //     if (FALSE === self::$Input->hasPost($field_names)) {
-    //         $err_info = [
-    //             'missingFields' => self::$Input->missPost($field_names),
-    //             'givenFields'   => array_keys(self::$Input->post()),
-    //         ];
-    //         self::$terminate('Missing fields.', $err_info);
-    //     }
-    // }
+    final public function validateServiceResult($method_name, $service_result)
+    {
+        return TRUE;
+    }
 
+    final public function sanitizeServiceResult($method_name, $service_result
+        , $service_result_validation_result)
+    {
+        return $service_result;
+    }
+
+    final public function validateArgs($method_name, $arg_list)
+    {
+        return TRUE;
+    }
+
+    final public function sanitizeArgs($method_name, $arg_list, $args_validation_result)
+    {
+        return $arg_list;
+    }
+
+    final public function validateResult($method_name, $result)
+    {
+        return TRUE;
+    }
+
+    final public function sanitizeResult($method_name, $result, $result_validation_result)
+    {
+        return $result;
+    }
 }

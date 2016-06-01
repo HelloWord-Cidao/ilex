@@ -3,26 +3,41 @@
 namespace Ilex\Base\Model\Feature\Database;
 
 use \Exception;
+use \MongoCursor;
 use \Ilex\Lib\Kit;
+use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\Feature\BaseFeature;
 
 /**
  * Class MongoDBCursor
- * Encapsulation of basic operations of MongoCcursor class.
+ * Encapsulation of basic operations of MongoCursor class.
  * @package Ilex\Base\Model\Feature\Database
  *
- * @property private \MongoCursor $cursor
+ * @property private MongoCursor $cursor
  * 
- * @method public         __construct(\MongoCursor $mongo_cursor)
- * @method public int     count()
- * @method public array   getCurrent()
- * @method public array   getInfo()
- * @method public array   getNext()
- * @method public boolean hasNext()
- * @method public         rewind()
+ * @method public         __construct(MongoCursor $mongo_cursor)
+ * 
+ * @method protected int     count()
+ * @method protected array   getCurrent()
+ * @method protected array   getInfo()
+ * @method protected array   getNext()
+ * @method protected boolean hasNext()
+ * @method protected         rewind()
  */
 final class MongoDBCursor extends BaseFeature {
-    // If you want to know whether a cursor returned any results it is faster to use 'hasNext()' than 'count'
+    // If you want to know whether a cursor returned any results
+    // it is faster to use 'hasNext()' than 'count'
+    
+    const METHODS_VISIBILITY = [
+        self::V_PUBLIC => [
+            'count',
+            'getCurrent',
+            'getInfo',
+            'getNext',
+            'hasNext',
+            'rewind',
+        ],
+    ]; 
     
     private $cursor;
 
@@ -40,7 +55,7 @@ final class MongoDBCursor extends BaseFeature {
      * @return array Returns the namespace, batch size, limit, skip, flags,
      *               query, and projected fields for this cursor.
      */
-    public function getInfo()
+    protected function getInfo()
     {
         return $this->cursor->info();
     }
@@ -52,86 +67,79 @@ final class MongoDBCursor extends BaseFeature {
      * If you have started iterating through results,
      * it will not move the current position of the cursor.
      * If you have exhasted the cursor, it will not reset it.
-     * Throws MongoConnectionException if it cannot reach the database.
      * @return int The number of documents returned by this cursor's query.
+     * @throws MongoConnectionException if it cannot reach the database.
+     * @throws UserException
      */
-    public function count()
+    protected function count()
     {
         try {
             return $this->cursor->count(TRUE);
         } catch (Exception $e) {
-            return Kit::generateError('MongoDB Cursor operation(count) failed.', [
-                'found_only' => $document,
-                'info'       => $this->getInfo(),
-                'exception'  => Kit::extractException($e),
-            ]);
+            throw new UserException('MongoDB Cursor operation(count) failed.', $this->getInfo(), $e);
         }
     }
 
     /**
      * Returns the current element.
      * @return array The current result document as an associative array.
+     * @throws UserException if there is no result.
      */
-    public function getCurrent()
+    protected function getCurrent()
     {
         $result = $this->cursor->current();
         if (TRUE === is_null($result))
-            return Kit::generateError('MongoDB Cursor operation(current) failed.', [
-                'info' => $this->getInfo(),
-            ]);
+            throw new UserException(
+                'MongoDB Cursor operation(current) failed: there is no result.',
+                $this->getInfo()
+            );
         return $result;
     }
 
     /**
      * Checks if there are any more elements in this cursor.
-     * Throws MongoConnectionException if it cannot reach the database
-     * and MongoCursorTimeoutException if the timeout is exceeded.
      * @return boolean Returns if there is another element.
+     * @throws MongoConnectionException    if it cannot reach the database.
+     * @throws MongoCursorTimeoutException if the timeout is exceeded.
+     * @throws UserException
      */
-    public function hasNext()
+    protected function hasNext()
     {
         try {
             return $this->cursor->hasNext();
         } catch (Exception $e) {
-            return Kit::generateError('MongoDB Cursor operation(hasNext) failed.', [
-                'info'      => $this->getInfo(),
-                'exception' => Kit::extractException($e),
-            ]);
+            throw new UserException('MongoDB Cursor operation(hasNext) failed.', $this->getInfo(), $e);
         }
     }
 
     /**
      * Advances the cursor to the next result, and returns that result.
-     * Throws MongoConnectionException if it cannot reach the database
-     * and MongoCursorTimeoutException if the timeout is exceeded.
      * @return array Returns the next document.
+     * @throws MongoConnectionException    if it cannot reach the database.
+     * @throws MongoCursorTimeoutException if the timeout is exceeded.
+     * @throws UserException
      */
-    public function getNext()
+    protected function getNext()
     {
         try {
             return $this->cursor->next();
         } catch (Exception $e) {
-            return Kit::generateError('MongoDB Cursor operation(next) failed.', [
-                'info'      => $this->getInfo(),
-                'exception' => Kit::extractException($e),
-            ]);
+            throw new UserException('MongoDB Cursor operation(next) failed.', $this->getInfo(), $e);
         }
     }
 
     /**
-     * Returns the cursor to the beginning of the result set
-     * Throws MongoConnectionException if it cannot reach the database
-     * and MongoCursorTimeoutException if the timeout is exceeded.
+     * Resets the cursor to the beginning of the result set
+     * @throws MongoConnectionException    if it cannot reach the database.
+     * @throws MongoCursorTimeoutException if the timeout is exceeded.
+     * @throws UserException
      */
-    public function rewind()
+    protected function rewind()
     {
         try {
             $this->rewind();
         } catch (Exception $e) {
-            return Kit::generateError('MongoDB Cursor operation(rewind) failed.', [
-                'info'      => $this->getInfo(),
-                'exception' => Kit::extractException($e),
-            ]);
+            throw new UserException('MongoDB Cursor operation(rewind) failed.', $this->getInfo(), $e);
         }
     }
 

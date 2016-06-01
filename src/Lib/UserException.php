@@ -5,13 +5,15 @@ namespace Ilex\Lib;
 use \Exception;
 
 /**
+ * @todo: method arg type validate
  * Class UserException
  * An user-defined exception, supporting recording detail information.
  * @package Ilex\Lib
  *
  * @property private mixed $detail
  *
- * @method public       __construct(string $message, mixed $detail = NULL, int $code = 0, Exception $previous = NULL)
+ * @method public       __construct(string $message, mixed $detail = NULL
+ *                          , Exception $previous = NULL, int $code = 0)
  * @method public mixed getDetail()
  */
 final class UserException extends Exception
@@ -32,32 +34,19 @@ final class UserException extends Exception
     // However, if the try block has a return that has to be evaluated in-line (e.g. return $foo+0;),
     // finally's changes to $foo will /not/ affect the return value.
     
-    private $method;
-    private $args;
     private $detail;
 
     /**
      * @param string    $message
      * @param mixed     $detail
-     * @param int       $code
      * @param Exception $previous
+     * @param int       $code
      */
-    public function __construct($message, $detail = NULL, $code = 0, $previous = NULL)
+    public function __construct($message, $detail = NULL, $previous = NULL, $code = 0)
     {
-        if (FALSE === is_string($message))
-            throw new UserException('$message is not a string');
-        if (FALSE === ($previous instanceof Exception))
-            throw new UserException('$previous is not an Exception');
         parent::__construct($message, $code, $previous);
         $this->detail = $detail;
-        // @todo: set method name, args, called_class
-        // $this->method = $this->getTrace();
     }
-
-    //@todo: set for __call
-    // public function setClass
-    // public function setMethod
-    // public function setArgs
 
     /**
      * @return mixed

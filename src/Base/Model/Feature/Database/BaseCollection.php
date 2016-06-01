@@ -1,18 +1,37 @@
 <?php
 
-// @TODO: add comments
-
 namespace Ilex\Base\Model\Feature\Database;
 
-use \Ilex\Lib\Kit;
 use \Ilex\Base\Model\Feature\Database\MongoDBCollection;
 
 /**
  * Class BaseCollection
- * Base class of collection models of Ilex.
+ * Base class of collection feature models of Ilex.
  * @package Ilex\Base\Model\Feature\Database
  */
 abstract class BaseCollection extends MongoDBCollection
 {
+    const METHODS_VISIBILITY = [
+        self::V_PROTECTED => [
+            'getContent',
+            'getInfo',
+            'get_id',
+        ],
+    ];
 
+    final protected function getContent()
+    {
+
+    }
+
+    final protected function getInfo()
+    {
+
+    }
+
+    final protected function get_id()
+    {
+        
+    }
+    
 }

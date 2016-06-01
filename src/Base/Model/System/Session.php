@@ -20,15 +20,15 @@ use \Ilex\Lib\Kit;
  * @property private static boolean $booted
  * @property private static array   $fakeSession
  * 
- * @method final public                __construct()
- * @method final public static         assign(array $var_list)
- * @method final public static         boot()
- * @method final public static         forget()
- * @method final public static mixed   get(string|boolean $key = FALSE, mixed $default = FALSE)
- * @method final public static boolean has(string $key)
- * @method final public static         makeGuest()
- * @method final public static string  newSid()
- * @method final public static mixed   set(string $key, mixed $value)
+ * @method public                __construct()
+ * @method public static         assign(array $var_list)
+ * @method public static         boot()
+ * @method public static         forget()
+ * @method public static mixed   get(string|boolean $key = FALSE, mixed $default = FALSE)
+ * @method public static boolean has(string $key)
+ * @method public static         makeGuest()
+ * @method public static string  newSid()
+ * @method public static mixed   set(string $key, mixed $value)
  *
  * @method private static start()
  */
@@ -42,7 +42,7 @@ final class Session extends BaseModel
     private static $booted = FALSE;
     private static $fakeSession; // @todo: use \Ilex\Lib\Container
 
-    final public function __construct()
+    public function __construct()
     {
         self::boot();
     }
@@ -52,7 +52,7 @@ final class Session extends BaseModel
      * @uses ENVIRONMENT
      * @param array $var_list
      */
-    final public static function assign($var_list)
+    public static function assign($var_list)
     {
         // @todo: use array_merge or '+' operator?
         $tmp = self::$fakeSession + $var_list;
@@ -67,7 +67,7 @@ final class Session extends BaseModel
     /**
      * @uses ENVIRONMENT
      */
-    final public static function boot()
+    public static function boot()
     {
         if (FALSE === self::$booted) {
             self::start();
@@ -97,7 +97,7 @@ final class Session extends BaseModel
      * Resets status.
      * @uses ENVIRONMENT
      */
-    final public static function forget()
+    public static function forget()
     {
         if ('TESTILEX' !== ENVIRONMENT) {
             session_unset();
@@ -112,7 +112,7 @@ final class Session extends BaseModel
      * Starts the session.
      * @uses ENVIRONMENT, SYS_SESSNAME
      */
-    final private static function start()
+    private static function start()
     {
         if ('TESTILEX' !== ENVIRONMENT) {
             session_name(SYS_SESSNAME); // Defined in \Ilex\Core\Constant.
@@ -124,7 +124,7 @@ final class Session extends BaseModel
      * Generates new sid.
      * @return string
      */
-    final public static function newSid()
+    public static function newSid()
     {
         return self::set(self::SID, sha1(uniqid() . mt_rand()));
     }
@@ -133,7 +133,7 @@ final class Session extends BaseModel
      * Sets guest status.
      * @uses USERID, USERNAME, LOGIN
      */
-    final public static function makeGuest()
+    public static function makeGuest()
     {
         self::set(self::LOGIN, FALSE);
         self::set(self::USERID, 0);
@@ -145,19 +145,19 @@ final class Session extends BaseModel
      * @param string $key
      * @return boolean
      */
-    final public static function has($key)
+    public static function has($key)
     {
         return isset(self::$fakeSession[$key]);
     }
 
     /**
-     * @todo check the default value of params
+     * @todo check the default value of args
      * Gets value from $fakeSession.
      * @param string|boolean $key
      * @param mixed          $default
      * @return mixed
      */
-    final public static function get($key = FALSE, $default = FALSE)
+    public static function get($key = FALSE, $default = FALSE)
     {
         return (FALSE !== $key) ?
             (TRUE === isset(self::$fakeSession[$key]) ? self::$fakeSession[$key] : $default) :
@@ -170,7 +170,7 @@ final class Session extends BaseModel
      * @param mixed  $value
      * @return mixed
      */
-    final public static function set($key, $value)
+    public static function set($key, $value)
     {
         return (self::$fakeSession[$key] = $value);
     }
