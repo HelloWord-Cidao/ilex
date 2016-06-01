@@ -2,9 +2,9 @@
 
 namespace Ilex\Base\Model\System;
 
-use \Ilex\Base\Model\BaseModel;
 use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
+use \Ilex\Base\Model\BaseModel;
 
 /**
  * @todo: method arg type validate

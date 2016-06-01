@@ -432,7 +432,6 @@ abstract class MongoDBCollection extends BaseFeature
         , $skip = NULL, $limit = NULL, $to_array = FALSE)
     {
         $cursor = $this->collection->find($criterion, $projection);
-        // @todo: following may cause what exception?
         if (FALSE === is_null($sort_by)) $cursor = $cursor->sort($sort_by);
         if (FALSE === is_null($skip))    $cursor = $cursor->skip($skip);
         if (FALSE === is_null($limit))   $cursor = $cursor->limit($limit);

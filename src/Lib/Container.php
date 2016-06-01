@@ -60,8 +60,7 @@ final class Container
      */
     public function __toString()
     {
-        // @todo: use json_encode
-        return Kit::toString($this->data);
+        return Kit::j($this->data);
     }
 
     /**
@@ -121,7 +120,7 @@ final class Container
     {
         if (TRUE === is_null($key))
             return $this->data;
-        elseif (TRUE === isset($this->data[$key])
+        elseif (TRUE === isset($this->data[$key]))
             return $this->data[$key];
         else return $default;
     }

@@ -40,7 +40,6 @@ final class Tester
         $Input->clear();
         $Input->merge('post', $postData);
         $Input->merge('get', $getData);
-        // $_SERVER['REQUEST_URI'] =  ENV_HOST . '/' . $url; // @todo: what?
         return Autoloader::resolve($method, $url);
     }
 }

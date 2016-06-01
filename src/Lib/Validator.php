@@ -24,7 +24,7 @@ use \Ilex\Lib\UserException;
  */
 final class Validator
 {
-    // @todo: use public static variables or constants?s
+    // @todo: use public static variables or constants?
     const 
         V_EXISTENCE = 'EXISTENCE',
         V_EXISTENCE_REQUIRE = 'EXISTENCE_REQUIRE',

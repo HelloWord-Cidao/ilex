@@ -55,7 +55,7 @@ final class Autoloader
     public static function initialize($APPPATH, $RUNTIMEPATH, $APPNAME)
     {
         $APPPATH     = Kit::getRealPath($APPPATH);
-        $ILEXPATH    = Kit::getRealPath(__DIR__ . 'Base/');
+        $ILEXPATH    = Kit::getRealPath(__DIR__ . '/Base/');
         $RUNTIMEPATH = Kit::getRealPath($RUNTIMEPATH);
         /**
          * Loader::initialize() should be called before Constant::initialize(), 

@@ -147,7 +147,8 @@ final class Loader
       */
     private static function load($path, $type, $arg_list, $with_construct)
     {
-        // @todo: If $type is not 'Controller' or 'Model', it should throw an exception.
+        if (FALSE === in_array($type, [ 'Controller', 'Model' ]))
+            throw new UserException('Invalid $type.');
         $instance_container = self::get($type);
         if (TRUE === $instance_container->has($path)) {
             return $instance_container->get($path);
@@ -174,7 +175,7 @@ final class Loader
      */
     private static function includeFile($path, $type)
     {
-        foreach ([
+        $item_list = [
             'app' => [
                 'name' => '\\' . self::get('APPNAME'). '\\' . $type . '\\'
                     . str_replace('/', '\\', $path),
@@ -184,7 +185,8 @@ final class Loader
                 'name' => '\\Ilex\\Base\\' . $type . '\\' . str_replace('/', '\\', $path),
                 'path' => self::get('ILEXPATH') . $type . '/' . $path . '.php',
             ]
-        ] as $item) {
+        ];
+        foreach ($item_list as $item) {
             if (TRUE === file_exists($item['path'])) {
                 // Now include the app class here, then it can be used somewhere else!
                 // @todo: should only include once?
@@ -192,7 +194,7 @@ final class Loader
                 return $item['name'];
             }
         }
-        throw new UserException('File does not exists.');
+        throw new UserException('File does not exists.', $item_list);
     }
 
     /**
@@ -267,7 +269,8 @@ final class Loader
      */
     private static function isLoaded($path, $type)
     {
-        // @todo: If $type is not 'Controller' or 'Model', it should throw an exception.
+        if (FALSE === in_array($type, [ 'Controller', 'Model' ]))
+            throw new UserException('Invalid $type.');
         $instance_container = self::get($type);
         return $instance_container->has($path);
     }
@@ -290,7 +293,8 @@ final class Loader
      */
     private static function setSet($key, $keyKey, $value)
     {
-        // @todo: If the existence is not guaranteed, it should throw an exception.
+        if (FALSE === self::$container->has($key))
+            throw new UserException('self::$container has no $key.');
         return self::$container->get($key)->set($keyKey, $value);
     }
 

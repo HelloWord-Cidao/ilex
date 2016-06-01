@@ -13,7 +13,7 @@ use \Ilex\Core\Loader;
  */
 final class Constant
 {
-    const CONSTANT_LIST = [
+    private static $constantList = [
         /*
          * -----------------------
          * System
@@ -22,8 +22,8 @@ final class Constant
         'SYS_SESSNAME' => 'ILEX_SESSION',
         'ENVIRONMENT'  => 'DEVELOPMENT',
         
-        'ENV_HOST'     => (TRUE === isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost'),
-        'ENV_SSL'      => (bool)(TRUE === isset($_SERVER['SERVER_PORT']) AND 443 === $_SERVER['SERVER_PORT']),
+        // 'ENV_HOST'     => ((TRUE === isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : 'localhost'),
+        // 'ENV_SSL'      => (bool)(TRUE === isset($_SERVER['SERVER_PORT']) AND 443 === $_SERVER['SERVER_PORT']),
         // 'ENV_HOST_URL' => TRUE === ENV_SSL ? 'https' : 'http') . '://' . ENV_HOST,
 
         /*
@@ -42,7 +42,7 @@ final class Constant
     public static function initialize()
     {
         require_once(Loader::APPPATH() . 'Config/Const.php');
-        foreach (self::CONSTANT_LIST as $name => $value) {
+        foreach (self::$constantList as $name => $value) {
             if (FALSE === defined($name)) define($name, $value);
         }
     }

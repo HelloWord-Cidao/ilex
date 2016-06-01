@@ -264,22 +264,22 @@ final class Router
                 Kit::log([__METHOD__, 'call end', [
                     'function' => $function,
                     'handler'  => TRUE === is_string($handler) ? Loader::controller($handler) : $handler,
-                    'arg_list' => [$is_time_consuming],
+                    'arg_list' => [ $is_time_consuming ],
                 ]]);
                 $this->end(
                     call_user_func_array([
                         TRUE === is_string($handler) ? Loader::controller($handler) : $handler, // The controller is loaded HERE!
                         $function
-                    ], [$is_time_consuming])
+                    ], [ $is_time_consuming ])
                 );
             } elseif (TRUE === is_callable($handler)) {
             // $handler is an anonymous function.
                 Kit::log([__METHOD__, '$handler is an anonymous function.'], FALSE);
                 Kit::log([__METHOD__, 'call end', [
                     'handler'  => $handler,
-                    'arg_list' => [$is_time_consuming],
+                    'arg_list' => [ $is_time_consuming ],
                 ]]);
-                $this->end(call_user_func_array($handler, $is_time_consuming));
+                $this->end(call_user_func_array($handler, [ $is_time_consuming ]));
             }
             Kit::log([__METHOD__, 'CAN FIT!'], FALSE);
             return TRUE;

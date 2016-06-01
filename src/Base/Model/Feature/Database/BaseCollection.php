@@ -19,7 +19,17 @@ abstract class BaseCollection extends MongoDBCollection
         ],
     ];
 
+    final protected function get_id()
+    {
+
+    }
+    
     final protected function getContent()
+    {
+
+    }
+
+    final protected function getData()
     {
 
     }
@@ -29,9 +39,9 @@ abstract class BaseCollection extends MongoDBCollection
 
     }
 
-    final protected function get_id()
+    final protected function getMeta()
     {
-        
+
     }
     
 }
