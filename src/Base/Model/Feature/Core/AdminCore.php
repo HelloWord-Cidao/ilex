@@ -11,7 +11,7 @@ use \Ilex\Base\Model\Feature\Core\BaseCore;
  */
 class AdminCore extends BaseCore
 {
-    const METHODS_VISIBILITY = [
+    protected static $methodsVisibility = [
         self::V_PUBLIC => [
             'countCollection',
             'getCollection',

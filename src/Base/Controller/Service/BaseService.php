@@ -2,9 +2,11 @@
 
 namespace Ilex\Base\Controller\Service;
 
+use \Exception;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Http;
 use \Ilex\Lib\Kit;
+use \Ilex\Lib\UserException;
 use \Ilex\Base\Controller\BaseController;
 
 /**
@@ -32,6 +34,7 @@ abstract class BaseService extends BaseController
         $execution_record = self::prepareExecutionRecord($method_name, $arg_list);
         $input            = $execution_record['input'];
         $handler_prefix   = $execution_record['handler_prefix'];
+        $execution_record['input'] = array_keys($execution_record['input']);
         try {
             $config_model_name = $handler_prefix . 'Config';
             // Method validateFeaturePrivilege should throw exception if the validation fails.
@@ -41,8 +44,8 @@ abstract class BaseService extends BaseController
             $data_model_name = $handler_prefix . 'Data';
             // Method validateInput should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
-            $execution_record['input_validation_result']
-                = $input_validation_result
+            $input_validation_result
+                = $execution_record['input_validation_result']
                 = $this->$data_model_name->validateInput($method_name, $input);
             // Now the validation passed.
             
@@ -51,32 +54,35 @@ abstract class BaseService extends BaseController
                 $this->succeed(
                     NULL,
                     'Request data received successfully, operation has started.',
-                    TRUE,
+                    TRUE
                 );
             }
 
             // Method sanitizeInput should load the config model and fetch the config info itself.
-            $execution_record['input_sanitization_result']
-                = $input_sanitization_result // a list
+            $input_sanitization_result // a list
+                = $execution_record['input_sanitization_result']
                 = $this->$data_model_name->sanitizeInput(
                     $method_name, $input, $input_validation_result);
+            $execution_record['input_sanitization_result']
+                = array_keys($execution_record['input_sanitization_result']);
             
             $core_model_name = $handler_prefix . 'Core';
-            $execution_record['service_result']
-                = $service_result
-                = $this->$core_model_name->$method_name($input_sanitization_result);
+            $feature_behavior = NULL;
+            $service_result
+                = $execution_record['service_result']
+                = $this->$core_model_name->$method_name($input_sanitization_result, $feature_behavior);
             
             // Method validateServiceResult should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
-            $execution_record['service_result_validation_result']
-                = $service_result_validation_result
+            $service_result_validation_result
+                = $execution_record['service_result_validation_result']
                 = $this->$data_model_name->validateServiceResult($method_name, $service_result);
             // Now the validation passed.
             
             // Method sanitizeServiceResult should load the config model
             // and fetch the config info itself.
-            $execution_record['service_result_sanitization_result']
-                = $service_result_sanitization_result
+            $service_result_sanitization_result
+                = $execution_record['service_result_sanitization_result']
                 = $this->$data_model_name->sanitizeServiceResult(
                     $method_name, $service_result, $service_result_validation_result);
             // $service_result_validation_result should contains
@@ -89,7 +95,7 @@ abstract class BaseService extends BaseController
                 $execution_record['class'],
                 $execution_record['method'],
                 $input,
-                $operation_status,
+                $operation_status
             );
             $this->succeed($computation_data, $operation_status);
         } catch (Exception $e) {
@@ -108,7 +114,7 @@ abstract class BaseService extends BaseController
         $this->loadModel('System/Input');
         $class_name     = get_called_class();
         $handler_prefix = Loader::getHandlerPrefixFromPath($class_name, '\\', ['Service']);
-        $input          = $this->$Input->input();
+        $input          = $this->Input->input();
         $execution_record = [
             'class'          => $class_name,
             'method'         => $method_name,
@@ -156,7 +162,8 @@ abstract class BaseService extends BaseController
     final private function response($result, $status_code, $close_cgi_only = FALSE)
     {
         header('Content-Type : application/json', TRUE, $status_code);
-        if ('TEST' === ENVIRONMENT) $result['trace'] = Kit::getTraceStack();
+        // if ('TEST' === ENVIRONMENT)
+            $result['trace'] = Kit::getTraceStack();
         Http::json($result);
         if (TRUE === $close_cgi_only) {
             fastcgi_finish_request();

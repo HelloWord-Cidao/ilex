@@ -28,7 +28,7 @@ final class MongoDBCursor extends BaseFeature {
     // If you want to know whether a cursor returned any results
     // it is faster to use 'hasNext()' than 'count'
     
-    const METHODS_VISIBILITY = [
+    protected static $methodsVisibility = [
         self::V_PUBLIC => [
             'count',
             'getCurrent',

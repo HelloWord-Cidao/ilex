@@ -135,7 +135,7 @@ abstract class Base
 
 class A1 extends Base
 {
-    const METHODS_VISIBILITY = [
+    protected static $methodsVisibility = [
         self::V_PUBLIC    => [
             'a11',
         ],
@@ -166,7 +166,7 @@ class A1 extends Base
 
 class A2 extends A1
 {
-    const METHODS_VISIBILITY = [
+    protected static $methodsVisibility = [
         self::V_PUBLIC    => [
             'a21',
         ],
@@ -198,7 +198,7 @@ class A2 extends A1
 
 class A3 extends A2
 {
-    const METHODS_VISIBILITY = [
+    protected static $methodsVisibility = [
         self::V_PUBLIC    => [
             'a31',
         ],
@@ -230,7 +230,7 @@ class A3 extends A2
 
 class B extends Base
 {
-    const METHODS_VISIBILITY = [
+    protected static $methodsVisibility = [
         self::V_PUBLIC => [
             'b',
         ],

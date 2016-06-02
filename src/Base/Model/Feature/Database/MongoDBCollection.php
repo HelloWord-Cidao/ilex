@@ -18,8 +18,8 @@ use \Ilex\Base\Model\Feature\Database\MongoDBCursor;
  *
  * @property private \MongoCollection $collection
  *
- * @method final public                               __construct()
- * @method final protected        MongoId             add(array $document)
+ * @method       public                               __construct()
+ * @method       protected        MongoId             add(array $document)
  * @method final protected        boolean             checkExistence(array $criterion)
  * @method final protected        boolean             checkExistsOnlyOne(array $criterion)
  * @method final protected static string              convertMongoIdToString(MongoId $id)
@@ -71,10 +71,10 @@ abstract class MongoDBCollection extends BaseFeature
 // https://www.mongodb.com/white-papers
 // https://university.mongodb.com/courses/catalog?jmp=footer&_ga=1.161627452.1639095796.1462556963
 // http://snmaynard.com/2012/10/17/things-i-wish-i-knew-about-mongodb-a-year-ago/
-// https://www.idontplaydarts.com/2010/07/mongodb-is-vulnerable-to-sql-injection-in-php-at-least/
 // https://www.idontplaydarts.com/2011/02/mongodb-null-byte-injection-attacks/
+// https://www.idontplaydarts.com/2010/07/mongodb-is-vulnerable-to-sql-injection-in-php-at-least/
 
-    const METHODS_VISIBILITY = [
+    protected static $methodsVisibility = [
         self::V_PROTECTED => [
             'add',
             'checkExistence',
@@ -93,9 +93,13 @@ abstract class MongoDBCollection extends BaseFeature
 
     private $collection;
 
-    final public function __construct()
+    public function __construct()
     {
-        $this->collection = Loader::db()->selectCollection(static::COLLECTION_NAME);
+        try {
+            $this->collection = Loader::db()->selectCollection(static::COLLECTION_NAME);
+        } catch (Exception $e) {
+            throw new UserException('Initializing collection failed.', NULL, $e);
+        }
     }
 
     /**
@@ -118,16 +122,13 @@ abstract class MongoDBCollection extends BaseFeature
      *                                     The operation in MongoCollection::$wtimeout
      *                                     is milliseconds.
      */
-    final protected function add($document, $type = NULL)
+    protected function add($document)
     {
         if (FALSE === is_array($document))
             throw new UserException('$document is not an array.');
         if (TRUE === isset($document['_id']))
             throw new UserException('Can not set user-defined _id in $document.');
-        if (FALSE === isset($document['Meta'])) $document['Meta'] = [];
-        $document['Meta']['CreationTime'] = new MongoDate(time());
-        if (FALSE === is_null($type)) $document['Meta']['Type'] = $type;
-        return $this->__call('mongoInsert', [ $document ]);
+        return $this->call('mongoInsert', [ $document ]);
     }
 
     /**
@@ -153,7 +154,7 @@ abstract class MongoDBCollection extends BaseFeature
      */
     final protected function checkExistsOnlyOne($criterion)
     {
-        return (1 === $this->__call('count', [ $criterion, NULL, 2 ]));
+        return (1 === $this->call('count', [ $criterion, NULL, 2 ]));
     }
 
     /**
@@ -167,8 +168,8 @@ abstract class MongoDBCollection extends BaseFeature
      */
     final protected function count($criterion = [], $skip = NULL, $limit = NULL)
     {
-        $criterion = self::__call('sanitizeCriterion', [ $criterion ]);
-        return $this->__call('mongoCount', [ $criterion, $skip, $limit ]);
+        $criterion = self::call('sanitizeCriterion', [ $criterion ]);
+        return $this->call('mongoCount', [ $criterion, $skip, $limit ]);
     }
 
     /**
@@ -191,8 +192,8 @@ abstract class MongoDBCollection extends BaseFeature
     final protected function get($criterion = [], $projection = [], $sort_by = NULL
         , $skip = NULL, $limit = NULL, $to_array = FALSE)
     {
-        $criterion = self::__call('sanitizeCriterion', [ $criterion ]);
-        return $this->__call('mongoFind',
+        $criterion = self::call('sanitizeCriterion', [ $criterion ]);
+        return $this->call('mongoFind',
             [ $criterion, $projection, $sort_by, $skip, $limit, $to_array ]);
     }
 
@@ -215,14 +216,14 @@ abstract class MongoDBCollection extends BaseFeature
      */
     final protected function getOne($criterion = [], $projection = [], $sort_by = NULL, $skip = NULL)
     {
-        $criterion    = self::__call('sanitizeCriterion', [ $criterion ]);
-        $check_result = $this->__call('checkExistence', [ $criterion ]);
+        $criterion    = self::call('sanitizeCriterion', [ $criterion ]);
+        $check_result = $this->call('checkExistence', [ $criterion ]);
         if (FALSE === $check_result)
             throw new UserException('No document found.');
         // Now there must be at least one document matching the criterion.
         if (TRUE === is_null($sort_by) AND TRUE === is_null($skip))
-            return $this->__call('mongoFindOne', [ $criterion, $projection ]);
-        else return $this->__call('mongoFind',
+            return $this->call('mongoFindOne', [ $criterion, $projection ]);
+        else return $this->call('mongoFind',
             [ $criterion, $projection, $sort_by, $skip, 1, TRUE ])[0];
     }
 
@@ -237,11 +238,11 @@ abstract class MongoDBCollection extends BaseFeature
      */
     final protected function getTheOnlyOne($criterion = [], $projection = [])
     {
-        $criterion    = self::__call('sanitizeCriterion', [ $criterion ]);
-        $check_result = $this->__call('checkExistsOnlyOne', [ $criterion ]);
+        $criterion    = self::call('sanitizeCriterion', [ $criterion ]);
+        $check_result = $this->call('checkExistsOnlyOne', [ $criterion ]);
         if (FALSE === $check_result)
             throw new UserException('No or more than one documents found.');
-        return $this->__call('getOne', [ $criterion, $projection ]);
+        return $this->call('getOne', [ $criterion, $projection ]);
     }
 
     /**
@@ -277,15 +278,15 @@ abstract class MongoDBCollection extends BaseFeature
      */
     final protected function update($criterion, $update, $multiple = FALSE)
     {
-        $criterion = self::__call('sanitizeCriterion', [ $criterion ]);
+        $criterion = self::call('sanitizeCriterion', [ $criterion ]);
         if (FALSE === $multiple) {
-            $check_result = $this->__call('checkExistsOnlyOne', [ $criterion ]);
+            $check_result = $this->call('checkExistsOnlyOne', [ $criterion ]);
             if (FALSE === $check_result)
                 throw new UserException('No documens found.');
         }
         if (FALSE === isset($update['$set'])) $update['$set'] = [];
         $update['$set']['Meta.ModificationTime'] = new MongoDate(time());
-        return $this->__call('mongoUpdate', [ $criterion, $update, $multiple ]);
+        return $this->call('mongoUpdate', [ $criterion, $update, $multiple ]);
     }
 
     /**
@@ -299,7 +300,7 @@ abstract class MongoDBCollection extends BaseFeature
         if (TRUE === is_array($criterion) AND TRUE === isset($criterion['_id'])) {
             if (FALSE === is_string($criterion['_id'])) return $criterion;
             try {
-                $_id = self::__call('convertStringToMongoId', [ $criterion['_id'] ]);
+                $_id = self::call('convertStringToMongoId', [ $criterion['_id'] ]);
             } catch (Exception $e) {
                 return $criterion;
             }

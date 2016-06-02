@@ -57,7 +57,9 @@ final class Kit
     const TYPE_RESOURCE = 'TYPE_RESOURCE';
     const TYPE_NULL     = 'TYPE_NULL';
 
+    private static $traceCount = 0;
     private static $traceStack = [];
+    private static $needSimplifyData = FALSE;
 
     /**
      * Gets the type of the given variable.
@@ -284,7 +286,7 @@ final class Kit
     }
 
     // ================================================== //
-    //                      Exception                     //
+    //                        Debug                       //
     // ================================================== //
 
     /**
@@ -335,7 +337,7 @@ final class Kit
     {
         if (count($trace) <= 1) $result = NULL;
         else {
-            if ('__call' === $trace[0]['function']) {
+            if (TRUE === in_array($trace[0]['function'], ['__call', 'call', 'callParent'])) {
                 if ($trace[0]['args'][0] != $trace[1]['function']) $result = 1;
                 else {
                     if (count($trace) <= 2) $result = NULL;
@@ -356,10 +358,6 @@ final class Kit
             'initiator_function' => TRUE === is_null($result) ? NULL : $trace[$result]['function'],
         ];
     }
-
-    // ================================================== //
-    //                        Debug                       //
-    // ================================================== //
     
     /**
      * Recovers parameters of the function in the records of a backtrace.
@@ -369,11 +367,21 @@ final class Kit
     public static function recoverBacktraceParameters($backtrace)
     {
         foreach ($backtrace as $index => $record) {
-            $backtrace[$index]['args'] = self::recoverFunctionParameters(
-                $record['class'],
-                $record['function'],
-                $record['args']
-            );
+            try {
+                $backtrace[$index]['args'] = self::recoverFunctionParameters(
+                    $record['class'],
+                    $record['function'],
+                    $record['args']
+                );
+                if (TRUE === self::$needSimplifyData)
+                    $backtrace[$index]['args'] = array_keys($backtrace[$index]['args']);
+            } catch (Exception $e) {
+                $backtrace[$index]['args'] = [
+                    'raw_args' => $record['args'],
+                    // 'recover'  => self::extractException($e, TRUE, FALSE, TRUE),
+                ];
+                // throw new UserException('Method(recoverFunctionParameters) failed.', NULL, $e);
+            }
         };
         return $backtrace;
     }
@@ -388,9 +396,13 @@ final class Kit
     public static function recoverFunctionParameters($class_name, $function_name, $arg_list)
     {
         $param_list = [];
-        if (TRUE === is_null($class_name))
-            $reflection_function = new ReflectionFunction($function_name);
-        else $reflection_function = new ReflectionMethod($class_name, $function_name);
+        try {
+            if (TRUE === is_null($class_name))
+                $reflection_function = new ReflectionFunction($function_name);
+            else $reflection_function = new ReflectionMethod($class_name, $function_name);
+        } catch (Exception $e) {
+            throw new UserException('Reflection failed.', NULL, $e);
+        }
         foreach ($reflection_function->getParameters() as $position => $param) {
             $param_name = $param->getName();
             // var_dump([
@@ -406,8 +418,14 @@ final class Kit
             //          // ? $param->getDefaultValue() : 'no default value', 
             //     'arg'                         => $arg_list[$position],
             // ]);
-            if ($position + 1 > count($arg_list))
-                $param_list[$param_name] = $param->getDefaultValue(); // @todo: check if it will fail
+            if ($position + 1 > count($arg_list)) {
+                try {
+                    // @todo: check if it will fail
+                    $param_list[$param_name] = $param->getDefaultValue();
+                } catch (Exception $e) {
+                    throw new UserException('Method(getDefaultValue) failed.', NULL, $e);
+                }
+            }
             else $param_list[$param_name] = $arg_list[$position];
         }
         return $param_list;
@@ -421,7 +439,18 @@ final class Kit
     {
         $result = count(self::$traceStack);
         self::$traceStack = [];
+        self::$traceCount = 0;
         return $result;
+    }
+
+    /**
+     * Increase the trace count by 1.
+     * @return int Current trace count.
+     */
+    public static function addTraceCount()
+    {
+        self::$traceCount += 1;
+        return self::$traceCount;
     }
 
     /**
@@ -436,6 +465,15 @@ final class Kit
     }
 
     /**
+     * Gets the trace count.
+     * @return int Current trace count.
+     */
+    public static function getTraceCount()
+    {
+       return self::$traceCount;
+    }
+
+    /**
      * Gets the trace stack in reverse order.
      * @param boolean $reverse
      * @return array
@@ -444,6 +482,15 @@ final class Kit
     {
         if (TRUE === $reverse) return array_reverse(self::$traceStack);
         else return self::$traceStack;
+    }
+
+    /**
+     * Sets whether it need to simplify data when outputing debug info.
+     * @param boolean $needSimplifyData
+     */
+    public static function setSimplifyData($needSimplifyData)
+    {
+        self::$needSimplifyData = $needSimplifyData;
     }
 
     /**

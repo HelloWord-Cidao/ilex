@@ -9,7 +9,7 @@ use \Ilex\Base\Model\Feature\BaseFeature;
  */
 abstract class BaseLog extends BaseFeature
 {
-    const METHODS_VISIBILITY = [
+    protected static $methodsVisibility = [
         self::V_PROTECTED => [
         ],
     ];

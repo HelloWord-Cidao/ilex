@@ -2,6 +2,7 @@
 
 namespace Ilex\Core;
 
+use \Exception;
 use \ReflectionClass;
 use \MongoDB;
 use \Ilex\Lib\Container;
@@ -20,7 +21,7 @@ use \Ilex\Lib\UserException;
  * @method public static string   ILEXPATH()
  * @method public static string   RUNTIMEPATH()
  * @method public static object   controller(string $path, array $arg_list = []
- *                                    , boolean $with_construct = TRUE)
+ *                                    , boolean $with_instantiate = TRUE)
  * @method public static MongoDB  db()
  * @method public static string   getHandlerFromPath(string $path, string $delimiter = '/')
  * @method public static string   getHandlerPrefixFromPath(string $path, string $delimiter = '/'
@@ -29,16 +30,15 @@ use \Ilex\Lib\UserException;
  * @method public static boolean  isControllerLoaded(string $path)
  * @method public static boolean  isModelLoaded(string $path)
  * @method public static object   model(string $path, array $arg_list = []
- *                                    , boolean $with_construct = TRUE)
+ *                                    , boolean $with_instantiate = TRUE)
  *
- * @method private static object         createInstance(string $class_name, array $arg_list
- *                                           , boolean $with_construct)
+ * @method private static object         createInstance(string $class_name, array $arg_list)
  * @method private static mixed          get(mixed $key)
  * @method private static boolean        has(mixed $key)
  * @method private static string         includeFile(string $path, string $type)
  * @method private static boolean        isLoaded(string $path, string $type)
  * @method private static object         load(string $path, string $type, array $arg_list = []
- *                                           , boolean $with_construct)
+ *                                           , boolean $with_instantiate)
  * @method private static mixed          set(mixed $key, mixed $value)
  * @method private static mixed          setSet(mixed $key, mixed $keyKey, mixed $value)
  */
@@ -117,38 +117,41 @@ final class Loader
     }
 
     /**
-     * @param string $path
-     * @param array  $arg_list
+     * @param string  $path
+     * @param array   $arg_list
+     * @param boolean $with_instantiate
      * @return object
      */
-    public static function controller($path, $arg_list = [], $with_construct = TRUE)
+    public static function controller($path, $arg_list = [], $with_instantiate = TRUE)
     {
-        return self::load($path, 'Controller', $arg_list, $with_construct);
+        return self::load($path, 'Controller', $arg_list, $with_instantiate);
     }
 
     /**
-     * @param string $path
-     * @param array  $arg_list
+     * @param string  $path
+     * @param array   $arg_list
+     * @param boolean $with_instantiate
      * @return object
      */
-    public static function model($path, $arg_list = [], $with_construct = TRUE)
+    public static function model($path, $arg_list = [], $with_instantiate = TRUE)
     {
-        return self::load($path, 'Model', $arg_list, $with_construct);
+        return self::load($path, 'Model', $arg_list, $with_instantiate);
     }
 
      /**
       * Returns a loaded class, if it is NOT already loaded, 
       * then load it and save it into $container.
       * The function ensures that for each model only one entity is loaded.
-      * @param string $path eg. 'System/Input'
-      * @param string $type eg. 'Model', 'Controller'
-      * @param array  $arg_list
+      * @param string  $path eg. 'System/Input'
+      * @param string  $type eg. 'Model', 'Controller'
+      * @param array   $arg_list
+      * @param boolean $with_instantiate
       * @return object
       */
-    private static function load($path, $type, $arg_list, $with_construct)
+    private static function load($path, $type, $arg_list, $with_instantiate)
     {
         if (FALSE === in_array($type, [ 'Controller', 'Model' ]))
-            throw new UserException('Invalid $type.');
+            throw new UserException("Invalid \$type($type).");
         $instance_container = self::get($type);
         if (TRUE === $instance_container->has($path)) {
             return $instance_container->get($path);
@@ -158,7 +161,9 @@ final class Loader
             } catch (Exception $e) {
                 throw new UserException(ucfirst($type) . ' ' . $path . ' not found.', NULL, $e);
             }
-            $instance = self::createInstance($class_name, $arg_list, $with_construct);
+            if (TRUE === $with_instantiate)
+                $instance = self::createInstance($class_name, $arg_list);
+            else $instance = TRUE;
             return self::setSet($type, $path, $instance);
         }
     }
@@ -194,7 +199,7 @@ final class Loader
                 return $item['name'];
             }
         }
-        throw new UserException('File does not exists.', $item_list);
+        throw new UserException("File($type/$path.php) not found.");
     }
 
     /**
@@ -202,11 +207,12 @@ final class Loader
      * @param array  $arg_list
      * @return object
      */
-    private static function createInstance($class_name, $arg_list, $with_construct)
+    private static function createInstance($class_name, $arg_list)
     {
         $reflection_class = new ReflectionClass($class_name);
-        if (TRUE === $with_construct) return $reflection_class->newInstanceArgs($arg_list);
-        else return $reflection_class->newInstanceWithoutConstructor();
+        // if (TRUE === $with_instantiate)
+            return $reflection_class->newInstanceArgs($arg_list);
+        // else return $reflection_class->newInstanceWithoutConstructor();
     }
 
     /**
@@ -270,7 +276,7 @@ final class Loader
     private static function isLoaded($path, $type)
     {
         if (FALSE === in_array($type, [ 'Controller', 'Model' ]))
-            throw new UserException('Invalid $type.');
+            throw new UserException("Invalid \$type($type).");
         $instance_container = self::get($type);
         return $instance_container->has($path);
     }

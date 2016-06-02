@@ -9,7 +9,7 @@ use \Ilex\Base\Model\Feature\Log\BaseLog;
  */
 final class RequestLog extends BaseLog
 {
-    const METHODS_VISIBILITY = [
+    protected static $methodsVisibility = [
         self::V_PUBLIC => [
             'addRequestLog',
         ],

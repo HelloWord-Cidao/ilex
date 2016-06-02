@@ -10,7 +10,7 @@ use \Ilex\Base\Model\Feature\Database\BaseCollection;
  */
 class LogCollection extends BaseCollection
 {
-    const METHODS_VISIBILITY = [
+    protected static $methodsVisibility = [
         self::V_PUBLIC => [
             'addRequestLog',
         ],
@@ -23,11 +23,11 @@ class LogCollection extends BaseCollection
 
     final protected function addRequestLog($log)
     {
-        return $this->__call('addLog', [ $log, 'Request' ]);
+        return $this->call('addLog', [ $log, 'Request' ]);
     }
 
     final protected function addLog($log, $type = NULL)
     {
-        return $this->__call('add', [ $log, $type ]);
+        return $this->call('add', [ $log, $type ]);
     }
 }
