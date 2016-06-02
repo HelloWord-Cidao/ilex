@@ -5,10 +5,10 @@ namespace Ilex\Base\Model\Config;
 use \Ilex\Base\Model\Config\BaseConfigClass;
 
 /**
- * Class BaseConfig
+ * Class LogConfig
  * @package Ilex\Base\Model\Config
  */
-final class BaseConfig extends BaseConfigClass
+final class LogConfig extends BaseConfigClass
 {
 
 }

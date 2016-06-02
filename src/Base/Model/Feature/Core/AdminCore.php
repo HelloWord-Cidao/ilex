@@ -9,7 +9,7 @@ use \Ilex\Base\Model\Feature\Core\BaseCore;
  * Class AdminCore
  * @package Ilex\Base\Model\Feature\Core
  */
-class AdminCore extends BaseCore
+final class AdminCore extends BaseCore
 {
     protected static $methodsVisibility = [
         self::V_PUBLIC => [
@@ -18,7 +18,13 @@ class AdminCore extends BaseCore
         ],
     ];
 
-    final protected function countCollection($input)
+    public function __construct()
+    {
+        $this->loadModel('Config/AdminConfig');
+        $this->loadModel('Data/AdminData');
+    }
+
+    protected function countCollection($input)
     {
         $collection_name = $input['collection_name'] . 'Collection';
         unset($input['collection_name']);
@@ -42,7 +48,7 @@ class AdminCore extends BaseCore
             $data = Kit::generateError('$data is not numeric.');
     }
 
-    final protected static function getCollection($input)
+    protected static function getCollection($input)
     {
         $collection_name = $input['collection_name'] . 'Collection';
         unset($input['collection_name']);

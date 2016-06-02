@@ -8,9 +8,9 @@ use \Ilex\Base\Controller\Service\BaseService;
  * Class AdminService
  * @package Ilex\Base\Controller\Service
  */
-class AdminService extends BaseService
+final class AdminService extends BaseService
 {
-    final public function __construct()
+    public function __construct()
     {
         $this->loadModel('Config/AdminConfig');
         $this->loadModel('Data/AdminData');

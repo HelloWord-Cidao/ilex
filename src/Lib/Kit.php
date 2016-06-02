@@ -16,8 +16,11 @@ use \Ilex\Lib\Validator;
  * A kit class.
  * @package Ilex\Lib
  *
- * @property private array $traceStack
+ * @property private static int     $traceCount
+ * @property private static array   $traceStack
+ * @property private static boolean $needSimplifyData
  * 
+ * @method public static int        addTraceCount()
  * @method public static int        addToTraceStack(mixed $record)
  * @method public static int        clearTraceStack()
  * @method public static array      columns(array $matrix, array|mixed $column_name_list
@@ -28,6 +31,8 @@ use \Ilex\Lib\Validator;
  *                                      , $need_trace_info = FALSE
  *                                      , $need_previous_exception = TRUE)
  * @method public static string     getRealPath(string $path)
+ * @method public static boolean    getSimplifyData()
+ * @method public static int        getTraceCount()
  * @method public static array      getTraceStack(boolean $reverse = TRUE)
  * @method public static string     j(mixed $data)
  * @method public static mixed|NULL last(array $array, int $offset = 1)
@@ -38,6 +43,7 @@ use \Ilex\Lib\Validator;
  *                                      , string|Closure $function_name, array $arg_list)
  * @method public static array      recoverMongoDBQuery(array $query)
  * @method public static array      separateTitleWords(string $string)
+ * @method public static boolean    setSimplifyData(boolean $need_simplify_data)
  * @method public static string     time(int|NULL $time = NULL, string $format = 'Y-m-d H:i:s')
  * @method public static string     toString(mixed $data, boolean $quotation_mark_list = TRUE)
  * @method public static string     type(mixed $variable, string $empty_array = 'list')
@@ -156,7 +162,7 @@ final class Kit
         //     result = find(matrix, projection = map_to(column_name_list, 1)
         //     , raise_empty_exception = True)
         // if return_only_values is True :
-        //     if len(column_name_list) != 1 :
+        //     if len(column_name_list) !== 1 :
         //         raise Exception('Can not return only values because length 
         //         of column_name_list is not 1.\ncolumn_name_list:\n%s'\
         //             % j(column_name_list))
@@ -338,7 +344,7 @@ final class Kit
         if (count($trace) <= 1) $result = NULL;
         else {
             if (TRUE === in_array($trace[0]['function'], ['__call', 'call', 'callParent'])) {
-                if ($trace[0]['args'][0] != $trace[1]['function']) $result = 1;
+                if ($trace[0]['args'][0] !== $trace[1]['function']) $result = 1;
                 else {
                     if (count($trace) <= 2) $result = NULL;
                     else $result = 2;
@@ -373,12 +379,12 @@ final class Kit
                     $record['function'],
                     $record['args']
                 );
-                if (TRUE === self::$needSimplifyData)
+                if (TRUE === self::getSimplifyData())
                     $backtrace[$index]['args'] = array_keys($backtrace[$index]['args']);
             } catch (Exception $e) {
                 $backtrace[$index]['args'] = [
                     'raw_args' => $record['args'],
-                    // 'recover'  => self::extractException($e, TRUE, FALSE, TRUE),
+                    'recover'  => self::extractException($e, TRUE, FALSE, TRUE),
                 ];
                 // throw new UserException('Method(recoverFunctionParameters) failed.', NULL, $e);
             }
@@ -486,11 +492,21 @@ final class Kit
 
     /**
      * Sets whether it need to simplify data when outputing debug info.
-     * @param boolean $needSimplifyData
+     * @param boolean $need_simplify_data
+     * @return  boolean
      */
-    public static function setSimplifyData($needSimplifyData)
+    public static function setSimplifyData($need_simplify_data)
     {
-        self::$needSimplifyData = $needSimplifyData;
+        return (self::$needSimplifyData = $need_simplify_data);
+    }
+
+    /**
+     * Gets whether it need to simplify data when outputing debug info.
+     * @return boolean
+     */
+    public static function getSimplifyData()
+    {
+        return self::$needSimplifyData;
     }
 
     /**

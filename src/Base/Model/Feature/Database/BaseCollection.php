@@ -14,21 +14,34 @@ abstract class BaseCollection extends MongoDBCollection
 {
     protected static $methodsVisibility = [
         self::V_PROTECTED => [
-            'add',
-            'getContent',
-            'getInfo',
-            'get_id',
+            'addOneDocument',
+            'countAllDocument',
+            // 'getContent',
+            // 'getInfo',
+            // 'get_id',
         ],
     ];
 
-    final protected function add($content, $meta)
+    public function __construct()
+    {
+        parent::__construct();
+        $this->loadModel('Config/BaseConfig');
+        $this->loadModel('Data/BaseData');
+    }
+
+    final protected function addOneDocument($content, $meta)
     {
         $meta['CreationTime'] = new MongoDate(time());
         $document = [
             'Content' => $content,
             'Meta'    => $meta,
         ];
-        $this->call('add', [ $document ], TRUE);
+        return $this->call('add', [ $document ]);
+    }
+
+    final protected function countAllDocument()
+    {
+        return $this->call('count', [ [], NULL, NULL ]);
     }
 
     final protected function get_id()

@@ -15,19 +15,25 @@ final class RequestLog extends BaseLog
         ],
     ];
 
+    public function __construct()
+    {
+        $this->loadModel('Config/RequestConfig');
+        $this->loadModel('Data/RequestData');
+    }
+
     /**
      * @TODO: check efficiency
      */
     protected function addRequestLog($class_name, $method_name, $input, $operation_status)
     {
-        $log = [
-            'Content' => [
+        $content = [
+            'Data' => [
                 'Class'           => $class_name,
                 'Method'          => $method_name,
                 'Input'           => $input,
                 'OperationStatus' => $operation_status,
             ],
-            'Info'    => [
+            'Info' => [
                 'RequestInfo'   => [
                     'RequestMethod' => $_SERVER['REQUEST_METHOD'],
                     'RequestURI'    => $_SERVER['REQUEST_URI'],
@@ -41,6 +47,6 @@ final class RequestLog extends BaseLog
             ],
         ];
         $this->loadModel('Feature/Database/LogCollection');
-        return $this->LogCollection->addRequestLog($log);
+        return $this->LogCollection->addRequestLog($content);
     }
 }

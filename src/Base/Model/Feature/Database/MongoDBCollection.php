@@ -100,6 +100,8 @@ abstract class MongoDBCollection extends BaseFeature
         } catch (Exception $e) {
             throw new UserException('Initializing collection failed.', NULL, $e);
         }
+        $this->loadModel('Config/MongoDBConfig');
+        $this->loadModel('Data/MongoDBData');
     }
 
     /**

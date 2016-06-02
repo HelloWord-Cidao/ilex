@@ -21,13 +21,24 @@ class LogCollection extends BaseCollection
 
     const COLLECTION_NAME = 'Log';
 
-    final protected function addRequestLog($log)
+    final public function __construct()
     {
-        return $this->call('addLog', [ $log, 'Request' ]);
+        parent::__construct();
+        $this->loadModel('Config/LogConfig');
+        $this->loadModel('Data/LogData');
     }
 
-    final protected function addLog($log, $type = NULL)
+    final protected function addRequestLog($content)
     {
-        return $this->call('add', [ $log, $type ]);
+        $type = 'Request';
+        return $this->call('addLog', [ $content, $type ]);
+    }
+
+    final protected function addLog($content, $type = NULL)
+    {
+        if (FALSE === is_null($type))
+            $meta = [ 'Type' => $type ];
+        else $meta = [];
+        return $this->call('add', [ $content, $meta ]);
     }
 }

@@ -17,10 +17,12 @@ use \Ilex\Base\Controller\BaseController;
  * @method final public __construct()
  * @method final public __call(string $method_name, array $arg_list)
  * 
- * @method final private fail(Exception $exception)
- * @method final private response(array $result, int $status_code, boolean $close_cgi_only = FALSE)
- * @method final private succeed(mixed $computation_data, mixed $operation_status
- *                           , boolean $close_cgi_only = FALSE)
+ * @method final private       fail(Exception $exception)
+ * @method final private array prepareExecutionRecord(string $method_name)
+ * @method final private       response(array $result, int $status_code
+ *                                 , boolean $close_cgi_only = FALSE)
+ * @method final private       succeed(mixed $computation_data, mixed $operation_status
+ *                                 , boolean $close_cgi_only = FALSE)
  */
 abstract class BaseService extends BaseController
 {
@@ -34,14 +36,20 @@ abstract class BaseService extends BaseController
         $execution_record = self::prepareExecutionRecord($method_name, $arg_list);
         $input            = $execution_record['input'];
         $handler_prefix   = $execution_record['handler_prefix'];
-        $execution_record['input'] = array_keys($execution_record['input']);
+        $handler_suffix   = $execution_record['handler_suffix'];
+        if (TRUE === Kit::getSimplifyData())
+            $execution_record['input'] = array_keys($execution_record['input']);
         try {
             $config_model_name = $handler_prefix . 'Config';
+            if (TRUE === is_null($this->$config_model_name))
+                throw new UserException("Config model($config_model_name) not loaded.");
             // Method validateFeaturePrivilege should throw exception if the validation fails.
             $execution_record['feature_privilege_validation_result']
-                = $this->$config_model_name->validateFeaturePrivilege($method_name);
+                = $this->$config_model_name->validateFeaturePrivilege($method_name, $handler_suffix);
 
             $data_model_name = $handler_prefix . 'Data';
+            if (TRUE === is_null($this->$data_model_name))
+                throw new UserException("Data model($data_model_name) not loaded.");
             // Method validateInput should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
             $input_validation_result
@@ -63,14 +71,16 @@ abstract class BaseService extends BaseController
                 = $execution_record['input_sanitization_result']
                 = $this->$data_model_name->sanitizeInput(
                     $method_name, $input, $input_validation_result);
-            $execution_record['input_sanitization_result']
-                = array_keys($execution_record['input_sanitization_result']);
+            if (TRUE === Kit::getSimplifyData())
+                $execution_record['input_sanitization_result']
+                    = array_keys($execution_record['input_sanitization_result']);
             
             $core_model_name = $handler_prefix . 'Core';
-            $feature_behavior = NULL;
+            if (TRUE === is_null($this->$core_model_name))
+                throw new UserException("Core model($core_model_name) not loaded.");
             $service_result
                 = $execution_record['service_result']
-                = $this->$core_model_name->$method_name($input_sanitization_result, $feature_behavior);
+                = $this->$core_model_name->$method_name($input_sanitization_result);
             
             // Method validateServiceResult should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
@@ -87,39 +97,43 @@ abstract class BaseService extends BaseController
                     $method_name, $service_result, $service_result_validation_result);
             // $service_result_validation_result should contains
             // and only contains two fields: data, status.
-            $computation_data = $service_result_validation_result['data'];
-            $operation_status = $service_result_validation_result['status'];
+            $computation_data = $service_result_sanitization_result['data'];
+            $operation_status = $service_result_sanitization_result['status'];
             
             $this->loadModel('Feature/Log/RequestLog');
-            $this->$RequestLog->addRequestLog(
+            $this->RequestLog->addRequestLog(
                 $execution_record['class'],
                 $execution_record['method'],
                 $input,
                 $operation_status
             );
+            $execution_record['success'] = TRUE;
+            Kit::addToTraceStack($execution_record);
             $this->succeed($computation_data, $operation_status);
         } catch (Exception $e) {
-            throw new UserException('Service execution failed.', $execution_record, $e);
-        } finally {
             Kit::addToTraceStack($execution_record);
+            throw new UserException('Service execution failed.', $execution_record, $e);
         }
     }
 
     /**
-     * @param string $method
+     * @param string $method_name
      * @return array
      */
     final private function prepareExecutionRecord($method_name)
     {
         $this->loadModel('System/Input');
         $class_name     = get_called_class();
-        $handler_prefix = Loader::getHandlerPrefixFromPath($class_name, '\\', ['Service']);
+        $handler_prefix = Loader::getHandlerPrefixFromPath($class_name, ['Service']);
+        $handler_suffix = Loader::getHandlerSuffixFromPath($class_name, ['Service']);
         $input          = $this->Input->input();
         $execution_record = [
+            'success'        => FALSE,
             'class'          => $class_name,
             'method'         => $method_name,
             'input'          => $input,
             'handler_prefix' => $handler_prefix,
+            'handler_suffix' => $handler_suffix,
         ];
         return $execution_record;
     }

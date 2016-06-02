@@ -9,9 +9,6 @@ use \Ilex\Base\Model\Feature\BaseFeature;
  */
 abstract class BaseLog extends BaseFeature
 {
-    protected static $methodsVisibility = [
-        self::V_PROTECTED => [
-        ],
-    ];
+
 
 }

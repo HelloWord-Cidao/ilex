@@ -24,8 +24,10 @@ use \Ilex\Lib\UserException;
  *                                    , boolean $with_instantiate = TRUE)
  * @method public static MongoDB  db()
  * @method public static string   getHandlerFromPath(string $path, string $delimiter = '/')
- * @method public static string   getHandlerPrefixFromPath(string $path, string $delimiter = '/'
- *                                    , array $more_suffix_list = [])
+ * @method public static string   getHandlerPrefixFromPath(string $path, array $more_suffix_list = []
+ *                                    , string $delimiter = '\\')
+ * @method public static string   getHandlerSuffixFromPath(string $path, array $more_suffix_list = []
+ *                                    , string $delimiter = '\\')
  * @method public static          initialize(string $ILEXPATH, string $APPPATH, string $RUNTIMEPATH)
  * @method public static boolean  isControllerLoaded(string $path)
  * @method public static boolean  isModelLoaded(string $path)
@@ -216,6 +218,60 @@ final class Loader
     }
 
     /**
+     * Extracts handler prefix name from path.
+     * eg. 'Service/AdminServiceController' => 'Admin'
+     * eg. 'Database/Content/ResourceCollectionModel' => 'Resource'
+     * eg. 'Database/LogCollection' => 'Log'
+     * @param string $path
+     * @param array  $more_suffix_list
+     * @param string $delimiter
+     * @return string
+     */
+    public static function getHandlerPrefixFromPath($path, $more_suffix_list = [], $delimiter = '\\')
+    {
+        $suffix_list     = ['Controller', 'Model'];
+        $handler         = self::getHandlerFromPath($path, $delimiter);
+        $title_word_list = Kit::separateTitleWords($handler);
+        while (count($title_word_list) > 0) {
+            $last_word = Kit::last($title_word_list);
+            if (TRUE === in_array($last_word, $suffix_list)) {
+                array_pop($title_word_list);
+            } elseif (TRUE === in_array($last_word, $more_suffix_list)) {
+                array_pop($title_word_list);
+                break;
+            } else throw new Exception('Get handler prefix failed.');
+        }
+        if (0 === count($title_word_list)) return '';
+        return join($title_word_list);
+    }
+
+    /**
+     * Extracts handler suffix name from path.
+     * eg. 'Service/AdminServiceController' => 'Service'
+     * eg. 'Database/Content/ResourceCollectionModel' => 'Collection'
+     * eg. 'Database/LogCollection' => 'Collection'
+     * @param string $path
+     * @param array  $more_suffix_list
+     * @param string $delimiter
+     * @return string
+     */
+    public static function getHandlerSuffixFromPath($path, $more_suffix_list = [], $delimiter = '\\')
+    {
+        $suffix_list     = ['Controller', 'Model'];
+        $handler         = self::getHandlerFromPath($path, $delimiter);
+        $title_word_list = Kit::separateTitleWords($handler);
+        while (count($title_word_list) > 0) {
+            $last_word = Kit::last($title_word_list);
+            if (TRUE === in_array($last_word, $suffix_list)) {
+                array_pop($title_word_list);
+            } elseif (TRUE === in_array($last_word, $more_suffix_list)) {
+                return $last_word;
+            } else break;
+        }
+        throw new UserException('Get handler suffix failed.');
+    }
+
+    /**
      * Extracts handler name from path.
      * eg. 'System/Input' => 'Input'
      * @param string $path
@@ -226,28 +282,6 @@ final class Loader
     {
         $handler = strrchr($path, $delimiter);
         return FALSE === $handler ? $path : substr($handler, 1);
-    }
-
-    /**
-     * Extracts handler prefix name from path.
-     * eg. 'Service/AdminServiceController' => 'Admin'
-     * @param string $path
-     * @param string $delimiter
-     * @param array  $more_suffix_list
-     * @return string
-     */
-    public static function getHandlerPrefixFromPath($path, $delimiter = '/', $more_suffix_list = [])
-    {
-        $suffix_list     = array_merge(['Controller', 'Model'], $more_suffix_list);
-        $handler         = self::getHandlerFromPath($path, $delimiter);
-        $title_word_list = Kit::separateTitleWords($handler);
-        while (count($title_word_list) > 0) {
-            if (TRUE === in_array(Kit::last($title_word_list), $suffix_list)) {
-                array_pop($title_word_list);
-            } else break;
-        }
-        if (0 === count($title_word_list)) return '';
-        return join($title_word_list);
     }
 
     /**

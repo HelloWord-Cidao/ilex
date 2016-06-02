@@ -4,9 +4,7 @@ namespace Ilex\Base\Model\Feature\Database;
 
 use \Exception;
 use \MongoCursor;
-use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
-use \Ilex\Base\Model\Feature\BaseFeature;
 
 /**
  * Class MongoDBCursor
@@ -24,20 +22,9 @@ use \Ilex\Base\Model\Feature\BaseFeature;
  * @method protected boolean hasNext()
  * @method protected         rewind()
  */
-final class MongoDBCursor extends BaseFeature {
+final class MongoDBCursor {
     // If you want to know whether a cursor returned any results
     // it is faster to use 'hasNext()' than 'count'
-    
-    protected static $methodsVisibility = [
-        self::V_PUBLIC => [
-            'count',
-            'getCurrent',
-            'getInfo',
-            'getNext',
-            'hasNext',
-            'rewind',
-        ],
-    ]; 
     
     private $cursor;
 
@@ -55,7 +42,7 @@ final class MongoDBCursor extends BaseFeature {
      * @return array Returns the namespace, batch size, limit, skip, flags,
      *               query, and projected fields for this cursor.
      */
-    protected function getInfo()
+    public function getInfo()
     {
         return $this->cursor->info();
     }
@@ -71,7 +58,7 @@ final class MongoDBCursor extends BaseFeature {
      * @throws MongoConnectionException if it cannot reach the database.
      * @throws UserException
      */
-    protected function count()
+    public function count()
     {
         try {
             return $this->cursor->count(TRUE);
@@ -85,7 +72,7 @@ final class MongoDBCursor extends BaseFeature {
      * @return array The current result document as an associative array.
      * @throws UserException if there is no result.
      */
-    protected function getCurrent()
+    public function getCurrent()
     {
         $result = $this->cursor->current();
         if (TRUE === is_null($result))
@@ -103,7 +90,7 @@ final class MongoDBCursor extends BaseFeature {
      * @throws MongoCursorTimeoutException if the timeout is exceeded.
      * @throws UserException
      */
-    protected function hasNext()
+    public function hasNext()
     {
         try {
             return $this->cursor->hasNext();
@@ -119,7 +106,7 @@ final class MongoDBCursor extends BaseFeature {
      * @throws MongoCursorTimeoutException if the timeout is exceeded.
      * @throws UserException
      */
-    protected function getNext()
+    public function getNext()
     {
         try {
             return $this->cursor->next();
@@ -134,7 +121,7 @@ final class MongoDBCursor extends BaseFeature {
      * @throws MongoCursorTimeoutException if the timeout is exceeded.
      * @throws UserException
      */
-    protected function rewind()
+    public function rewind()
     {
         try {
             $this->rewind();

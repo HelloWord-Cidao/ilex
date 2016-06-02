@@ -2,13 +2,13 @@
 
 namespace Ilex\Base\Model\Config;
 
-use \Ilex\Base\Model\Config\BaseConfig;
+use \Ilex\Base\Model\Config\BaseConfigClass;
 
 /**
  * Class AdminConfig
  * @package Ilex\Base\Model\Config
  */
-class AdminConfig extends BaseConfig
+final class AdminConfig extends BaseConfigClass
 {
 
 }
