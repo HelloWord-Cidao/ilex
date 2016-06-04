@@ -16,6 +16,8 @@ abstract class BaseCollection extends MongoDBCollection
         self::V_PROTECTED => [
             'addOneDocument',
             'countAllDocument',
+            'checkExistenceDocument',
+            'updateOneDocument',
             // 'getContent',
             // 'getInfo',
             // 'get_id',
@@ -67,6 +69,16 @@ abstract class BaseCollection extends MongoDBCollection
     final protected function getMeta()
     {
 
+    }
+
+    final protected function checkExistenceDocument($criterion)
+    {
+        return $this->call('checkExistence', [ $criterion ]);
+    }
+
+    final protected function updateOneDocument($criterion, $update)
+    {
+        return $this->call('update', [ $criterion, $update ]);
     }
     
 }

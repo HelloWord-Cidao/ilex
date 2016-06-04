@@ -143,7 +143,7 @@ abstract class MongoDBCollection extends BaseFeature
      */
     final protected function checkExistence($criterion)
     {
-        return ($this->_call('count', [ $criterion, NULL, 1 ]) > 0);
+        return ($this->call('count', [ $criterion, NULL, 1 ]) > 0);
     }
 
     /**

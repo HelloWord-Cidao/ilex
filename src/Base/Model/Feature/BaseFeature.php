@@ -31,7 +31,7 @@ abstract class BaseFeature extends BaseModel
 
     final protected function call($method_name, $arg_list, $call_parent = FALSE)
     {
-        if (Kit::addTraceCount() > 30)
+        if (Kit::addTraceCount() > 3000)
             throw new UserException('Abnormal trace count.', Kit::getTraceCount());
         $execution_record     = self::prepareExecutionRecord($method_name, $arg_list, $call_parent);
         $class_name           = $execution_record['class'];
