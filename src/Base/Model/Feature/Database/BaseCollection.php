@@ -18,9 +18,11 @@ abstract class BaseCollection extends MongoDBCollection
             'countAllDocument',
             'checkExistenceDocument',
             'updateOneDocument',
-            // 'getContent',
-            // 'getInfo',
-            // 'get_id',
+            'getOneDocumentId',
+            'getOneDocument',
+            'getOneContent',
+            'getOneInfo',
+            'getOneData'
         ],
     ];
 
@@ -46,29 +48,39 @@ abstract class BaseCollection extends MongoDBCollection
         return $this->call('count', [ [], NULL, NULL ]);
     }
 
-    final protected function get_id()
+    final protected function getOneDocumentId($criterion)
     {
+        $document = $this->call('getOne', [ $criterion, ['_id'] ]);
+        return $document['_id'];
+    }
 
+    final protected function getOneDocument($criterion)
+    {
+        return $this->call('getOne', [ $criterion, [] ]);
     }
     
-    final protected function getContent()
+    final protected function getOneContent($criterion)
     {
-
+        $document = $this->call('getOne', [ $criterion, [] ]);
+        return $document['Content'];
     }
 
-    final protected function getData()
+    final protected function getOneData($criterion)
     {
-
+        $document = $this->call('getOne', [ $criterion, [] ]);
+        return $document['Data'];
     }
 
-    final protected function getInfo()
+    final protected function getOneInfo($criterion)
     {
-
+        $document = $this->call('getOne', [ $criterion, [] ]);
+        return $document['Info'];
     }
 
-    final protected function getMeta()
+    final protected function getOneMeta($criterion)
     {
-
+        $document = $this->call('getOne', [ $criterion, [] ]);
+        return $document['Meta'];
     }
 
     final protected function checkExistenceDocument($criterion)
