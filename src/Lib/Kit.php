@@ -3,10 +3,6 @@
 namespace Ilex\Lib;
 
 use \Closure;
-use \Exception;
-use \ReflectionFunction;
-use \ReflectionClass;
-use \ReflectionMethod;
 use \Ilex\Lib\UserException;
 use \Ilex\Lib\Validator;
 
@@ -16,39 +12,20 @@ use \Ilex\Lib\Validator;
  * A kit class.
  * @package Ilex\Lib
  *
- * @property private static int     $traceCount
- * @property private static array   $traceStack
- * @property private static boolean $needSimplifyData
- * 
- * @method public static int        addTraceCount()
- * @method public static int        addToTraceStack(mixed $record)
- * @method public static int        clearTraceStack()
  * @method public static array      columns(array $matrix, array|mixed $column_name_list
  *                                      , boolean $set_default = FALSE, mixed $default = NULL
  *                                      , boolean $return_only_values = FALSE)
- * @method public static array      extractException(Exception $exception
- *                                      , $need_file_info = FALSE
- *                                      , $need_trace_info = FALSE
- *                                      , $need_previous_exception = TRUE)
  * @method public static string     getRealPath(string $path)
- * @method public static boolean    getSimplifyData()
- * @method public static int        getTraceCount()
- * @method public static array      getTraceStack(boolean $reverse = TRUE)
  * @method public static string     j(mixed $data)
  * @method public static mixed|NULL last(array $array, int $offset = 1)
  * @method public static            log(mixed $data, boolean $quotation_mark_list = TRUE
  *                                      , string $env = 'TEST')
  * @method public array|FALSE       randomByWeight(array $random_list)
- * @method public static array      recoverFunctionParameters(string|NULL $class_name
- *                                      , string|Closure $function_name, array $arg_list)
  * @method public static array      recoverMongoDBQuery(array $query)
  * @method public static array      separateTitleWords(string $string)
- * @method public static boolean    setSimplifyData(boolean $need_simplify_data)
  * @method public static string     time(int|NULL $time = NULL, string $format = 'Y-m-d H:i:s')
  * @method public static string     toString(mixed $data, boolean $quotation_mark_list = TRUE)
  * @method public static string     type(mixed $variable, string $empty_array = 'list')
- *
- * @method private static array extractInitiator(array $trace)
  */
 final class Kit
 {
@@ -62,10 +39,6 @@ final class Kit
     const TYPE_OBJECT   = 'TYPE_OBJECT';
     const TYPE_RESOURCE = 'TYPE_RESOURCE';
     const TYPE_NULL     = 'TYPE_NULL';
-
-    private static $traceCount = 0;
-    private static $traceStack = [];
-    private static $needSimplifyData = FALSE;
 
     /**
      * Gets the type of the given variable.
@@ -289,224 +262,6 @@ final class Kit
             $rand -= $object['weight'];
             if ($rand <= 0) return $object['item'];
         }
-    }
-
-    // ================================================== //
-    //                        Debug                       //
-    // ================================================== //
-
-    /**
-     * Extracts useful info from an exception.
-     * @param Exception $exception
-     * @param boolean   $need_file_info
-     * @param boolean   $need_trace_info
-     * @return array
-     */
-    public static function extractException($exception, $need_file_info = FALSE
-        , $need_trace_info = FALSE, $need_previous_exception = TRUE)
-    {
-        $result    = [ 'message' => $exception->getMessage() ];
-        $trace     = $exception->getTrace();
-        $initiator = self::extractInitiator($trace);
-        $trace = self::columns(
-            self::recoverBacktraceParameters($trace), [ 'line', 'class', 'function', 'args' ], TRUE
-        );
-        if (TRUE === $need_file_info)
-            $result += [
-                'file' => $exception->getFile(),
-                'line' => $exception->getLine(),
-            ];
-        $result += $initiator;
-        $result += $trace[0];
-        if (TRUE === $need_trace_info)
-            $result += [ 'trace' => $trace ];
-        if (FALSE === (FALSE === ($exception instanceof UserException) 
-            OR (TRUE === ($exception instanceof UserException)
-                AND TRUE === is_null($exception->getDetail()))))
-            $result += [ 'detail' => $exception->getDetail() ];
-        if (TRUE === $need_previous_exception AND FALSE  === is_null($exception->getPrevious()))
-            $result += [ 'previous' => self::extractException(
-                  $exception->getPrevious(),
-                  $need_file_info,
-                  $need_trace_info,
-                  $need_previous_exception
-            ) ];
-        return $result;
-    }
-
-    /**
-     * Extracts initiator info from a trace.
-     * @param array $trace
-     * @return array
-     */
-    private static function extractInitiator($trace)
-    {
-        if (count($trace) <= 1) $result = NULL;
-        else {
-            if (TRUE === in_array($trace[0]['function'], ['__call', 'call', 'callParent'])) {
-                if ($trace[0]['args'][0] !== $trace[1]['function']) $result = 1;
-                else {
-                    if (count($trace) <= 2) $result = NULL;
-                    else $result = 2;
-                }
-            } elseif (TRUE === in_array($trace[1]['function'], [
-                'call_user_func_array',
-                'call_user_method_array',
-                'call_user_func',
-                'call_user_method'
-            ])) {
-                if (count($trace) <= 2) $result = NULL;
-                else $result = 2;
-            } else $result = 1;
-        }
-        return [
-            'initiator_class'    => TRUE === is_null($result) ? NULL : $trace[$result]['class'],
-            'initiator_function' => TRUE === is_null($result) ? NULL : $trace[$result]['function'],
-        ];
-    }
-    
-    /**
-     * Recovers parameters of the function in the records of a backtrace.
-     * @param array $backtrace
-     * @return array
-     */
-    public static function recoverBacktraceParameters($backtrace)
-    {
-        foreach ($backtrace as $index => $record) {
-            try {
-                $backtrace[$index]['args'] = self::recoverFunctionParameters(
-                    $record['class'],
-                    $record['function'],
-                    $record['args']
-                );
-                if (TRUE === self::getSimplifyData())
-                    $backtrace[$index]['args'] = array_keys($backtrace[$index]['args']);
-            } catch (Exception $e) {
-                $backtrace[$index]['args'] = [
-                    'raw_args' => $record['args'],
-                    'recover'  => self::extractException($e, TRUE, FALSE, TRUE),
-                ];
-                // throw new UserException('Method(recoverFunctionParameters) failed.', NULL, $e);
-            }
-        };
-        return $backtrace;
-    }
-
-    /**
-     * Recovers parameters of a function or a method in a class.
-     * @param string|NULL    $class_name
-     * @param string|Closure $function_name
-     * @param array          $arg_list
-     * @return array
-     */
-    public static function recoverFunctionParameters($class_name, $function_name, $arg_list)
-    {
-        $param_list = [];
-        try {
-            if (TRUE === is_null($class_name))
-                $reflection_function = new ReflectionFunction($function_name);
-            else $reflection_function = new ReflectionMethod($class_name, $function_name);
-        } catch (Exception $e) {
-            throw new UserException('Reflection failed.', NULL, $e);
-        }
-        foreach ($reflection_function->getParameters() as $position => $param) {
-            $param_name = $param->getName();
-            // var_dump([
-            //     'index'                       => $position, 
-            //     'position'                    => $param->getPosition(), 
-            //     'name'                        => $param->getName(), 
-            //     'is_optional'                 => $param->isOptional(),
-            //     'is_passed_by_reference'      => $param->isPassedByReference(),
-            //     'allows_null'                 => $param->allowsNull(), 
-            //     'default_value_constant_name' => $param->isDefaultValueConstant(),
-            //          // ? $param->getDefaultValueConstantName() : 'default value is not const', 
-            //     'default_value'               => $param->isDefaultValueAvailable(),
-            //          // ? $param->getDefaultValue() : 'no default value', 
-            //     'arg'                         => $arg_list[$position],
-            // ]);
-            if ($position + 1 > count($arg_list)) {
-                try {
-                    // @todo: check if it will fail
-                    $param_list[$param_name] = $param->getDefaultValue();
-                } catch (Exception $e) {
-                    throw new UserException('Method(getDefaultValue) failed.', NULL, $e);
-                }
-            }
-            else $param_list[$param_name] = $arg_list[$position];
-        }
-        return $param_list;
-    }
-
-    /**
-     * Clears the trace stack.
-     * @return int Current size of the trace stack.
-     */
-    public static function clearTraceStack()
-    {
-        $result = count(self::$traceStack);
-        self::$traceStack = [];
-        self::$traceCount = 0;
-        return $result;
-    }
-
-    /**
-     * Increase the trace count by 1.
-     * @return int Current trace count.
-     */
-    public static function addTraceCount()
-    {
-        self::$traceCount += 1;
-        return self::$traceCount;
-    }
-
-    /**
-     * Adds record to the trace stack.
-     * @param mixed $record
-     * @return int Current size of the trace stack.
-     */
-    public static function addToTraceStack($record)
-    {
-        self::$traceStack[] = $record;
-        return count(self::$traceStack);
-    }
-
-    /**
-     * Gets the trace count.
-     * @return int Current trace count.
-     */
-    public static function getTraceCount()
-    {
-       return self::$traceCount;
-    }
-
-    /**
-     * Gets the trace stack in reverse order.
-     * @param boolean $reverse
-     * @return array
-     */
-    public static function getTraceStack($reverse = TRUE)
-    {
-        if (TRUE === $reverse) return array_reverse(self::$traceStack);
-        else return self::$traceStack;
-    }
-
-    /**
-     * Sets whether it need to simplify data when outputing debug info.
-     * @param boolean $need_simplify_data
-     * @return  boolean
-     */
-    public static function setSimplifyData($need_simplify_data)
-    {
-        return (self::$needSimplifyData = $need_simplify_data);
-    }
-
-    /**
-     * Gets whether it need to simplify data when outputing debug info.
-     * @return boolean
-     */
-    public static function getSimplifyData()
-    {
-        return self::$needSimplifyData;
     }
 
     /**

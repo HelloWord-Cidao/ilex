@@ -17,6 +17,7 @@ use \Ilex\Lib\Kit;
  * @method public mixed   __set(mixed $key, mixed $value)
  * @method public string  __toString()
  * @method public self    assign(array $data = [])
+ * @method public self    clear()
  * @method public mixed   get(mixed $key = NULL, mixed $default = NULL)
  * @method public boolean has(IMPLICIT)
  * @method public self    merge(array $data)
@@ -64,6 +65,16 @@ final class Container
     }
 
     /**
+     * @param array $data
+     * @return self
+     */
+    public function clear()
+    {
+        $this->assign();
+        return $this;
+    }
+
+    /**
      * Returns the key names that do not exist as keys in $this->data.
      * @param array $key_list
      * @return array
@@ -84,7 +95,8 @@ final class Container
     public function merge($data)
     {
         // @todo: use array_merge or '+' operator?
-        $this->assign($this->data + $data);
+        // $this->assign($this->data + $data);
+        $this->assign(array_merge($this->data, $data));
         return $this;
     }
 

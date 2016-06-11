@@ -14,6 +14,7 @@ require_once(__DIR__ . '/ValidatorTester.php');
 
 use \Exception;
 use \Ilex\Tester;
+use \Ilex\Lib\Debug;
 use \Ilex\Lib\Kit;
 use \Ilex\Test\RouterTester as RT;
 use \Ilex\Test\ValidatorTester as VT;
@@ -31,5 +32,5 @@ try {
     // VT::test('countCollection');
     // echo 'Validator Test Passed.' . PHP_EOL;
 } catch (Exception $e) {
-    echo Kit::j(Kit::extractException($e, TRUE, TRUE, TRUE));
+    echo Kit::j(Debug::extractException($e, TRUE, TRUE, TRUE));
 }

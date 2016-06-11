@@ -55,7 +55,7 @@ final class Session extends BaseModel
     public static function assign($var_list)
     {
         // @todo: use array_merge or '+' operator?
-        $tmp = self::$fakeSession + $var_list;
+        $tmp = array_merge(self::$fakeSession, $var_list);
         if (ENVIRONMENT !== 'TESTILEX') {
             $_SESSION = $tmp;
             self::$fakeSession = &$_SESSION;

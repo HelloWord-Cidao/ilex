@@ -38,7 +38,7 @@ final class AdminCore extends BaseCore
         if (TRUE === is_null($limit) AND TRUE === isset($input['limit'])) $limit = $input['limit'];
         if (FALSE === is_null($limit)) $limit = intval($limit);
         unset($input['limit']);
-        $criterion += Kit::recoverMongoDBQuery($input);
+        $criterion = array_merge($criterion, Kit::recoverMongoDBQuery($input));
 
         $this->loadModel("Database/$collection_name");
 
@@ -64,7 +64,7 @@ final class AdminCore extends BaseCore
         if (TRUE === is_null($limit) AND TRUE === isset($input['limit'])) $limit = $input['limit'];
         if (FALSE === is_null($limit)) $limit = intval($limit);
         unset($input['limit']);
-        $criterion += Kit::recoverMongoDBQuery($input);
+        $criterion = array_merge($criterion, Kit::recoverMongoDBQuery($input));
 
         $this->loadModel("Database/$collection_name");
 

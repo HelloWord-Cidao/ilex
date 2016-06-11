@@ -4,6 +4,7 @@ namespace Ilex\Base\Controller\Service;
 
 use \Exception;
 use \Ilex\Core\Loader;
+use \Ilex\Lib\Debug;
 use \Ilex\Lib\Http;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
@@ -37,7 +38,7 @@ abstract class BaseService extends BaseController
         $input            = $execution_record['input'];
         $handler_prefix   = $execution_record['handler_prefix'];
         $handler_suffix   = $execution_record['handler_suffix'];
-        if (TRUE === Kit::getSimplifyData())
+        if (TRUE === Debug::getSimplifyData())
             $execution_record['input'] = array_keys($execution_record['input']);
         try {
             $config_model_name = $handler_prefix . 'Config';
@@ -71,7 +72,7 @@ abstract class BaseService extends BaseController
                 = $execution_record['input_sanitization_result']
                 = $this->$data_model_name->sanitizeInput(
                     $method_name, $input, $input_validation_result);
-            if (TRUE === Kit::getSimplifyData())
+            if (TRUE === Debug::getSimplifyData())
                 $execution_record['input_sanitization_result']
                     = array_keys($execution_record['input_sanitization_result']);
             
@@ -108,10 +109,10 @@ abstract class BaseService extends BaseController
                 $operation_status
             );
             $execution_record['success'] = TRUE;
-            Kit::addToTraceStack($execution_record);
+            Debug::addToTraceStack($execution_record);
             $this->succeed($computation_data, $operation_status);
         } catch (Exception $e) {
-            Kit::addToTraceStack($execution_record);
+            Debug::addToTraceStack($execution_record);
             throw new UserException('Service execution failed.', $execution_record, $e);
         }
     }
@@ -145,10 +146,10 @@ abstract class BaseService extends BaseController
     {
         $result = [ 'success' => FALSE ];
         if ('TEST' === ENVIRONMENT) {
-            $result += [
-                'trace'     => Kit::getTraceStack(),
-                'exception' => Kit::extractException($exception, TRUE, FALSE, TRUE),
-            ];
+            $result = array_merge($result, [
+                'trace'     => Debug::getTraceStack(),
+                'exception' => Debug::extractException($exception, TRUE, FALSE, TRUE),
+            ]);
         }
         $this->response($result, 200);
     }
@@ -177,7 +178,7 @@ abstract class BaseService extends BaseController
     {
         header('Content-Type : application/json', TRUE, $status_code);
         // if ('TEST' === ENVIRONMENT)
-            $result['trace'] = Kit::getTraceStack();
+            $result['trace'] = Debug::getTraceStack();
         Http::json($result);
         if (TRUE === $close_cgi_only) {
             fastcgi_finish_request();

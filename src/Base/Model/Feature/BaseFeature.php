@@ -6,8 +6,9 @@ use \Exception;
 use \ReflectionClass;
 use \ReflectionMethod;
 use \Ilex\Core\Loader;
-use \Ilex\Lib\UserException;
+use \Ilex\Lib\Debug;
 use \Ilex\Lib\Kit;
+use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\BaseModel;
 
 /**
@@ -26,20 +27,36 @@ abstract class BaseFeature extends BaseModel
 
     final public function __call($method_name, $arg_list)
     {
-        return $this->call($method_name, $arg_list);
+        return call_user_func_array([$this, 'call'], array_merge([ $method_name ], $arg_list));
+    }
+    
+    final protected function call($method_name)
+    {
+        $arg_list = func_get_args();
+        $method_name = $arg_list[0];
+        $arg_list = array_slice($arg_list, 1);
+        return $this->execute($method_name, $arg_list);
     }
 
-    final protected function call($method_name, $arg_list, $call_parent = FALSE)
+    final protected function callParent($method_name)
     {
-        if (Kit::addTraceCount() > 3000)
-            throw new UserException('Abnormal trace count.', Kit::getTraceCount());
+        $arg_list = func_get_args();
+        $method_name = $arg_list[0];
+        $arg_list = array_slice($arg_list, 1);
+        return $this->execute($method_name, $arg_list, TRUE);
+    }
+
+    final private function execute($method_name, $arg_list, $call_parent = FALSE)
+    {
+        if (Debug::addTraceCount() > 3000)
+            throw new UserException('Abnormal trace count.', Debug::getTraceCount());
         $execution_record     = self::prepareExecutionRecord($method_name, $arg_list, $call_parent);
         $class_name           = $execution_record['class'];
         $declaring_class_name = $execution_record['declaring_class'];
         $method_accessibility = $execution_record['method_accessibility'];
         $handler_prefix       = $execution_record['handler_prefix'];
         $handler_suffix       = $execution_record['handler_suffix'];
-        if (TRUE === Kit::getSimplifyData())
+        if (TRUE === Debug::getSimplifyData())
             $execution_record['param'] = array_keys($execution_record['param']);
         if (FALSE === $method_accessibility) 
             throw new UserException('Method is not accessible.', $execution_record);
@@ -66,10 +83,11 @@ abstract class BaseFeature extends BaseModel
                 = $execution_record['args_sanitization_result']
                 = $this->$data_model_name->sanitizeArgs(
                     $method_name, $arg_list, $args_validation_result, $handler_suffix);
-            if (TRUE === Kit::getSimplifyData())
+            if (TRUE === Debug::getSimplifyData())
                 $execution_record['args_sanitization_result']
                     = array_keys($execution_record['args_sanitization_result']);
 
+            // @todo: check it
             $result
                 = $execution_record['result']
                 = call_user_func_array(
@@ -90,13 +108,13 @@ abstract class BaseFeature extends BaseModel
         } catch (Exception $e) {
             throw new UserException('Feature execution failed.', $execution_record, $e);
         } finally {
-            Kit::addToTraceStack($execution_record);
+            Debug::addToTraceStack($execution_record);
         }
         return $result;
     }
 
     final private function prepareExecutionRecord($method_name, $arg_list, $call_parent)
-    {
+    {        
         if (TRUE === $call_parent) {
             $backtrace          = debug_backtrace();
             $current_class_name = get_class();
@@ -112,7 +130,7 @@ abstract class BaseFeature extends BaseModel
             } catch (Exception $e) {
                 throw new UserException('Search parent failed.', NULL, $e);
             }
-        } else $class_name = get_called_class();
+        } else $class_name = get_called_class();        
         $class                = new ReflectionClass($class_name);
         if (FALSE === $class->hasMethod($method_name))
             throw new UserException("Method($method_name) does not exist in class($class_name).");
@@ -124,16 +142,18 @@ abstract class BaseFeature extends BaseModel
         $handler_prefix       = Loader::getHandlerPrefixFromPath(
             $declaring_class_name, ['Core', 'Collection', 'Log']);
         $handler_suffix       = Loader::getHandlerSuffixFromPath(
-            $declaring_class_name, ['Core', 'Collection', 'Log']);
+            $declaring_class_name, ['Core', 'Collection', 'Log']);        
         try {
-            $param_list = Kit::recoverFunctionParameters($class_name, $method_name, $arg_list);
+            $param_list = Debug::recoverFunctionParameters($class_name, $method_name, $arg_list);
         } catch (Exception $e) {
+            
+            // echo json_encode(print_r($e));
             $param_list = [
                 'raw_args' => $arg_list,
-                'recover'  => Kit::extractException($e, TRUE, FALSE, TRUE),
+                'recover'  => Debug::extractException($e, TRUE, FALSE, TRUE),
             ];
             // throw new UserException('Method(recoverFunctionParameters) failed.', NULL, $e);
-        }
+        }        
         list($initiator_class_name, $initiator_type)
             = self::getInitiatorNameAndType($method_name, $declaring_class);
         $method_accessibility = self::getMethodAccessibility($method_visibility, $initiator_type);

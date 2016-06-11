@@ -40,57 +40,57 @@ abstract class BaseCollection extends MongoDBCollection
             'Content' => $content,
             'Meta'    => $meta,
         ];
-        return $this->call('add', [ $document ]);
+        return $this->call('add', $document);
     }
 
     final protected function countAllDocument()
     {
-        return $this->call('count', [ [], NULL, NULL ]);
+        return $this->call('count', [], NULL, NULL);
     }
 
     final protected function getOneDocumentId($criterion)
     {
-        $document = $this->call('getOne', [ $criterion, ['_id'] ]);
+        $document = $this->call('getOne', $criterion, [ '_id' => 1 ]);
         return $document['_id'];
     }
 
     final protected function getOneDocument($criterion)
     {
-        return $this->call('getOne', [ $criterion, [] ]);
+        return $this->call('getOne', $criterion);
     }
     
     final protected function getOneContent($criterion)
     {
-        $document = $this->call('getOne', [ $criterion, [] ]);
+        $document = $this->call('getOne', $criterion);
         return $document['Content'];
     }
 
     final protected function getOneData($criterion)
     {
-        $document = $this->call('getOne', [ $criterion, [] ]);
+        $document = $this->call('getOne', $criterion);
         return $document['Data'];
     }
 
     final protected function getOneInfo($criterion)
     {
-        $document = $this->call('getOne', [ $criterion, [] ]);
+        $document = $this->call('getOne', $criterion);
         return $document['Info'];
     }
 
     final protected function getOneMeta($criterion)
     {
-        $document = $this->call('getOne', [ $criterion, [] ]);
+        $document = $this->call('getOne', $criterion);
         return $document['Meta'];
     }
 
     final protected function checkExistenceDocument($criterion)
     {
-        return $this->call('checkExistence', [ $criterion ]);
+        return $this->call('checkExistence', $criterion);
     }
 
     final protected function updateOneDocument($criterion, $update)
     {
-        return $this->call('update', [ $criterion, $update ]);
+        return $this->call('update', $criterion, $update);
     }
     
 }

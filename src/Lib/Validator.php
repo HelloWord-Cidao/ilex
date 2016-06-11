@@ -105,7 +105,7 @@ final class Validator
             self::$patternTagNameList = array_keys((new ReflectionClass(get_class()))->getConstants());
         if (TRUE === is_null(self::$patternTagValueList))
             self::$patternTagValueList = array_values((new ReflectionClass(get_class()))->getConstants());
-        $tag_list = self::$patternTagNameList + self::$patternTagValueList;
+        $tag_list = array_merge(self::$patternTagNameList, self::$patternTagValueList);
         if (count($unknown_tag_list = array_diff(array_keys($pattern), $tag_list)) > 0)
             throw new UserException('Unknown pattern tag found.', $unknown_tag_list);
         return TRUE;

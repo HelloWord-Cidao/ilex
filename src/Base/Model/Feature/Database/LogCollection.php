@@ -31,7 +31,7 @@ class LogCollection extends BaseCollection
     final protected function addRequestLog($content)
     {
         $type = 'Request';
-        return $this->call('addLog', [ $content, $type ]);
+        return $this->call('addLog', $content, $type);
     }
 
     final protected function addLog($content, $type = NULL)
@@ -39,6 +39,6 @@ class LogCollection extends BaseCollection
         if (FALSE === is_null($type))
             $meta = [ 'Type' => $type ];
         else $meta = [];
-        return $this->call('add', [ $content, $meta ]);
+        return $this->call('add', $content, $meta);
     }
 }

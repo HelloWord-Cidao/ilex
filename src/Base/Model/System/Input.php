@@ -4,6 +4,7 @@ namespace Ilex\Base\Model\System;
 
 use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
+use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\BaseModel;
 
 /**
@@ -23,7 +24,7 @@ use \Ilex\Base\Model\BaseModel;
  * @method public static boolean hasInput(array $key_list)
  * @method public static boolean hasPost(array $key_list)
  * @method public static mixed   input(string $key = NULL, mixed $default = NULL)
- * @method public static boolean merge(string $name, array $data = [])
+ * @method public static boolean merge(string $name, array $data)
  * @method public static array   missGet(array $key_list)
  * @method public static array   missInput(array $key_list)
  * @method public static array   missPost(array $key_list)
@@ -43,9 +44,11 @@ final class Input extends BaseModel
     public function __construct()
     {
         unset($_GET['_url']);
-        self::$getData   = new Container($_GET);
-        self::$postData  = new Container($_POST);
-        self::$inputData = new Container(self::$postData->get() + self::$getData->get());
+        self::$getData   = new Container();
+        self::$postData  = new Container();
+        self::$inputData = new Container();
+        self::merge('get', $_GET);
+        self::merge('post', $_POST);
         $data = json_decode(file_get_contents('php://input'), TRUE);
         if (FALSE === is_null($data)) self::merge('post', $data);
     }
@@ -53,20 +56,20 @@ final class Input extends BaseModel
     /**
      * If $name is NOT assigned, $getData, $postData and $inputData will both be cleared.
      * @param string $name
-     * @return self
+     * @return boolean
      */
     public static function clear($name = NULL)
     {
         if (FALSE === is_null($name)) {
             if (TRUE === in_array($name, ['get', 'post', 'input'])) {
                 $name .= 'Data';
-                self::$$name->assign();
+                self::$$name->clear();
                 return TRUE;
-            } else return FALSE;
+            } else throw new UserException('Invalid $name.');
         } else {
-            self::$getData->assign();
-            self::$postData->assign();
-            self::$inputData->assign();
+            self::$getData->clear();
+            self::$postData->clear();
+            self::$inputData->clear();
             return TRUE;
         }
     }
@@ -153,14 +156,33 @@ final class Input extends BaseModel
      * @param array  $data
      * @return boolean
      */
-    public static function merge($name, $data = [])
+    public static function merge($name, $data)
     {
         if (TRUE === in_array($name, ['get', 'post', 'input'])) {
             $name .= 'Data';
             self::$$name->merge($data);
-            self::$inputData->merge(self::$postData->get() + self::$getData->get());
+            /* 
+            CAUTION: 
+                The + operator returns the right-hand array appended to the left-hand array;
+                for keys that exist in both arrays, the elements from the left-hand array will be used,
+                and the matching elements from the right-hand array will be ignored.
+            
+                array_merge — Merge one or more arrays
+                array array_merge ( array $array1 [, array $... ] )
+                Merges the elements of one or more arrays together so that the values of one
+                are appended to the end of the previous one. It returns the resulting array.
+                If the input arrays have the same string keys, then the later value for that key will 
+                overwrite the previous one. If, however, the arrays contain numeric keys,
+                the later value will not overwrite the original value, but will be appended.
+                Values in the input array with numeric keys will be renumbered with
+                incrementing keys starting from zero in the result array.
+            */
+            if ($name !== 'input') {
+                self::$inputData->merge(self::get());
+                self::$inputData->merge(self::post());
+            }
             return TRUE;
-        } else return FALSE;
+        } else throw new UserException('Invalid $name.');
     }
 
     /**
