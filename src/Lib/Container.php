@@ -94,8 +94,6 @@ final class Container
      */
     public function merge($data)
     {
-        // @todo: use array_merge or '+' operator?
-        // $this->assign($this->data + $data);
         $this->assign(array_merge($this->data, $data));
         return $this;
     }

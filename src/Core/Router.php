@@ -39,7 +39,7 @@ use \Ilex\Lib\Kit;
  */
 final class Router
 {
-    private $cancelled = FALSE; // @TODO: what?
+    private $cancelled = FALSE; // @todo: what?
     private $method;            // i.e.  'GET' | 'HEAD' | 'POST' | 'PUT'
     private $result    = NULL;
     private $settled   = FALSE;
@@ -166,7 +166,7 @@ final class Router
     }
 
     /**
-     * @TODO what?
+     * @todo what?
      * Cancels something?
      * @return boolean
      */
@@ -177,7 +177,7 @@ final class Router
             Kit::log([__METHOD__, 'return FALSE'], FALSE);
             return FALSE;
         } else {
-            // @TODO: need test!
+            // @todo: need test!
             $this->popUriList();
             $this->cancelled = TRUE;
             Kit::log([__METHOD__, 'self::popUriList()', 'cancelled = TRUE', 'return TRUE'], FALSE);
@@ -200,9 +200,9 @@ final class Router
     private function end($result)
     {
         Kit::log([__METHOD__, ['result' => $result]]);
-        // @TODO: what? when to use $this->cancelled?
+        // @todo: what? when to use $this->cancelled?
         if (TRUE === $this->cancelled) {
-            // @TODO: need test!
+            // @todo: need test!
             $this->cancelled = FALSE;
         } else {
             $this->settled = TRUE;
@@ -356,7 +356,7 @@ final class Router
         $controller  = Loader::controller($handler); // eg. \AboutController
         $combination = strtolower($this->method) . ucfirst($function); // eg. 'postJoin'
         Kit::log([__METHOD__, ['controller' => $controller, 'combination' => $combination]]);
-        // @TODO: possibly conflict!? Test cases concerned with the default method: 'get'!
+        // @todo: possibly conflict!? Test cases concerned with the default method: 'get'!
         if (TRUE === method_exists($controller, $combination)) { // eg. AboutController::postJoin().
             Kit::log([__METHOD__, 'method_exists($controller, $combination)'], FALSE);
             $fn = $combination;
@@ -369,7 +369,7 @@ final class Router
             $arg_list = [$this];
         } else {
             // CAN NOT FIT! Rollback!
-            // @TODO: need test!
+            // @todo: need test!
             Kit::log([__METHOD__, 'call popUriList', ['this' => $this]]);
             $this->popUriList();
             // eg. $this->uri     : '/about/join/whatever'
@@ -417,7 +417,7 @@ final class Router
         // '/' found.
             $function = substr($uri, 0, $index); // eg. 'user'
             if (FALSE === ($arg_raw = substr($uri, $index + 1))) {
-                // @TODO: need test!
+                // @todo: need test!
                 $arg_list = []; // eg. '/user/' => 'user/' with no arg_list
             } else {
                 // At least one arg.

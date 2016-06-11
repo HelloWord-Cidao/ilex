@@ -83,7 +83,7 @@ final class Kit
         $match_list = $match_list[0];
         if (count($match_list) > 0) {
             $result = [];
-            // @todo: comment this logic?
+            // @todo: add comment to this logic?
             if ($match_list[0][1] > 0) $result[] = substr($string, 0, $match_list[0][1]);
             foreach ($match_list as $match) $result[] = $match[0];
             return $result;

@@ -12,7 +12,7 @@ use \Ilex\Base\Model\BaseModel;
 abstract class BaseDataClass extends BaseModel
 {
 
-    // @todo: load Config model
+    // @TODO: load Config model
 
     final public function validateInput($method_name, $input)
     {

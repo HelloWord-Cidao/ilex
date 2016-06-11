@@ -87,7 +87,7 @@ abstract class BaseFeature extends BaseModel
                 $execution_record['args_sanitization_result']
                     = array_keys($execution_record['args_sanitization_result']);
 
-            // @todo: check it
+            // @TODO: check it, can be called with context info?
             $result
                 = $execution_record['result']
                 = call_user_func_array(

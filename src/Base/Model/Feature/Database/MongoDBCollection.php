@@ -250,7 +250,7 @@ abstract class MongoDBCollection extends BaseFeature
     }
 
     /**
-     * @todo: support upsert
+     * @TODO: support upsert
      * Update documents based on a given criterion.
      * @param array   $criterion Associative array with fields to match.
      * @param array   $update    The object used to update the matched documents.
@@ -383,9 +383,9 @@ abstract class MongoDBCollection extends BaseFeature
      */
     final protected function mongoInsert($document)
     {
-        // @todo: check what if a conflict occurs due to duplicate _id
-        // @todo: check what if a conflict occurs due to duplicate unique index
-        // @todo: check fields in $result: ok, err, code, errmsg
+        // @TODO: check what if a conflict occurs due to duplicate _id
+        // @TODO: check what if a conflict occurs due to duplicate unique index
+        // @TODO: check fields in $result: ok, err, code, errmsg
         // CAUTION: 
         // The _id field will only be added to an inserted array
         // if it does not already exist in the supplied array.
@@ -412,7 +412,7 @@ abstract class MongoDBCollection extends BaseFeature
         $options = [];
         if (FALSE === is_null($skip))  $options['skip']  = $skip;
         if (FALSE === is_null($limit)) $options['limit'] = $limit;
-        // @todo: add $hint: Index to use for the query.
+        // @TODO: add $hint: Index to use for the query.
         return $this->collection->count($criterion, $options);
     }
 
@@ -458,7 +458,7 @@ abstract class MongoDBCollection extends BaseFeature
     }
 
     /**
-     * @todo: support upsert
+     * @TODO: support upsert
      * Update documents based on a given criterion.
      * @param array   $criterion Associative array with fields to match.
      * @param array   $update    The object used to update the matched documents.
@@ -495,7 +495,7 @@ abstract class MongoDBCollection extends BaseFeature
             'upsert'   => FALSE,
             'multiple' => $multiple,
         ];
-        // @todo: check returns n, upserted, updatedExisting
+        // @TODO: check returns n, upserted, updatedExisting
         return $this->collection->update($criterion, $update, $options);
     }
 }

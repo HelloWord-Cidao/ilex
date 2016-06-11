@@ -172,10 +172,10 @@ final class Debug
             // ]);
             if ($position + 1 > count($arg_list)) {
                 try {
-                    // @todo: check if it will fail
+                    // @TODO: check if it will fail
                     $param_list[$param_name] = $param->getDefaultValue();
                 } catch (Exception $e) {
-                    // @todo: check it
+                    // @TODO: check it
                     // throw new UserException('Method(getDefaultValue) failed.', NULL, $e);
                     $param_list[$param_name] = '[GET_DEFAULT_VALUE_FAILED]';
                 }

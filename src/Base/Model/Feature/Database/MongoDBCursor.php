@@ -31,7 +31,7 @@ final class MongoDBCursor {
     public function __construct($mongo_cursor)
     {
         $this->cursor = $mongo_cursor;
-        $this->cursor->rewind(); // @todo: check this logic.
+        $this->cursor->rewind(); // @TODO: check this logic.
     }
 
     /**
