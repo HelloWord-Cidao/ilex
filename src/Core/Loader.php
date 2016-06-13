@@ -229,7 +229,7 @@ final class Loader
      */
     public static function getHandlerPrefixFromPath($path, $more_suffix_list = [], $delimiter = '\\')
     {
-        $suffix_list     = ['Controller', 'Model'];
+        $suffix_list     = [ 'Controller', 'Model' ];
         $handler         = self::getHandlerFromPath($path, $delimiter);
         $title_word_list = Kit::separateTitleWords($handler);
         while (count($title_word_list) > 0) {
@@ -239,7 +239,7 @@ final class Loader
             } elseif (TRUE === in_array($last_word, $more_suffix_list)) {
                 array_pop($title_word_list);
                 break;
-            } else throw new Exception('Get handler prefix failed.');
+            } else throw new UserException('Get handler prefix failed.');
         }
         if (0 === count($title_word_list)) return '';
         return join($title_word_list);
@@ -257,7 +257,7 @@ final class Loader
      */
     public static function getHandlerSuffixFromPath($path, $more_suffix_list = [], $delimiter = '\\')
     {
-        $suffix_list     = ['Controller', 'Model'];
+        $suffix_list     = [ 'Controller', 'Model' ];
         $handler         = self::getHandlerFromPath($path, $delimiter);
         $title_word_list = Kit::separateTitleWords($handler);
         while (count($title_word_list) > 0) {

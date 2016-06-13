@@ -5,6 +5,7 @@ namespace Ilex\Lib;
 use \Exception;
 use \ReflectionFunction;
 use \ReflectionMethod;
+use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 
@@ -135,7 +136,7 @@ final class Debug
         if (TRUE === $reverse) $result = array_reverse($result);
         $index = 0;
         while ($index < count($result)) {
-            $result[$index] = sprintf('%02d. (%s) %10s %10s::%s',
+            $result[$index] = sprintf('%02d. (%s) %10s %10s :: %s',
                 $index,
                 (TRUE === $result[$index]['success']) ? 'ok' : 'error',
                 // $result[$index]['class'],
@@ -184,36 +185,23 @@ final class Debug
      */
     public static function extractException($exception)
     {
-        $result = [
-            'message' => $exception->getMessage(),
-            'file'    => $exception->getFile(),
-            'line'    => $exception->getLine(),
-            'trace'   => Kit::columns(
-                self::recoverBacktraceParameters($exception->getTrace()),
-                [ 'line', 'class', 'function', 'params' ], TRUE
-            ),
-        ];
-        // add fields: 'initiator_class', 'initiator_function'
-        $result += self::extractInitiator($result['trace']);
-        // add fields: 'class', 'function', 'params'
-        $result += $trace[0];
-
-        if (FALSE === (FALSE === ($exception instanceof UserException) 
-            OR (TRUE === ($exception instanceof UserException)
-                AND TRUE === is_null($exception->getDetail())))
-        ) {
-            $result['detail'] = $exception->getDetail();
-        }
-        if (FALSE  === is_null($exception->getPrevious()))
-            $result['previous'] = self::extractException($exception->getPrevious());
-        $result = [ $result ];
+        $result = [ self::extractExceptionIteratively($exception) ];
         $index = 0;
         while ($index < count($result)) {
             if (TRUE === isset($result[$index]['previous']))
                 $result[] = $result[$index]['previous'];
-            $result[$index] = sprintf('%d. %s::%s (%d) -> [%s]', 
+            try {
+                $handler_prefix = Loader::getHandlerPrefixFromPath(
+                    $result[$index]['class'], ['Service', 'Feature', 'Core', 'Collection', 'Log']);
+                $handler_suffix = Loader::getHandlerSuffixFromPath(
+                    $result[$index]['class'], ['Service', 'Feature', 'Core', 'Collection', 'Log']);
+                $handler = sprintf('%10s %10s', $handler_prefix, $handler_suffix);
+            } catch (Exception $e) {
+                $handler = $result[$index]['class'];
+            }
+            $result[$index] = sprintf('%d. %s :: %s (%d) -> [%s]', 
                 $index,
-                $result[$index]['class'],
+                $handler,
                 $result[$index]['function'],
                 $result[$index]['line'],
                 $result[$index]['message']
@@ -230,6 +218,38 @@ final class Debug
         // initiator_function
         // trace
         // detail
+        return $result;
+    }
+
+    /**
+     * Extracts useful info from an exception iteratively.
+     * @param Exception $exception
+     * @return array
+     */
+    private static function extractExceptionIteratively($exception)
+    {
+        $result = [
+            'message' => $exception->getMessage(),
+            'file'    => $exception->getFile(),
+            'line'    => $exception->getLine(),
+            'trace'   => Kit::columns(
+                self::recoverBacktraceParameters($exception->getTrace()),
+                [ 'line', 'class', 'function', 'params' ], TRUE
+            ),
+        ];
+        // add fields: 'initiator_class', 'initiator_function'
+        $result += self::extractInitiator($result['trace']);
+        // add fields: 'class', 'function', 'params'
+        $result += $result['trace'][0];
+
+        if (FALSE === (FALSE === ($exception instanceof UserException) 
+            OR (TRUE === ($exception instanceof UserException)
+                AND TRUE === is_null($exception->getDetail())))
+        ) {
+            $result['detail'] = $exception->getDetail();
+        }
+        if (FALSE === is_null($exception->getPrevious()))
+            $result['previous'] = self::extractExceptionIteratively($exception->getPrevious());
         return $result;
     }
 
@@ -307,7 +327,8 @@ final class Debug
                 $reflection_function = new ReflectionFunction($function_name);
             else $reflection_function = new ReflectionMethod($class_name, $function_name);
         } catch (Exception $e) {
-            throw new UserException('Reflection failed.', NULL, $e);
+            // throw new UserException('Reflection failed.', [ $class_name, $function_name ], $e);
+            return NULL;
         }
         foreach ($reflection_function->getParameters() as $position => $param) {
             $param_name = $param->getName();
