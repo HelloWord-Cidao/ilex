@@ -65,7 +65,7 @@ final class Input extends BaseModel
                 $name .= 'Data';
                 self::$$name->clear();
                 return TRUE;
-            } else throw new UserException('Invalid $name.');
+            } else throw new UserException("Invalid \$name($name).");
         } else {
             self::$getData->clear();
             self::$postData->clear();
@@ -182,7 +182,7 @@ final class Input extends BaseModel
                 self::$inputData->merge(self::post());
             }
             return TRUE;
-        } else throw new UserException('Invalid $name.');
+        } else throw new UserException("Invalid \$name($name).");
     }
 
     /**

@@ -38,6 +38,8 @@ abstract class BaseService extends BaseController
         $input            = $execution_record['input'];
         $handler_prefix   = $execution_record['handler_prefix'];
         $handler_suffix   = $execution_record['handler_suffix'];
+        $execution_id     = Debug::addExecutionRecord($execution_record);
+        Debug::pushExecutionId($execution_id);
         try {
             $config_model_name = $handler_prefix . 'Config';
             if (TRUE === is_null($this->$config_model_name))
@@ -99,10 +101,12 @@ abstract class BaseService extends BaseController
                 $operation_status
             );
             $execution_record['success'] = TRUE;
-            Debug::addExecutionRecord($execution_record);
+            Debug::updateExecutionRecord($execution_id, $execution_record);
+            Debug::popExecutionId($execution_id);
             $this->succeed($computation_data, $operation_status);
         } catch (Exception $e) {
-            Debug::addExecutionRecord($execution_record);
+            Debug::updateExecutionRecord($execution_id, $execution_record);
+            Debug::popExecutionId($execution_id);
             $this->fail(new UserException('Service execution failed.', $execution_record, $e));
         }
     }

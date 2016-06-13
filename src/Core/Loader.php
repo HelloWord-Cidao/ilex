@@ -161,7 +161,7 @@ final class Loader
             try {
                 $class_name = self::includeFile($path, $type);
             } catch (Exception $e) {
-                throw new UserException(ucfirst($type) . ' ' . $path . ' not found.', NULL, $e);
+                throw new UserException(ucfirst($type) . " $path not found.", NULL, $e);
             }
             if (TRUE === $with_instantiate)
                 $instance = self::createInstance($class_name, $arg_list);
@@ -239,7 +239,7 @@ final class Loader
             } elseif (TRUE === in_array($last_word, $more_suffix_list)) {
                 array_pop($title_word_list);
                 break;
-            } else throw new UserException('Get handler prefix failed.');
+            } else throw new UserException("Get handler prefix of \$handler($handler) failed.");
         }
         if (0 === count($title_word_list)) return '';
         return join($title_word_list);
@@ -268,7 +268,7 @@ final class Loader
                 return $last_word;
             } else break;
         }
-        throw new UserException('Get handler suffix failed.');
+        throw new UserException("Get handler suffix of \$handler($handler) failed.");
     }
 
     /**
@@ -334,7 +334,7 @@ final class Loader
     private static function setSet($key, $keyKey, $value)
     {
         if (FALSE === self::$container->has($key))
-            throw new UserException('self::$container has no $key.');
+            throw new UserException("self::\$container has no \$key($key).");
         return self::$container->get($key)->set($keyKey, $value);
     }
 

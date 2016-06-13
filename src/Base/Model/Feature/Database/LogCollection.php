@@ -39,6 +39,6 @@ class LogCollection extends BaseCollection
         if (FALSE === is_null($type))
             $meta = [ 'Type' => $type ];
         else $meta = [];
-        return $this->call('addOneDocument', $content, $meta);
+        return $this->call('addOne', $content, $meta);
     }
 }

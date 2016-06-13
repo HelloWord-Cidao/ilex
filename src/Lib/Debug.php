@@ -15,13 +15,20 @@ use \Ilex\Lib\UserException;
  * A class handling debug operations.
  * @package Ilex\Lib
  *
- * @property private static array   $traceStack
+ * @property private static string $environment
+ * @property private static array  $executionIdStack
+ * @property private static array  $executionRecordStack
+ * @property private static int    $flag
  * 
- * @method public static int   addExecutionRecord(mixed $execution_record)
- * @method public static int   clear()
- * @method public static int   countExecutionRecord()
- * @method public static array extractException(Exception $exception)
- * @method public static array getExecutionRecordStack(boolean $reverse = TRUE)
+ * @method public static int      addExecutionRecord(mixed $execution_record)
+ * @method public static int      clear()
+ * @method public static int      countExecutionRecord()
+ * @method public static array    extractException(Exception $exception)
+ * @method public static array    getExecutionRecordStack()
+ * @method public static int      popExecutionId(int $execution_id)
+ * @method public static          pushExecutionId(int $execution_id)
+ * @method public static int|NULL peekExecutionId()
+ * @method public static          updateExecutionRecord(int $execution_id, array $execution_record)
  *
  * @method private static array recoverBacktraceParameters(array $backtrace)
  * @method private static array recoverFunctionParameters(string|NULL $class_name
@@ -38,6 +45,7 @@ final class Debug
     const E_TEST        = 'TEST';
 
     private static $flag                 = 0;
+    private static $executionIdStack     = [];
     private static $executionRecordStack = [];
     private static $environment          = self::E_PRODUCTION;
 
@@ -86,13 +94,51 @@ final class Debug
      */
     public static function clear()
     {
+        self::$executionIdStack = [];
         self::$executionRecordStack = [];
+    }
+
+    /**
+     * Pushs $execution_id into the execution id stack.
+     * @param int $execution_id
+     */
+    public static function pushExecutionId($execution_id)
+    {
+        self::$executionIdStack[] = $execution_id;
+    }
+
+    /**
+     * Pops $execution_id out of the execution id stack.
+     * @param int $execution_id
+     */
+    public static function popExecutionId($execution_id)
+    {
+        if (0 === count(self::$executionIdStack))
+            throw new UserException('$executionIdStack is empty.', 1);
+        if (Kit::last(self::$executionIdStack) !== $execution_id) {
+            $msg = "\$execution_id($execution_id) does not match the top of \$executionIdStack.";
+            throw new UserException($msg, self::$executionIdStack);
+        }
+        array_pop(self::$executionIdStack);
+    }
+
+    /**
+     * Peeks the top execution id of the stack.
+     * @return int|NULL $execution_id
+     */
+    public static function peekExecutionId()
+    {
+        if (0 === count(self::$executionIdStack)) {
+            // throw new UserException('$executionIdStack is empty.', 1);
+            return NULL;
+        }
+        return Kit::last(self::$executionIdStack);
     }
 
     /**
      * Adds execution record to the stack.
      * @param mixed $execution_record
-     * @return int Current size of the execution record stack.
+     * @return int Current id of the execution record.
      */
     public static function addExecutionRecord($execution_record)
     {
@@ -110,10 +156,31 @@ final class Debug
                 // throw new UserException('Method(recoverFunctionParameters) failed.', NULL, $e);
             }
             $execution_record['params'] = $param_list;
-            unset($execution_record['args']);
+        }
+        $execution_id = self::peekExecutionId();
+        if (TRUE === is_null($execution_id)) {
+            $execution_record['execution_id'] = -1;
+            $execution_record['indent']       = '';
+        } else {
+            $indent = self::$executionRecordStack[$execution_id]['indent'];
+            $execution_record['execution_id'] = $execution_id;
+            $execution_record['indent']       = $indent . ' ';
         }
         self::$executionRecordStack[] = $execution_record;
-        return self::countExecutionRecord();
+        return self::countExecutionRecord() - 1;
+    }
+
+    /**
+     * Updates the $execution_id 'th execution record in the stack.
+     * @param int   $execution_id
+     * @param mixed $execution_record
+     */
+    public static function updateExecutionRecord($execution_id, $execution_record)
+    {
+        if ($execution_id >= count(self::$executionRecordStack))
+            throw new UserException("\$execution_id($execution_id) overflows \$executionRecordStack.");
+        self::$executionRecordStack[$execution_id] = array_merge(
+            self::$executionRecordStack[$execution_id], $execution_record);
     }
 
     /**
@@ -127,17 +194,17 @@ final class Debug
 
     /**
      * Gets the execution record stack.
-     * @param boolean $reverse
      * @return array
      */
-    public static function getExecutionRecordStack($reverse = TRUE)
+    public static function getExecutionRecordStack()
     {
         $result = self::$executionRecordStack;
-        if (TRUE === $reverse) $result = array_reverse($result);
         $index = 0;
         while ($index < count($result)) {
-            $result[$index] = sprintf('%02d. (%s) %10s %10s :: %s',
+            $result[$index] = sprintf('%s%02d.(%02d) (%s) %10s %10s :: %s',
+                $result[$index]['indent'],
                 $index,
+                $result[$index]['execution_id'],
                 (TRUE === $result[$index]['success']) ? 'ok' : 'error',
                 // $result[$index]['class'],
                 $result[$index]['handler_prefix'],
@@ -146,7 +213,7 @@ final class Debug
             );
             $index++;
         }
-        $result = array_merge([ $result[0] ], array_slice($result, 7));
+        // $result = array_merge([ $result[0] ], array_slice($result, 6));
         // 'success'
         // 'class'
         // 'method'

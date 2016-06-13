@@ -48,14 +48,16 @@ abstract class BaseFeature extends BaseModel
 
     final private function execute($method_name, $arg_list, $call_parent = FALSE)
     {
-        if (($count = Debug::countExecutionRecord()) > 3000)
-            throw new UserException('Abnormal execution record count.', $count);
         $execution_record     = self::prepareExecutionRecord($method_name, $arg_list, $call_parent);
         $class_name           = $execution_record['class'];
         $declaring_class_name = $execution_record['declaring_class'];
         $method_accessibility = $execution_record['method_accessibility'];
         $handler_prefix       = $execution_record['handler_prefix'];
         $handler_suffix       = $execution_record['handler_suffix'];
+        $execution_id         = Debug::addExecutionRecord($execution_record);
+        Debug::pushExecutionId($execution_id);
+        if (($count = Debug::countExecutionRecord()) > 3000)
+            throw new UserException('Abnormal execution record count.', $count);
         if (FALSE === $method_accessibility) 
             throw new UserException('Method is not accessible.', $execution_record);
         try {
@@ -103,7 +105,8 @@ abstract class BaseFeature extends BaseModel
         } catch (Exception $e) {
             throw new UserException('Feature execution failed.', $execution_record, $e);
         } finally {
-            Debug::addExecutionRecord($execution_record);
+            Debug::updateExecutionRecord($execution_id, $execution_record);
+            Debug::popExecutionId($execution_id);
         }
         return $result;
     }
@@ -123,7 +126,7 @@ abstract class BaseFeature extends BaseModel
             try {
                 $class_name = $parent_class->getName();
             } catch (Exception $e) {
-                throw new UserException('Search parent failed.', NULL, $e);
+                throw new UserException('Search parent failed.', $method_name, $e);
             }
         } else $class_name = get_called_class();        
         $class                = new ReflectionClass($class_name);
@@ -165,7 +168,7 @@ abstract class BaseFeature extends BaseModel
             AND count(array_intersect(
                 $methods_visibility[self::V_PUBLIC],
                 $methods_visibility[self::V_PROTECTED])) > 0)
-            throw new UserException('Public duplicates protected.');
+            throw new UserException('Public duplicates protected.', $methods_visibility);
         foreach ([self::V_PUBLIC, self::V_PROTECTED] as $type) {
             if (TRUE === isset($methods_visibility[$type])
                 AND TRUE === in_array($method_name, $methods_visibility[$type])) {

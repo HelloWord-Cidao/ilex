@@ -14,15 +14,17 @@ abstract class BaseCollection extends MongoDBCollection
 {
     protected static $methodsVisibility = [
         self::V_PROTECTED => [
-            'addOneDocument',
-            'countAllDocument',
-            'checkExistenceDocument',
-            'updateOneDocument',
-            'getOneDocumentId',
-            'getOneDocument',
+            'countAll',
+            'getOneId',
             'getOneContent',
+            'getOneData',
             'getOneInfo',
-            'getOneData'
+            'getOneMeta',
+            'getTheOnlyOneId',
+            'getTheOnlyOneContent',
+            'getTheOnlyOneData',
+            'getTheOnlyOneInfo',
+            'getTheOnlyOneMeta',
         ],
     ];
 
@@ -33,30 +35,16 @@ abstract class BaseCollection extends MongoDBCollection
         $this->loadModel('Data/BaseData');
     }
 
-    final protected function addOneDocument($content, $meta)
+
+    final protected function countAll()
     {
-        $meta['CreationTime'] = new MongoDate(time());
-        $document = [
-            'Content' => $content,
-            'Meta'    => $meta,
-        ];
-        return $this->call('add', $document);
+        return $this->call('count');
     }
 
-    final protected function countAllDocument()
+    final protected function getOneId($criterion)
     {
-        return $this->call('count', [], NULL, NULL);
-    }
-
-    final protected function getOneDocumentId($criterion)
-    {
-        $document = $this->call('getOne', $criterion, [ '_id' => 1 ]);
+        $document = $this->call('getOne', $criterion);
         return $document['_id'];
-    }
-
-    final protected function getOneDocument($criterion)
-    {
-        return $this->call('getOne', $criterion);
     }
     
     final protected function getOneContent($criterion)
@@ -83,14 +71,34 @@ abstract class BaseCollection extends MongoDBCollection
         return $document['Meta'];
     }
 
-    final protected function checkExistenceDocument($criterion)
+    final protected function getTheOnlyOneId($criterion)
     {
-        return $this->call('checkExistence', $criterion);
+        $document = $this->call('getTheOnlyOne', $criterion);
+        return $document['_id'];
+    }
+    
+    final protected function getTheOnlyOneContent($criterion)
+    {
+        $document = $this->call('getTheOnlyOne', $criterion);
+        return $document['Content'];
     }
 
-    final protected function updateOneDocument($criterion, $update)
+    final protected function getTheOnlyOneData($criterion)
     {
-        return $this->call('update', $criterion, $update);
+        $document = $this->call('getTheOnlyOne', $criterion);
+        return $document['Data'];
+    }
+
+    final protected function getTheOnlyOneInfo($criterion)
+    {
+        $document = $this->call('getTheOnlyOne', $criterion);
+        return $document['Info'];
+    }
+
+    final protected function getTheOnlyOneMeta($criterion)
+    {
+        $document = $this->call('getTheOnlyOne', $criterion);
+        return $document['Meta'];
     }
     
 }

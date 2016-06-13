@@ -50,7 +50,7 @@ final class Kit
     public static function type($variable, $empty_array = self::TYPE_LIST)
     {
         if (FALSE === in_array($empty_array, [self::TYPE_LIST, self::TYPE_DICT]))
-            throw new UserException('Invalid $empty_array value.');
+            throw new UserException("Invalid \$empty_array($empty_array).");
         if (TRUE === is_array($variable)) {
             if (0 === count($variable)) return $empty_array;
             if (array_keys($variable) === range(0, count($variable) - 1))
@@ -64,7 +64,7 @@ final class Kit
         if (TRUE === is_object($variable))   return self::TYPE_OBJECT; 
         if (TRUE === is_resource($variable)) return self::TYPE_RESOURCE; 
         if (TRUE === is_null($variable))     return self::TYPE_NULL; 
-        throw new UserException('Unknown type of $variable given.');
+        throw new UserException('Unknown type of $variable given.', $variable);
     } 
 
     // ================================================== //
@@ -104,7 +104,7 @@ final class Kit
     public function last($array, $offset = 1)
     {
         if ($offset > count($array))
-            throw new UserException('$offset overflows $array.');
+            throw new UserException("\$offset($offset) overflows $array.", $array);
         return array_slice($array, - $offset)[0];
     }
 
@@ -153,7 +153,7 @@ final class Kit
                     $row[$column_name] = $default;
                 } else {
                     $msg = "Field($column_name) is empty, thus can not be included.";
-                    throw new UserException($msg);
+                    throw new UserException($msg, $matrix);
                 }
             }
             if (TRUE === $return_only_values) {
@@ -162,7 +162,7 @@ final class Kit
                 } else {
                     $msg  = 'Can not return only values, '
                         . 'because the length of $column_name_list is not 1.';
-                    throw new UserException($msg);
+                    throw new UserException($msg, $column_name_list);
                 }
             }
             $result[] = $row;
@@ -255,7 +255,7 @@ final class Kit
     {
         $sum = 0;
         foreach ($random_list as $object) $sum += $object['weight'];
-        if (0 === $sum) throw new UserException('The sum of weights is 0.');
+        if (0 === $sum) throw new UserException('The sum of weights is 0.', $random_list);
         $rand = mt_rand(1, (int)$sum);
         // @todo: use bisection method when length of $random_list > 50!
         foreach ($random_list as $object) {
