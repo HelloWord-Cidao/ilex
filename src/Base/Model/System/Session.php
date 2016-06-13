@@ -49,13 +49,12 @@ final class Session extends BaseModel
 
     /**
      * Assigns $var_list to $_SESSION or $fakeSession.
-     * @uses ENVIRONMENT
      * @param array $var_list
      */
     public static function assign($var_list)
     {
         $tmp = array_merge(self::$fakeSession, $var_list);
-        if (ENVIRONMENT !== 'TESTILEX') {
+        if (ENVIRONMENT !== 'TESTILEX') { // @TODO: change it
             $_SESSION = $tmp;
             self::$fakeSession = &$_SESSION;
         } else {
@@ -63,15 +62,12 @@ final class Session extends BaseModel
         }
     }
 
-    /**
-     * @uses ENVIRONMENT
-     */
     public static function boot()
     {
         if (FALSE === self::$booted) {
             self::start();
             self::$booted = TRUE;
-            if ('TESTILEX' !== ENVIRONMENT) {
+            if ('TESTILEX' !== ENVIRONMENT) { // @TODO: change it
                 self::$fakeSession = &$_SESSION;
             } else {
                 self::$fakeSession = [];
@@ -94,11 +90,10 @@ final class Session extends BaseModel
 
     /**
      * Resets status.
-     * @uses ENVIRONMENT
      */
     public static function forget()
     {
-        if ('TESTILEX' !== ENVIRONMENT) {
+        if ('TESTILEX' !== ENVIRONMENT) { // @TODO: change it
             session_unset();
             session_destroy();
         }
@@ -109,11 +104,11 @@ final class Session extends BaseModel
 
     /**
      * Starts the session.
-     * @uses ENVIRONMENT, SYS_SESSNAME
+     * @uses SYS_SESSNAME
      */
     private static function start()
     {
-        if ('TESTILEX' !== ENVIRONMENT) {
+        if ('TESTILEX' !== ENVIRONMENT) { // @TODO: change it
             session_name(SYS_SESSNAME); // Defined in \Ilex\Core\Constant.
             session_start();
         }

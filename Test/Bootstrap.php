@@ -6,7 +6,6 @@ ini_set('error_reporting', E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED);
 ini_set('display_errors', 1);
 ini_set('html_errors', 0);
 session_cache_expire(240);
-// define('ENVIRONMENT', 'TESTILEX');
 
 require_once(__DIR__ . '/../../../autoload.php');
 require_once(__DIR__ . '/RouterTester.php');
@@ -32,5 +31,5 @@ try {
     // VT::test('countCollection');
     // echo 'Validator Test Passed.' . PHP_EOL;
 } catch (Exception $e) {
-    echo Kit::j(Debug::extractException($e, TRUE, TRUE, TRUE));
+    echo Kit::j(Debug::extractException($e));
 }

@@ -48,16 +48,14 @@ abstract class BaseFeature extends BaseModel
 
     final private function execute($method_name, $arg_list, $call_parent = FALSE)
     {
-        if (Debug::addTraceCount() > 3000)
-            throw new UserException('Abnormal trace count.', Debug::getTraceCount());
+        if (($count = Debug::countExecutionRecord()) > 3000)
+            throw new UserException('Abnormal execution record count.', $count);
         $execution_record     = self::prepareExecutionRecord($method_name, $arg_list, $call_parent);
         $class_name           = $execution_record['class'];
         $declaring_class_name = $execution_record['declaring_class'];
         $method_accessibility = $execution_record['method_accessibility'];
         $handler_prefix       = $execution_record['handler_prefix'];
         $handler_suffix       = $execution_record['handler_suffix'];
-        if (TRUE === Debug::getSimplifyData())
-            $execution_record['param'] = array_keys($execution_record['param']);
         if (FALSE === $method_accessibility) 
             throw new UserException('Method is not accessible.', $execution_record);
         try {
@@ -83,15 +81,12 @@ abstract class BaseFeature extends BaseModel
                 = $execution_record['args_sanitization_result']
                 = $this->$data_model_name->sanitizeArgs(
                     $method_name, $arg_list, $args_validation_result, $handler_suffix);
-            if (TRUE === Debug::getSimplifyData())
-                $execution_record['args_sanitization_result']
-                    = array_keys($execution_record['args_sanitization_result']);
 
             // @TODO: check it, can be called with context info?
             $result
                 = $execution_record['result']
                 = call_user_func_array(
-                    [$declaring_class_name, $method_name], $args_sanitization_result);
+                    [ $declaring_class_name, $method_name ], $args_sanitization_result);
             
             // Method validateResult should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
@@ -108,7 +103,7 @@ abstract class BaseFeature extends BaseModel
         } catch (Exception $e) {
             throw new UserException('Feature execution failed.', $execution_record, $e);
         } finally {
-            Debug::addToTraceStack($execution_record);
+            Debug::addExecutionRecord($execution_record);
         }
         return $result;
     }
@@ -142,18 +137,7 @@ abstract class BaseFeature extends BaseModel
         $handler_prefix       = Loader::getHandlerPrefixFromPath(
             $declaring_class_name, ['Core', 'Collection', 'Log']);
         $handler_suffix       = Loader::getHandlerSuffixFromPath(
-            $declaring_class_name, ['Core', 'Collection', 'Log']);        
-        try {
-            $param_list = Debug::recoverFunctionParameters($class_name, $method_name, $arg_list);
-        } catch (Exception $e) {
-            
-            // echo json_encode(print_r($e));
-            $param_list = [
-                'raw_args' => $arg_list,
-                'recover'  => Debug::extractException($e, TRUE, FALSE, TRUE),
-            ];
-            // throw new UserException('Method(recoverFunctionParameters) failed.', NULL, $e);
-        }        
+            $declaring_class_name, ['Core', 'Collection', 'Log']);              
         list($initiator_class_name, $initiator_type)
             = self::getInitiatorNameAndType($method_name, $declaring_class);
         $method_accessibility = self::getMethodAccessibility($method_visibility, $initiator_type);
@@ -162,7 +146,7 @@ abstract class BaseFeature extends BaseModel
             'success'              => FALSE,
             'class'                => $class_name,
             'method'               => $method_name,
-            'param'                => $param_list,
+            'args'                 => $arg_list,
             'method_accessibility' => $method_accessibility,
             'declaring_class'      => $declaring_class_name,
             'method_visibility'    => $method_visibility,

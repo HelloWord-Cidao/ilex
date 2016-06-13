@@ -20,7 +20,6 @@ final class Constant
          * -----------------------
          */
         'SYS_SESSNAME' => 'ILEX_SESSION',
-        'ENVIRONMENT'  => 'DEVELOPMENT',
         
         // 'ENV_HOST'     => ((TRUE === isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : 'localhost'),
         // 'ENV_SSL'      => (bool)(TRUE === isset($_SERVER['SERVER_PORT']) AND 443 === $_SERVER['SERVER_PORT']),

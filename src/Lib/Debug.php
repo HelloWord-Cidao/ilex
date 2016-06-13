@@ -14,69 +14,222 @@ use \Ilex\Lib\UserException;
  * A class handling debug operations.
  * @package Ilex\Lib
  *
- * @property private static int     $traceCount
  * @property private static array   $traceStack
- * @property private static boolean $needSimplifyData
  * 
- * @method public static int        addTraceCount()
- * @method public static int        addToTraceStack(mixed $record)
- * @method public static int        clearTraceStack()
- * @method public static array      extractException(Exception $exception
- *                                      , $need_file_info = FALSE
- *                                      , $need_trace_info = FALSE
- *                                      , $need_previous_exception = TRUE)
- * @method public static boolean    getSimplifyData()
- * @method public static int        getTraceCount()
- * @method public static array      getTraceStack(boolean $reverse = TRUE)
- * @method public static array      recoverFunctionParameters(string|NULL $class_name
- *                                      , string|Closure $function_name, array $arg_list)
- * @method public static boolean    setSimplifyData(boolean $need_simplify_data)
+ * @method public static int   addExecutionRecord(mixed $execution_record)
+ * @method public static int   clear()
+ * @method public static int   countExecutionRecord()
+ * @method public static array extractException(Exception $exception)
+ * @method public static array getExecutionRecordStack(boolean $reverse = TRUE)
  *
+ * @method private static array recoverBacktraceParameters(array $backtrace)
+ * @method private static array recoverFunctionParameters(string|NULL $class_name
+ *                                      , string|Closure $function_name, array $arg_list)
  * @method private static array extractInitiator(array $trace)
  */
 final class Debug
 {
+    const D_ALL  = 1023;
+    const D_NONE = 0;
 
-    private static $traceCount = 0;
-    private static $traceStack = [];
-    private static $needSimplifyData = FALSE;
+    const E_DEVELOPMENT = 'DEVELOPMENT';
+    const E_PRODUCTION  = 'PRODUCTION';
+    const E_TEST        = 'TEST';
+
+    private static $flag                 = 0;
+    private static $executionRecordStack = [];
+    private static $environment          = self::E_PRODUCTION;
+
+    public static function setDisplay($flag)
+    {
+        self::$flag = $flag;
+    }
+
+    public static function checkDisplay($flag)
+    {
+        return (self::$flag & $flag) === $flag;
+    }
+
+    public static function setEnvironmentToDevelopment()
+    {
+        self::$environment = self::E_DEVELOPMENT;
+    }
+
+    public static function setEnvironmentToProduction()
+    {
+        self::$environment = self::E_PRODUCTION;
+    }
+
+    public static function setEnvironmentToTest()
+    {
+        self::$environment = self::E_TEST;
+    }
+
+    public static function isDevelopment()
+    {
+        return self::$environment === self::E_DEVELOPMENT;
+    }
+
+    public static function isProduction()
+    {
+        return self::$environment === self::E_PRODUCTION;
+    }
+
+    public static function isTest()
+    {
+        return self::$environment === self::E_TEST;
+    }
+
+    /**
+     * Clears the execution record stack.
+     */
+    public static function clear()
+    {
+        self::$executionRecordStack = [];
+    }
+
+    /**
+     * Adds execution record to the stack.
+     * @param mixed $execution_record
+     * @return int Current size of the execution record stack.
+     */
+    public static function addExecutionRecord($execution_record)
+    {
+        if (TRUE === isset($execution_record['args'])) {
+            $class_name  = $execution_record['class'];
+            $method_name = $execution_record['method'];
+            $arg_list    = $execution_record['args'];
+            try {
+                $param_list = self::recoverFunctionParameters($class_name, $method_name, $arg_list);
+            } catch (Exception $e) {
+                $param_list = [
+                    'raw_args' => $arg_list,
+                    'recover'  => self::extractException($e),
+                ];
+                // throw new UserException('Method(recoverFunctionParameters) failed.', NULL, $e);
+            }
+            $execution_record['params'] = $param_list;
+            unset($execution_record['args']);
+        }
+        self::$executionRecordStack[] = $execution_record;
+        return self::countExecutionRecord();
+    }
+
+    /**
+     * Counts the execution record stack.
+     * @return int
+     */
+    public static function countExecutionRecord()
+    {
+       return count(self::$executionRecordStack);
+    }
+
+    /**
+     * Gets the execution record stack.
+     * @param boolean $reverse
+     * @return array
+     */
+    public static function getExecutionRecordStack($reverse = TRUE)
+    {
+        $result = self::$executionRecordStack;
+        if (TRUE === $reverse) $result = array_reverse($result);
+        $index = 0;
+        while ($index < count($result)) {
+            $result[$index] = sprintf('%02d. (%s) %10s %10s::%s',
+                $index,
+                (TRUE === $result[$index]['success']) ? 'ok' : 'error',
+                // $result[$index]['class'],
+                $result[$index]['handler_prefix'],
+                $result[$index]['handler_suffix'],
+                $result[$index]['method']
+            );
+            $index++;
+        }
+        $result = array_merge([ $result[0] ], array_slice($result, 7));
+        // 'success'
+        // 'class'
+        // 'method'
+
+        // 'input'
+        // 'input_validation_result'
+        // 'input_sanitization_result'
+        // 'params'
+        // 'args_validation_result'
+        // 'args_sanitization_result'
+
+        // 'feature_privilege_validation_result'
+        // 'method_accessibility'
+        // 'method_visibility'
+        // 'declaring_class'
+        // 'initiator_class'
+        // 'initiator_type'
+        // 'handler_prefix'
+        // 'handler_suffix'
+
+        // 'result'
+        // 'result_validation_result'
+        // 'result_sanitization_result'
+        // 'service_result'
+        // 'service_result_validation_result'
+        // 'service_result_sanitization_result'
+
+        // 'is_time_consuming'
+        return $result;
+    }
 
     /**
      * Extracts useful info from an exception.
      * @param Exception $exception
-     * @param boolean   $need_file_info
-     * @param boolean   $need_trace_info
      * @return array
      */
-    public static function extractException($exception, $need_file_info = FALSE
-        , $need_trace_info = FALSE, $need_previous_exception = TRUE)
+    public static function extractException($exception)
     {
-        $result    = [ 'message' => $exception->getMessage() ];
-        $trace     = $exception->getTrace();
-        $initiator = self::extractInitiator($trace);
-        $trace = Kit::columns(
-            self::recoverBacktraceParameters($trace), [ 'line', 'class', 'function', 'args' ], TRUE
-        );
-        if (TRUE === $need_file_info)
-            $result = array_merge($result, [
-                'file' => $exception->getFile(),
-                'line' => $exception->getLine(),
-            ]);
-        $result = array_merge($result, $initiator);
-        $result = array_merge($result, $trace[0]);
-        if (TRUE === $need_trace_info)
-            $result = array_merge($result, [ 'trace' => $trace ]);
+        $result = [
+            'message' => $exception->getMessage(),
+            'file'    => $exception->getFile(),
+            'line'    => $exception->getLine(),
+            'trace'   => Kit::columns(
+                self::recoverBacktraceParameters($exception->getTrace()),
+                [ 'line', 'class', 'function', 'params' ], TRUE
+            ),
+        ];
+        // add fields: 'initiator_class', 'initiator_function'
+        $result += self::extractInitiator($result['trace']);
+        // add fields: 'class', 'function', 'params'
+        $result += $trace[0];
+
         if (FALSE === (FALSE === ($exception instanceof UserException) 
             OR (TRUE === ($exception instanceof UserException)
-                AND TRUE === is_null($exception->getDetail()))))
-            $result = array_merge($result, [ 'detail' => $exception->getDetail() ]);
-        if (TRUE === $need_previous_exception AND FALSE  === is_null($exception->getPrevious()))
-            $result = array_merge($result, [ 'previous' => self::extractException(
-                  $exception->getPrevious(),
-                  $need_file_info,
-                  $need_trace_info,
-                  $need_previous_exception
-            ) ]);
+                AND TRUE === is_null($exception->getDetail())))
+        ) {
+            $result['detail'] = $exception->getDetail();
+        }
+        if (FALSE  === is_null($exception->getPrevious()))
+            $result['previous'] = self::extractException($exception->getPrevious());
+        $result = [ $result ];
+        $index = 0;
+        while ($index < count($result)) {
+            if (TRUE === isset($result[$index]['previous']))
+                $result[] = $result[$index]['previous'];
+            $result[$index] = sprintf('%d. %s::%s (%d) -> [%s]', 
+                $index,
+                $result[$index]['class'],
+                $result[$index]['function'],
+                $result[$index]['line'],
+                $result[$index]['message']
+            );
+            $index++;
+        }
+        // message
+        // file
+        // line
+        // class
+        // function
+        // params
+        // initiator_class
+        // initiator_function
+        // trace
+        // detail
         return $result;
     }
 
@@ -87,13 +240,16 @@ final class Debug
      */
     private static function extractInitiator($trace)
     {
-        if (count($trace) <= 1) $result = NULL;
+        if (count($trace) <= 1) $index = NULL;
         else {
-            if (TRUE === in_array($trace[0]['function'], ['__call', 'call', 'callParent', 'execute'])) {
-                if ($trace[0]['args'][0] !== $trace[1]['function']) $result = 1;
+            // @todo: add comment to this
+            if (TRUE === in_array($trace[0]['function'], [
+                '__call', 'call', 'callParent', 'execute'
+            ])) {
+                if ($trace[0]['args'][0] !== $trace[1]['function']) $index = 1;
                 else {
-                    if (count($trace) <= 2) $result = NULL;
-                    else $result = 2;
+                    if (count($trace) <= 2) $index = NULL;
+                    else $index = 2;
                 }
             } elseif (TRUE === in_array($trace[1]['function'], [
                 'call_user_func_array',
@@ -101,13 +257,13 @@ final class Debug
                 'call_user_func',
                 'call_user_method'
             ])) {
-                if (count($trace) <= 2) $result = NULL;
-                else $result = 2;
-            } else $result = 1;
+                if (count($trace) <= 2) $index = NULL;
+                else $index = 2;
+            } else $index = 1;
         }
         return [
-            'initiator_class'    => TRUE === is_null($result) ? NULL : $trace[$result]['class'],
-            'initiator_function' => TRUE === is_null($result) ? NULL : $trace[$result]['function'],
+            'initiator_class'    => TRUE === is_null($index) ? NULL : $trace[$index]['class'],
+            'initiator_function' => TRUE === is_null($index) ? NULL : $trace[$index]['function'],
         ];
     }
     
@@ -116,21 +272,19 @@ final class Debug
      * @param array $backtrace
      * @return array
      */
-    public static function recoverBacktraceParameters($backtrace)
+    private static function recoverBacktraceParameters($backtrace)
     {
         foreach ($backtrace as $index => $record) {
             try {
-                $backtrace[$index]['args'] = self::recoverFunctionParameters(
+                $backtrace[$index]['params'] = self::recoverFunctionParameters(
                     $record['class'],
                     $record['function'],
                     $record['args']
                 );
-                if (TRUE === self::getSimplifyData())
-                    $backtrace[$index]['args'] = array_keys($backtrace[$index]['args']);
             } catch (Exception $e) {
-                $backtrace[$index]['args'] = [
+                $backtrace[$index]['params'] = [
                     'raw_args' => $record['args'],
-                    'recover'  => self::extractException($e, TRUE, FALSE, TRUE),
+                    'recover'  => self::extractException($e),
                 ];
                 // throw new UserException('Method(recoverFunctionParameters) failed.', NULL, $e);
             }
@@ -145,9 +299,9 @@ final class Debug
      * @param array          $arg_list
      * @return array
      */
-    public static function recoverFunctionParameters($class_name, $function_name, $arg_list)
+    private static function recoverFunctionParameters($class_name, $function_name, $arg_list)
     {
-        $param_list = [];
+        $param_mapping = [];
         try {
             if (TRUE === is_null($class_name))
                 $reflection_function = new ReflectionFunction($function_name);
@@ -173,88 +327,16 @@ final class Debug
             if ($position + 1 > count($arg_list)) {
                 try {
                     // @TODO: check if it will fail
-                    $param_list[$param_name] = $param->getDefaultValue();
+                    $param_mapping[$param_name] = $param->getDefaultValue();
                 } catch (Exception $e) {
-                    // @TODO: check it
+                    // @TODO: check it, add alert to postman
                     // throw new UserException('Method(getDefaultValue) failed.', NULL, $e);
-                    $param_list[$param_name] = '[GET_DEFAULT_VALUE_FAILED]';
+                    $param_mapping[$param_name] = '[GET_DEFAULT_VALUE_FAILED]';
                 }
             }
-            else $param_list[$param_name] = $arg_list[$position];
+            else $param_mapping[$param_name] = $arg_list[$position];
         }
-        return $param_list;
-    }
-
-    /**
-     * Clears the trace stack.
-     * @return int Current size of the trace stack.
-     */
-    public static function clearTraceStack()
-    {
-        $result = count(self::$traceStack);
-        self::$traceStack = [];
-        self::$traceCount = 0;
-        return $result;
-    }
-
-    /**
-     * Increase the trace count by 1.
-     * @return int Current trace count.
-     */
-    public static function addTraceCount()
-    {
-        self::$traceCount += 1;
-        return self::$traceCount;
-    }
-
-    /**
-     * Adds record to the trace stack.
-     * @param mixed $record
-     * @return int Current size of the trace stack.
-     */
-    public static function addToTraceStack($record)
-    {
-        self::$traceStack[] = $record;
-        return count(self::$traceStack);
-    }
-
-    /**
-     * Gets the trace count.
-     * @return int Current trace count.
-     */
-    public static function getTraceCount()
-    {
-       return self::$traceCount;
-    }
-
-    /**
-     * Gets the trace stack in reverse order.
-     * @param boolean $reverse
-     * @return array
-     */
-    public static function getTraceStack($reverse = TRUE)
-    {
-        if (TRUE === $reverse) return array_reverse(self::$traceStack);
-        else return self::$traceStack;
-    }
-
-    /**
-     * Sets whether it need to simplify data when outputing debug info.
-     * @param boolean $need_simplify_data
-     * @return  boolean
-     */
-    public static function setSimplifyData($need_simplify_data)
-    {
-        return (self::$needSimplifyData = $need_simplify_data);
-    }
-
-    /**
-     * Gets whether it need to simplify data when outputing debug info.
-     * @return boolean
-     */
-    public static function getSimplifyData()
-    {
-        return self::$needSimplifyData;
+        return $param_mapping;
     }
 
 }

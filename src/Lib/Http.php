@@ -2,6 +2,8 @@
 
 namespace Ilex\Lib;
 
+use \Ilex\Lib\Debug;
+
 /**
  * @todo: method arg type validate
  * Class Http
@@ -30,16 +32,15 @@ final class Http
      */
     public static function json($data)
     {
-        echo(json_encode($data));
+        echo json_encode($data);
     }
 
     /**
-     * @uses ENVIRONMENT
      * @param string $url
      */
     public static function redirect($url)
     {
-        if ('TEST' !== ENVIRONMENT) {
+        if (TRUE === Debug::isProduction()) {
             header('Location: ' . $url);
         }
     }

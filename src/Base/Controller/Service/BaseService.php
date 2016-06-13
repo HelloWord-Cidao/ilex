@@ -38,8 +38,6 @@ abstract class BaseService extends BaseController
         $input            = $execution_record['input'];
         $handler_prefix   = $execution_record['handler_prefix'];
         $handler_suffix   = $execution_record['handler_suffix'];
-        if (TRUE === Debug::getSimplifyData())
-            $execution_record['input'] = array_keys($execution_record['input']);
         try {
             $config_model_name = $handler_prefix . 'Config';
             if (TRUE === is_null($this->$config_model_name))
@@ -59,22 +57,14 @@ abstract class BaseService extends BaseController
             // Now the validation passed.
             
             $execution_record['is_time_consuming'] = $is_time_consuming = $arg_list[0];
-            if (TRUE === $is_time_consuming) {
-                $this->succeed(
-                    NULL,
-                    'Request data received successfully, operation has started.',
-                    TRUE
-                );
-            }
+            if (TRUE === $is_time_consuming)
+                $this->succeed(NULL, 'Request data received successfully, operation has started.', TRUE);
 
             // Method sanitizeInput should load the config model and fetch the config info itself.
             $input_sanitization_result // a list
                 = $execution_record['input_sanitization_result']
                 = $this->$data_model_name->sanitizeInput(
                     $method_name, $input, $input_validation_result);
-            if (TRUE === Debug::getSimplifyData())
-                $execution_record['input_sanitization_result']
-                    = array_keys($execution_record['input_sanitization_result']);
             
             $core_model_name = $handler_prefix . 'Core';
             if (TRUE === is_null($this->$core_model_name))
@@ -109,11 +99,11 @@ abstract class BaseService extends BaseController
                 $operation_status
             );
             $execution_record['success'] = TRUE;
-            Debug::addToTraceStack($execution_record);
+            Debug::addExecutionRecord($execution_record);
             $this->succeed($computation_data, $operation_status);
         } catch (Exception $e) {
-            Debug::addToTraceStack($execution_record);
-            throw new UserException('Service execution failed.', $execution_record, $e);
+            Debug::addExecutionRecord($execution_record);
+            $this->fail(new UserException('Service execution failed.', $execution_record, $e));
         }
     }
 
@@ -145,12 +135,8 @@ abstract class BaseService extends BaseController
     final private function fail($exception)
     {
         $result = [ 'success' => FALSE ];
-        if ('TEST' === ENVIRONMENT) {
-            $result = array_merge($result, [
-                'trace'     => Debug::getTraceStack(),
-                'exception' => Debug::extractException($exception, TRUE, FALSE, TRUE),
-            ]);
-        }
+        if (FALSE === Debug::isProduction())
+            $result['exception'] = Debug::extractException($exception);
         $this->response($result, 200);
     }
 
@@ -177,8 +163,8 @@ abstract class BaseService extends BaseController
     final private function response($result, $status_code, $close_cgi_only = FALSE)
     {
         header('Content-Type : application/json', TRUE, $status_code);
-        // if ('TEST' === ENVIRONMENT)
-            $result['trace'] = Debug::getTraceStack();
+        if (FALSE === Debug::isProduction())
+            $result['trace'] = Debug::getExecutionRecordStack();
         Http::json($result);
         if (TRUE === $close_cgi_only) {
             fastcgi_finish_request();
