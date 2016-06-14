@@ -2,7 +2,7 @@
 
 namespace Ilex\Lib;
 
-use \Ilex\Lib\Debug;
+use \Ilex\Core\Debug;
 
 /**
  * @todo: method arg type validate

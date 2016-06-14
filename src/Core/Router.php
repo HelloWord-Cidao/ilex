@@ -4,6 +4,7 @@ namespace Ilex\Core;
 
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
+use \Ilex\Lib\UserException;
 
 /**
  * Class Router
@@ -31,7 +32,8 @@ use \Ilex\Lib\Kit;
  *
  * @method private              end(mixed $result)
  * @method private boolean      fitController(string $description, string $handler)
- * @method private boolean      fitGeneral(string $description, mixed $handler, string $function, boolean $is_time_consuming = FALSE)
+ * @method private boolean      fitGeneral(string $description, mixed $handler
+ *                                  , string|NULL $function = NULL, boolean $is_time_consuming = FALSE)
  * @method private array|string getFunction(string $uri)
  * @method private string       getPattern(string $description)
  * @method private              popUriList()
@@ -109,7 +111,8 @@ final class Router
                     Kit::log([__METHOD__, '$description IS NOT a prefix of $this->uri, CAN NOT FIT!']);
                     return;
                 }
-                Kit::log([__METHOD__, '$description IS a prefix of $this->uri', 'after resolveRestURI', ['this' => $this]]);
+                Kit::log([__METHOD__, '$description IS a prefix of $this->uri', 'after resolveRestURI',
+                    ['this' => $this]]);
                 /**
                  * eg. $this->uri     : '/join/whatever'
                  *     $this->uriList : ['/about/join/whatever']
@@ -216,13 +219,13 @@ final class Router
      * by choosing the appropriate handler,
      * and calling the appropriate method
      * if $description CAN fit $this->uri.
-     * @param string  $description eg. '/project/(num)', '/(num)', '/', '/user/(any)', '(all)'
-     * @param mixed   $handler     eg. 'Project',        $this,    an anonymous function
-     * @param string  $function    eg. 'view'
-     * @param boolean $is_time_consuming
+     * @param string      $description eg. '/project/(num)', '/(num)', '/', '/user/(any)', '(all)'
+     * @param mixed       $handler     eg. 'Project',        $this,    an anonymous function
+     * @param string|NULL $function    eg. 'view'
+     * @param boolean     $is_time_consuming
      * @return boolean
      */
-    private function fitGeneral($description, $handler, $function, $is_time_consuming = FALSE)
+    private function fitGeneral($description, $handler, $function = NULL, $is_time_consuming = FALSE)
     {
         Kit::log([__METHOD__, [
             'description'       => $description,
@@ -260,15 +263,19 @@ final class Router
             }
             if (TRUE === is_string($handler) OR FALSE === ($handler instanceof \Closure)) {
             // $handler is a string or IS NOT an anonymous function, i.e., an instance.
-                Kit::log([__METHOD__, '$handler is a string or IS NOT an anonymous function, i.e., an instance.'], FALSE);
+                Kit::log([__METHOD__, '$handler is a string or IS NOT an anonymous function, i.e.
+                    , an instance.'], FALSE);
                 Kit::log([__METHOD__, 'call end', [
                     'function' => $function,
                     'handler'  => TRUE === is_string($handler) ? Loader::controller($handler) : $handler,
                     'arg_list' => [ $is_time_consuming ],
                 ]]);
+                if (FALSE === is_string($function))
+                    throw new UserException('$function is not a string.', $function);
                 $this->end(
                     call_user_func_array([
-                        TRUE === is_string($handler) ? Loader::controller($handler) : $handler, // The controller is loaded HERE!
+                        // The controller is loaded HERE!
+                        TRUE === is_string($handler) ? Loader::controller($handler) : $handler,
                         $function
                     ], [ $is_time_consuming ])
                 );

@@ -5,8 +5,8 @@ namespace Ilex\Base\Model\Feature;
 use \Exception;
 use \ReflectionClass;
 use \ReflectionMethod;
+use \Ilex\Core\Debug;
 use \Ilex\Core\Loader;
-use \Ilex\Lib\Debug;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\BaseModel;
@@ -48,19 +48,21 @@ abstract class BaseFeature extends BaseModel
 
     final private function execute($method_name, $arg_list, $call_parent = FALSE)
     {
-        $execution_record     = self::prepareExecutionRecord($method_name, $arg_list, $call_parent);
-        $class_name           = $execution_record['class'];
-        $declaring_class_name = $execution_record['declaring_class'];
-        $method_accessibility = $execution_record['method_accessibility'];
-        $handler_prefix       = $execution_record['handler_prefix'];
-        $handler_suffix       = $execution_record['handler_suffix'];
-        $execution_id         = Debug::addExecutionRecord($execution_record);
-        Debug::pushExecutionId($execution_id);
-        if (($count = Debug::countExecutionRecord()) > 3000)
-            throw new UserException('Abnormal execution record count.', $count);
-        if (FALSE === $method_accessibility) 
-            throw new UserException('Method is not accessible.', $execution_record);
         try {
+            $execution_record     = self::prepareExecutionRecord($method_name, $arg_list, $call_parent);
+            $class_name           = $execution_record['class'];
+            $declaring_class_name = $execution_record['declaring_class'];
+            $method_accessibility = $execution_record['method_accessibility'];
+            $handler_prefix       = $execution_record['handler_prefix'];
+            $handler_suffix       = $execution_record['handler_suffix'];
+            $execution_id         = Debug::addExecutionRecord($execution_record);
+            Debug::pushExecutionId($execution_id);
+            
+            if (($count = Debug::countExecutionRecord()) > 3000000)
+                throw new UserException('Abnormal execution record count.', $count);
+            if (FALSE === $method_accessibility) 
+                throw new UserException("Method($method_name) is not accessible.", $execution_record);
+
             $config_model_name = $handler_prefix . 'Config';
             if (TRUE === is_null($this->$config_model_name))
                 throw new UserException("Config model($config_model_name) not loaded.");
@@ -102,19 +104,22 @@ abstract class BaseFeature extends BaseModel
                 = $this->$data_model_name->sanitizeResult(
                     $method_name, $result, $result_validation_result, $handler_suffix);
             $execution_record['success'] = TRUE;
-        } catch (Exception $e) {
-            throw new UserException('Feature execution failed.', $execution_record, $e);
-        } finally {
             Debug::updateExecutionRecord($execution_id, $execution_record);
             Debug::popExecutionId($execution_id);
+            return $result;
+        } catch (Exception $e) {
+            Debug::updateExecutionRecord($execution_id, $execution_record);
+            Debug::popExecutionId($execution_id);
+            throw new UserException('Feature execution failed.', $execution_record, $e);
         }
-        return $result;
     }
 
     final private function prepareExecutionRecord($method_name, $arg_list, $call_parent)
     {        
         if (TRUE === $call_parent) {
-            $backtrace          = debug_backtrace();
+            // @TODO: check it!
+            // $backtrace          = Kit::columns(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10),
+            //     [ 'class' ], TRUE);
             $current_class_name = get_class();
             foreach ($backtrace as $record) {
                 if (TRUE === is_null($record['class']) OR $current_class_name === $record['class'])
@@ -180,7 +185,8 @@ abstract class BaseFeature extends BaseModel
 
     final private function getInitiatorNameAndType($method_name, $declaring_class)
     {
-        $backtrace          = debug_backtrace();
+        $backtrace          = Kit::columns(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10),
+            [ 'class', 'function' ], TRUE);
         $current_class_name = get_class();
         $initiator_name     = NULL;
         foreach ($backtrace as $record) {

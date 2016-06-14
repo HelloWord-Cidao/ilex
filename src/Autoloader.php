@@ -3,6 +3,7 @@
 namespace Ilex;
 
 use \Ilex\Core\Constant;
+use \Ilex\Core\Debug;
 use \Ilex\Core\Loader;
 use \Ilex\Core\Router;
 use \Ilex\Lib\Kit;
@@ -63,5 +64,6 @@ final class Autoloader
          */
         Loader::initialize($ILEXPATH, $APPPATH, $RUNTIMEPATH, $APPNAME);
         Constant::initialize();
+        Debug::initialize();
     }
 }

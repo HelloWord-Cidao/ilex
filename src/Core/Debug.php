@@ -1,6 +1,6 @@
 <?php
 
-namespace Ilex\Lib;
+namespace Ilex\Core;
 
 use \Exception;
 use \ReflectionFunction;
@@ -13,50 +13,70 @@ use \Ilex\Lib\UserException;
  * @todo: method arg type validate
  * Class Debug
  * A class handling debug operations.
- * @package Ilex\Lib
+ * @package Ilex\Core
  *
+ * @property private static array  $config
  * @property private static string $environment
  * @property private static array  $executionIdStack
  * @property private static array  $executionRecordStack
  * @property private static int    $flag
  * 
  * @method public static int      addExecutionRecord(mixed $execution_record)
- * @method public static int      clear()
  * @method public static int      countExecutionRecord()
  * @method public static array    extractException(Exception $exception)
  * @method public static array    getExecutionRecordStack()
+ * @method public static          initialize()
  * @method public static int      popExecutionId(int $execution_id)
  * @method public static          pushExecutionId(int $execution_id)
- * @method public static int|NULL peekExecutionId()
  * @method public static          updateExecutionRecord(int $execution_id, array $execution_record)
  *
- * @method private static array recoverBacktraceParameters(array $backtrace)
- * @method private static array recoverFunctionParameters(string|NULL $class_name
- *                                      , string|Closure $function_name, array $arg_list)
- * @method private static array extractInitiator(array $trace)
+ * @method private static int|NULL peekExecutionId()
+ * @method private static array    recoverBacktraceParameters(array $backtrace)
+ * @method private static array    recoverFunctionParameters(string|NULL $class_name
+ *                                         , string|Closure $function_name, array $arg_list)
+ * @method private static array    extractInitiator(array $trace)
  */
 final class Debug
 {
-    const D_ALL  = 1023;
-    const D_NONE = 0;
+    const D_NONE        = 0;
+    const D_E_DETAIL    = 1;
+    const D_E_INITIATOR = 2;
+    const D_E_FILE      = 4;
+    const D_E_ALL       = 1023;
 
     const E_DEVELOPMENT = 'DEVELOPMENT';
     const E_PRODUCTION  = 'PRODUCTION';
     const E_TEST        = 'TEST';
 
-    private static $flag                 = 0;
-    private static $executionIdStack     = [];
-    private static $executionRecordStack = [];
+    private static $config               = NULL;
     private static $environment          = self::E_PRODUCTION;
+    public static $executionIdStack     = [ ];
+    private static $executionRecordStack = [ ];
 
-    public static function setDisplay($flag)
+    /**
+     * Clears the execution record stack.
+     */
+    public static function initialize()
     {
-        self::$flag = $flag;
-    }
-
-    public static function checkDisplay($flag)
-    {
-        return (self::$flag & $flag) === $flag;
+        $Input = Loader::model('System/Input');
+        self::$config = [
+            'trace' => [
+                '@-1'  => self::D_NONE,
+            ],
+            'exception' => [
+                '@-1'  => self::D_NONE,
+            ],
+        ];
+        $config = $Input->input('Debug', NULL);
+        if (TRUE === is_array($config)) {
+            if (TRUE === isset($config['trace']))
+                self::$config['trace'] = array_merge(self::$config['trace'], $config['trace']);
+            if (TRUE === isset($config['exception']))
+                self::$config['exception'] = array_merge(self::$config['exception'], $config['exception']);
+        }
+        $Input->deleteInput('Debug');
+        self::$executionIdStack     = [];
+        self::$executionRecordStack = [];
     }
 
     public static function setEnvironmentToDevelopment()
@@ -89,13 +109,17 @@ final class Debug
         return self::$environment === self::E_TEST;
     }
 
-    /**
-     * Clears the execution record stack.
-     */
-    public static function clear()
+    // private static function checkTraceDisplay($index, $flag)
+    // {
+    //     return ($flag & $offset) === $offset;
+    // }
+
+    private static function checkExceptionDisplay($index, $flag)
     {
-        self::$executionIdStack = [];
-        self::$executionRecordStack = [];
+        if (TRUE === isset(self::$config['exception']["@$index"]))
+            $exception_flag = self::$config['exception']["@$index"];
+        else $exception_flag = self::$config['exception']["@-1"];
+        return ($flag & $exception_flag) === $flag;
     }
 
     /**
@@ -126,7 +150,7 @@ final class Debug
      * Peeks the top execution id of the stack.
      * @return int|NULL $execution_id
      */
-    public static function peekExecutionId()
+    private static function peekExecutionId()
     {
         if (0 === count(self::$executionIdStack)) {
             // throw new UserException('$executionIdStack is empty.', 1);
@@ -157,15 +181,16 @@ final class Debug
             }
             $execution_record['params'] = $param_list;
         }
-        $execution_id = self::peekExecutionId();
-        if (TRUE === is_null($execution_id)) {
-            $execution_record['execution_id'] = -1;
-            $execution_record['indent']       = '';
+        $parent_execution_id = self::peekExecutionId();
+        if (TRUE === is_null($parent_execution_id)) {
+            $execution_record['parent_execution_id'] = -1;
+            $execution_record['indent']              = '';
         } else {
-            $indent = self::$executionRecordStack[$execution_id]['indent'];
-            $execution_record['execution_id'] = $execution_id;
-            $execution_record['indent']       = $indent . ' ';
+            $indent = self::$executionRecordStack[$parent_execution_id]['indent'];
+            $execution_record['parent_execution_id'] = $parent_execution_id;
+            $execution_record['indent']              = $indent . ' ';
         }
+        // $execution_record = self::simplifyExecutionRecord($execution_record);
         self::$executionRecordStack[] = $execution_record;
         return self::countExecutionRecord() - 1;
     }
@@ -179,9 +204,22 @@ final class Debug
     {
         if ($execution_id >= count(self::$executionRecordStack))
             throw new UserException("\$execution_id($execution_id) overflows \$executionRecordStack.");
+        // $execution_record = self::simplifyExecutionRecord($execution_record);
         self::$executionRecordStack[$execution_id] = array_merge(
             self::$executionRecordStack[$execution_id], $execution_record);
     }
+
+    // private static function simplifyExecutionRecord($execution_record)
+    // {
+    //     return [
+    //         'indent'              => $execution_record['indent'],
+    //         'parent_execution_id' => $execution_record['parent_execution_id'],
+    //         'success'             => $execution_record['success'],
+    //         'handler_prefix'      => $execution_record['handler_prefix'],
+    //         'handler_suffix'      => $execution_record['handler_suffix'],
+    //         'method'              => $execution_record['method'],
+    //     ];
+    // }
 
     /**
      * Counts the execution record stack.
@@ -204,7 +242,7 @@ final class Debug
             $result[$index] = sprintf('%s%02d.(%02d) (%s) %10s %10s :: %s',
                 $result[$index]['indent'],
                 $index,
-                $result[$index]['execution_id'],
+                $result[$index]['parent_execution_id'],
                 (TRUE === $result[$index]['success']) ? 'ok' : 'error',
                 // $result[$index]['class'],
                 $result[$index]['handler_prefix'],
@@ -213,10 +251,12 @@ final class Debug
             );
             $index++;
         }
-        // $result = array_merge([ $result[0] ], array_slice($result, 6));
-        // 'success'
+        // $result = array_slice($result, 0, 10);
+            // 'parent_execution_id'
+            // 'indent'
+            // 'success'
         // 'class'
-        // 'method'
+            // 'method'
 
         // 'input'
         // 'input_validation_result'
@@ -231,8 +271,8 @@ final class Debug
         // 'declaring_class'
         // 'initiator_class'
         // 'initiator_type'
-        // 'handler_prefix'
-        // 'handler_suffix'
+            // 'handler_prefix'
+            // 'handler_suffix'
 
         // 'result'
         // 'result_validation_result'
@@ -266,25 +306,42 @@ final class Debug
             } catch (Exception $e) {
                 $handler = $result[$index]['class'];
             }
-            $result[$index] = sprintf('%d. %s :: %s (%d) -> [%s]', 
-                $index,
-                $handler,
-                $result[$index]['function'],
-                $result[$index]['line'],
-                $result[$index]['message']
-            );
+            $tmp = [
+                'msg' => sprintf('%d. %s :: %s (%d) -> [%s]', 
+                    $index,
+                    $handler,
+                    $result[$index]['function'],
+                    $result[$index]['line'],
+                    $result[$index]['message']
+                ),
+            ];
+            if (TRUE === self::checkExceptionDisplay($index, self::D_E_DETAIL)) {
+                if (TRUE === isset($result[$index]['detail']))
+                    $tmp['detail'] = $result[$index]['detail'];
+                else $tmp['detail'] = NULL;
+            }
+            if (TRUE === self::checkExceptionDisplay($index, self::D_E_INITIATOR)) {
+                $tmp['initiator'] = sprintf('%s :: %s',
+                    $result[$index]['initiator_class'], $result[$index]['initiator_function']);
+            }
+            if (TRUE === self::checkExceptionDisplay($index, self::D_E_FILE)) {
+                $tmp['file'] = $result[$index]['file'];
+            }
+            if (1 === count($tmp))
+                $result[$index] = $tmp['msg'];
+            else $result[$index] = $tmp;
             $index++;
         }
-        // message
-        // file
-        // line
-        // class
-        // function
+            // message
+            // file
+            // line
+            // class
+            // function
         // params
         // initiator_class
         // initiator_function
         // trace
-        // detail
+            // detail
         return $result;
     }
 
@@ -300,7 +357,7 @@ final class Debug
             'file'    => $exception->getFile(),
             'line'    => $exception->getLine(),
             'trace'   => Kit::columns(
-                self::recoverBacktraceParameters($exception->getTrace()),
+                self::recoverBacktraceParameters(array_slice($exception->getTrace(), 0, 4)),
                 [ 'line', 'class', 'function', 'params' ], TRUE
             ),
         ];

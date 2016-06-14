@@ -13,7 +13,7 @@ require_once(__DIR__ . '/ValidatorTester.php');
 
 use \Exception;
 use \Ilex\Tester;
-use \Ilex\Lib\Debug;
+use \Ilex\Core\Debug;
 use \Ilex\Lib\Kit;
 use \Ilex\Test\RouterTester as RT;
 use \Ilex\Test\ValidatorTester as VT;
