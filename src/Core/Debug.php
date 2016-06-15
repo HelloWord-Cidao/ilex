@@ -38,11 +38,15 @@ use \Ilex\Lib\UserException;
  */
 final class Debug
 {
-    const D_NONE        = 0;
-    const D_E_DETAIL    = 1;
-    const D_E_INITIATOR = 2;
-    const D_E_FILE      = 4;
-    const D_E_ALL       = 1023;
+    const D_NONE          = 0;
+    const D_E_DETAIL      = 1;
+    const D_E_DETAIL_ARGS = 2;
+    const D_E_DETAIL_MORE = 4;
+    const D_E_INITIATOR   = 8;
+    const D_E_TRACE       = 16;
+    const D_E_TRACE_ARGS  = 32;
+    const D_E_FILE        = 64;
+    const D_E_ALL         = 1023;
 
     const E_DEVELOPMENT = 'DEVELOPMENT';
     const E_PRODUCTION  = 'PRODUCTION';
@@ -307,22 +311,49 @@ final class Debug
                 $handler = $result[$index]['class'];
             }
             $tmp = [
-                'msg' => sprintf('%d. %s :: %s (%d) -> [%s]', 
+                'msg' => sprintf('%d. %s %s %s (%d) ==> [%s]', 
                     $index,
                     $handler,
+                    $result[$index]['type'],
                     $result[$index]['function'],
                     $result[$index]['line'],
                     $result[$index]['message']
                 ),
             ];
             if (TRUE === self::checkExceptionDisplay($index, self::D_E_DETAIL)) {
-                if (TRUE === isset($result[$index]['detail']))
+                if (TRUE === isset($result[$index]['detail'])) {
                     $tmp['detail'] = $result[$index]['detail'];
+                    if (FALSE === self::checkExceptionDisplay($index, self::D_E_DETAIL_MORE)) {
+                        $tmp['detail'] = Kit::extract($tmp['detail'], [
+                            'class',
+                            'method',
+                            'args',
+                            'args_sanitization_result',
+                            'declaring_class',
+                        ], TRUE);
+                        if (FALSE === is_null($tmp['detail']['class'])
+                            AND FALSE === is_null($tmp['detail']['method'])) {
+                            $tmp['detail']['handler'] = sprintf('        %s :: %s',
+                                $tmp['detail']['class'], $tmp['detail']['method']);
+                            unset($tmp['detail']['class']);
+                            unset($tmp['detail']['method']);
+                        }
+                    }
+                    if (FALSE === self::checkExceptionDisplay($index, self::D_E_DETAIL_ARGS)) {
+                        unset($tmp['detail']['args']);
+                        unset($tmp['detail']['args_sanitization_result']);
+                    }
+                }
                 else $tmp['detail'] = NULL;
             }
             if (TRUE === self::checkExceptionDisplay($index, self::D_E_INITIATOR)) {
                 $tmp['initiator'] = sprintf('%s :: %s',
                     $result[$index]['initiator_class'], $result[$index]['initiator_function']);
+            }
+            if (TRUE === self::checkExceptionDisplay($index, self::D_E_TRACE)) {
+                if (TRUE === self::checkExceptionDisplay($index, self::D_E_TRACE_ARGS))
+                    $tmp['trace'] = $result[$index]['trace'];
+                else $tmp['trace'] = Kit::columnsExclude($result[$index]['trace'], [ 'params', 'args' ]);
             }
             if (TRUE === self::checkExceptionDisplay($index, self::D_E_FILE)) {
                 $tmp['file'] = $result[$index]['file'];
@@ -340,7 +371,7 @@ final class Debug
         // params
         // initiator_class
         // initiator_function
-        // trace
+            // trace
             // detail
         return $result;
     }
@@ -356,15 +387,14 @@ final class Debug
             'message' => $exception->getMessage(),
             'file'    => $exception->getFile(),
             'line'    => $exception->getLine(),
-            'trace'   => Kit::columns(
-                self::recoverBacktraceParameters(array_slice($exception->getTrace(), 0, 4)),
-                [ 'line', 'class', 'function', 'params' ], TRUE
-            ),
+            'trace'   => Kit::columnsExclude(
+                self::recoverBacktraceParameters($exception->getTrace()), 'args', TRUE),
         ];
         // add fields: 'initiator_class', 'initiator_function'
         $result += self::extractInitiator($result['trace']);
-        // add fields: 'class', 'function', 'params'
+        // add fields: 'class', 'type', 'function', 'params'
         $result += $result['trace'][0];
+        $result['trace'] = self::polishTrace($result['trace']);
 
         if (FALSE === (FALSE === ($exception instanceof UserException) 
             OR (TRUE === ($exception instanceof UserException)
@@ -375,40 +405,17 @@ final class Debug
         if (FALSE === is_null($exception->getPrevious()))
             $result['previous'] = self::extractExceptionIteratively($exception->getPrevious());
         return $result;
-    }
-
-    /**
-     * Extracts initiator info from a trace.
-     * @param array $trace
-     * @return array
-     */
-    private static function extractInitiator($trace)
-    {
-        if (count($trace) <= 1) $index = NULL;
-        else {
-            // @todo: add comment to this
-            if (TRUE === in_array($trace[0]['function'], [
-                '__call', 'call', 'callParent', 'execute'
-            ])) {
-                if ($trace[0]['args'][0] !== $trace[1]['function']) $index = 1;
-                else {
-                    if (count($trace) <= 2) $index = NULL;
-                    else $index = 2;
-                }
-            } elseif (TRUE === in_array($trace[1]['function'], [
-                'call_user_func_array',
-                'call_user_method_array',
-                'call_user_func',
-                'call_user_method'
-            ])) {
-                if (count($trace) <= 2) $index = NULL;
-                else $index = 2;
-            } else $index = 1;
-        }
-        return [
-            'initiator_class'    => TRUE === is_null($index) ? NULL : $trace[$index]['class'],
-            'initiator_function' => TRUE === is_null($index) ? NULL : $trace[$index]['function'],
-        ];
+        // 'message'
+        // 'detail'
+        // 'file'
+        // 'line'
+        // 'class'
+        // 'function'
+        // 'params'
+        // 'initiator_class'
+        // 'initiator_function'
+        // 'trace'
+        // 'previous'
     }
     
     /**
@@ -482,6 +489,65 @@ final class Debug
             else $param_mapping[$param_name] = $arg_list[$position];
         }
         return $param_mapping;
+    }
+
+    /**
+     * Extracts initiator info from a trace.
+     * @param array $trace
+     * @return array
+     */
+    private static function extractInitiator($trace)
+    {
+        if (count($trace) <= 1) $index = NULL;
+        else {
+            // @todo: add comment to this
+            if (TRUE === in_array($trace[0]['function'], [
+                '__call', 'call', 'callParent', 'execute'
+            ])) {
+                if ($trace[0]['args'][0] !== $trace[1]['function']) $index = 1;
+                else {
+                    if (count($trace) <= 2) $index = NULL;
+                    else $index = 2;
+                }
+            } elseif (TRUE === in_array($trace[1]['function'], [
+                'call_user_func_array',
+                'call_user_method_array',
+                'call_user_func',
+                'call_user_method'
+            ])) {
+                if (count($trace) <= 2) $index = NULL;
+                else $index = 2;
+            } else $index = 1;
+        }
+        return [
+            'initiator_class'    => TRUE === is_null($index) ? NULL : $trace[$index]['class'],
+            'initiator_function' => TRUE === is_null($index) ? NULL : $trace[$index]['function'],
+        ];
+    }
+
+    /**
+     * Polishs a trace by combining useful fields.
+     * @param array $trace
+     * @return array
+     */
+    private static function polishTrace($trace)
+    {
+        $result = [];
+        foreach ($trace as $index => $record) {
+            $record['index'] = count($trace) - $index - 1;
+            if (TRUE === isset($record['file'])) {
+                $record['initiator'] = sprintf('%s (%d)', $record['file'], $record['line']);
+                $record = Kit::exclude($record, [ 'file', 'line' ]);
+            }
+            if (TRUE === isset($record['class'])) {
+                $record['handler'] = sprintf('%s %s ', $record['class'], $record['type']);
+                $record = Kit::exclude($record, [ 'class', 'type' ]);
+            } else $record['handler'] = '';
+            $record['handler'] .= $record['function'];
+            unset($record['function']);
+            $result[] = $record;
+        }
+        return $result;
     }
 
 }

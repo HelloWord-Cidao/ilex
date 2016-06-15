@@ -53,6 +53,9 @@ final class Input extends BaseModel
         if (TRUE === is_null($data) AND strlen($input) > 0)
             throw new UserException(json_last_error_msg(), $input);
         if (FALSE === is_null($data)) self::merge('post', $data);
+        $limit = 100000;
+        if (strlen(json_encode(self::input())) > $limit) 
+            throw new UserException("Input size exceeds limit($limit).");
         self::deleteInput('_url');
     }
 

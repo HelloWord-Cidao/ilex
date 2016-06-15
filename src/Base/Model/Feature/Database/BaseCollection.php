@@ -20,19 +20,14 @@ abstract class BaseCollection extends MongoDBCollection
             'countAll',
             'getTheOnlyOneIdBySignature',
             'getTheOnlyOneId',
+            'addOneAndGetId',
+            'addToSetById',
             // 'getTheOnlyOneContent',
             // 'getTheOnlyOneData',
             // 'getTheOnlyOneInfo',
             // 'getTheOnlyOneMeta',
         ],
     ];
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->loadModel('Config/BaseConfig');
-        $this->loadModel('Data/BaseData');
-    }
 
     final protected function checkExistsSignature($signature)
     {
@@ -59,6 +54,24 @@ abstract class BaseCollection extends MongoDBCollection
     {
         $document = $this->call('getTheOnlyOne', $criterion);
         return $document['_id'];
+    }
+
+    final protected function addOneAndGetId($content, $meta)
+    {
+        return $this->call('addOne', $content, $meta)['_id'];
+    }
+
+    final protected function addToSetById($_id, $path_of_set, $element)
+    {
+        $criterion = [
+            '_id' => $_id,
+        ];
+        $update = [
+            '$addToSet' => [
+                $path_of_set => $element,
+            ],
+        ];
+        return $this->call('updateOne', $criterion, $update);
     }
     
     // final protected function getTheOnlyOneContent($criterion)

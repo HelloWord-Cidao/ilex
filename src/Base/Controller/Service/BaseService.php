@@ -36,6 +36,7 @@ abstract class BaseService extends BaseController
     {
         try {
             $execution_record = self::prepareExecutionRecord($method_name, $arg_list);
+            $class_name       = $execution_record['class'];
             $input            = $execution_record['input'];
             $handler_prefix   = $execution_record['handler_prefix'];
             $handler_suffix   = $execution_record['handler_suffix'];
@@ -43,14 +44,14 @@ abstract class BaseService extends BaseController
             Debug::pushExecutionId($execution_id);
             $config_model_name = $handler_prefix . 'Config';
             if (TRUE === is_null($this->$config_model_name))
-                throw new UserException("Config model($config_model_name) not loaded.");
+                throw new UserException("Config model($config_model_name) not loaded in $class_name.");
             // Method validateFeaturePrivilege should throw exception if the validation fails.
             $execution_record['feature_privilege_validation_result']
                 = $this->$config_model_name->validateFeaturePrivilege($method_name, $handler_suffix);
 
             $data_model_name = $handler_prefix . 'Data';
             if (TRUE === is_null($this->$data_model_name))
-                throw new UserException("Data model($data_model_name) not loaded.");
+                throw new UserException("Data model($data_model_name) not loaded in $class_name.");
             // Method validateInput should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
             $input_validation_result
@@ -70,7 +71,7 @@ abstract class BaseService extends BaseController
             
             $core_model_name = $handler_prefix . 'Core';
             if (TRUE === is_null($this->$core_model_name))
-                throw new UserException("Core model($core_model_name) not loaded.");
+                throw new UserException("Core model($core_model_name) not loaded in $class_name.");
             $service_result
                 = $execution_record['service_result']
                 = $this->$core_model_name->$method_name($input_sanitization_result);

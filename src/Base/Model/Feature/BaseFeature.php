@@ -61,19 +61,26 @@ abstract class BaseFeature extends BaseModel
             if (($count = Debug::countExecutionRecord()) > 3000000)
                 throw new UserException('Abnormal execution record count.', $count);
             if (FALSE === $method_accessibility) 
-                throw new UserException("Method($method_name) is not accessible.", $execution_record);
+                throw new UserException(
+                    "Handler($declaring_class_name :: $method_name) is not accessible.", $execution_record);
 
             $config_model_name = $handler_prefix . 'Config';
-            if (TRUE === is_null($this->$config_model_name))
-                throw new UserException("Config model($config_model_name) not loaded.");
+            if (TRUE === is_null($this->$config_model_name)) {
+                $path = Loader::convertFeaturePathToPathOfAnotherType($declaring_class_name, 'Config');
+                $this->loadModel($path);
+                // throw new UserException("Config model($config_model_name) not loaded in $class_name.");
+            }
                 
             // Method validateFeaturePrivilege should throw exception if the validation fails.
             $execution_record['feature_privilege_validation_result']
                 = $this->$config_model_name->validateFeaturePrivilege($method_name, $handler_suffix);
 
             $data_model_name = $handler_prefix . 'Data';
-            if (TRUE === is_null($this->$data_model_name))
-                throw new UserException("Data model($data_model_name) not loaded.");
+            if (TRUE === is_null($this->$data_model_name)) {
+                $path = Loader::convertFeaturePathToPathOfAnotherType($declaring_class_name, 'Data');
+                $this->loadModel($path);
+                // throw new UserException("Data model($data_model_name) not loaded in $class_name.");
+            }
             // Method validateArgs should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
             $args_validation_result

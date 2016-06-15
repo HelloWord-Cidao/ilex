@@ -22,6 +22,8 @@ use \Ilex\Lib\UserException;
  * @method public static string   RUNTIMEPATH()
  * @method public static object   controller(string $path, array $arg_list = []
  *                                    , boolean $with_instantiate = TRUE)
+ * @method public static string   convertFeaturePathToPathOfAnotherType(string $feature_path
+ *                                    , string $type, string $delimiter = '\\')
  * @method public static MongoDB  db()
  * @method public static string   getHandlerFromPath(string $path, string $delimiter = '/')
  * @method public static string   getHandlerPrefixFromPath(string $path, array $more_suffix_list = []
@@ -119,6 +121,37 @@ final class Loader
     }
 
     /**
+     * @param string $path
+     * @return boolean
+     */
+    public static function isControllerLoaded($path)
+    {
+        return self::isLoaded($path, 'Controller');
+    }
+
+    /**
+     * @param string $path
+     * @return boolean
+     */
+    public static function isModelLoaded($path)
+    {
+        return self::isLoaded($path, 'Model');
+    }
+
+    /**
+     * @param string $path
+     * @param string $type
+     * @return boolean
+     */
+    private static function isLoaded($path, $type)
+    {
+        if (FALSE === in_array($type, [ 'Controller', 'Model' ]))
+            throw new UserException("Invalid \$type($type).");
+        $instance_container = self::get($type);
+        return $instance_container->has($path);
+    }
+
+    /**
      * @param string  $path
      * @param array   $arg_list
      * @param boolean $with_instantiate
@@ -163,9 +196,7 @@ final class Loader
             } catch (Exception $e) {
                 throw new UserException(ucfirst($type) . " $path not found.", NULL, $e);
             }
-            if (TRUE === $with_instantiate)
-                $instance = self::createInstance($class_name, $arg_list);
-            else $instance = TRUE;
+            $instance = self::createInstance($class_name, $arg_list, $with_instantiate);
             return self::setSet($type, $path, $instance);
         }
     }
@@ -205,23 +236,24 @@ final class Loader
     }
 
     /**
-     * @param string $class_name
-     * @param array  $arg_list
+     * @param string  $class_name
+     * @param array   $arg_list
+     * @param boolean $with_instantiate
      * @return object
      */
-    private static function createInstance($class_name, $arg_list)
+    private static function createInstance($class_name, $arg_list, $with_instantiate = TRUE)
     {
         $reflection_class = new ReflectionClass($class_name);
-        // if (TRUE === $with_instantiate)
+        if (TRUE === $with_instantiate)
             return $reflection_class->newInstanceArgs($arg_list);
-        // else return $reflection_class->newInstanceWithoutConstructor();
+        else return $reflection_class->newInstanceWithoutConstructor();
     }
 
     /**
      * Extracts handler prefix name from path.
-     * eg. 'Service/AdminServiceController' => 'Admin'
+     * eg. 'Service/AdminServiceController'           => 'Admin'
      * eg. 'Database/Content/ResourceCollectionModel' => 'Resource'
-     * eg. 'Database/LogCollection' => 'Log'
+     * eg. 'Database/LogCollection'                   => 'Log'
      * @param string $path
      * @param array  $more_suffix_list
      * @param string $delimiter
@@ -247,9 +279,9 @@ final class Loader
 
     /**
      * Extracts handler suffix name from path.
-     * eg. 'Service/AdminServiceController' => 'Service'
+     * eg. 'Service/AdminServiceController'           => 'Service'
      * eg. 'Database/Content/ResourceCollectionModel' => 'Collection'
-     * eg. 'Database/LogCollection' => 'Collection'
+     * eg. 'Database/LogCollection'                   => 'Collection'
      * @param string $path
      * @param array  $more_suffix_list
      * @param string $delimiter
@@ -273,7 +305,7 @@ final class Loader
 
     /**
      * Extracts handler name from path.
-     * eg. 'System/Input' => 'Input'
+     * eg. 'Database/Content/ResourceCollectionModel' => 'ResourceCollectionModel'
      * @param string $path
      * @param string $delimiter
      * @return string
@@ -285,34 +317,35 @@ final class Loader
     }
 
     /**
-     * @param string $path
-     * @return boolean
+     * Converts a path of feature model to path of another type of model which can be passed to self::load.
+     * eg. 'Ilex\\Base\\Model\\Feature\\Core\\Content\\ContentCore' => 'Config/Content/ContentConfig'
+     * @param string $feature_path
+     * @param string $type         in [ 'Config', 'Data']
+     * @param string $delimiter
+     * @return string
      */
-    public static function isControllerLoaded($path)
+    public static function convertFeaturePathToPathOfAnotherType($feature_path, $type, $delimiter = '\\')
     {
-        return self::isLoaded($path, 'Controller');
-    }
-
-    /**
-     * @param string $path
-     * @return boolean
-     */
-    public static function isModelLoaded($path)
-    {
-        return self::isLoaded($path, 'Model');
-    }
-
-    /**
-     * @param string $path
-     * @param string $type
-     * @return boolean
-     */
-    private static function isLoaded($path, $type)
-    {
-        if (FALSE === in_array($type, [ 'Controller', 'Model' ]))
-            throw new UserException("Invalid \$type($type).");
-        $instance_container = self::get($type);
-        return $instance_container->has($path);
+        $word_list = explode($delimiter, $feature_path);
+        while (count($word_list) > 0 AND 'Feature' !== $word_list[0]) {
+            $word_list = array_slice($word_list, 1);
+        }
+        $word_list        = array_slice($word_list, 1); // [ 'Core', 'Content', 'ContentCore' ]
+        $handler_suffix   = $word_list[0]; // 'Core'
+        $word_list[0]     = $type; // [ 'Config', 'Content', 'ContentCore' ]
+        $last_word        = Kit::last($word_list); // 'ContentCore'
+        $last_word_suffix = Kit::last(Kit::separateTitleWords($last_word));
+        array_pop($word_list); // [ 'Config', 'Content' ]
+        if ('Database' === $handler_suffix) {
+            if (FALSE === in_array($last_word_suffix, [ 'Collection' ]))
+                throw new UserException("Suffix($handler_suffix) does not match name($last_word)");
+        } else {
+            if ($last_word_suffix !== $handler_suffix)
+                throw new UserException("Suffix($handler_suffix) does not match name($last_word)");
+        }
+        $word_list[] = substr($last_word, 0, strlen($last_word) - strlen($last_word_suffix)) . $type;
+        // [ 'Config', 'Content', 'Config' ]
+        return join('/', $word_list); // 'Config/Content/ContentConfig'
     }
 
     /**

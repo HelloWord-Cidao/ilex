@@ -15,6 +15,12 @@ use \Ilex\Lib\Validator;
  * @method public static array      columns(array $matrix, array|mixed $column_name_list
  *                                      , boolean $set_default = FALSE, mixed $default = NULL
  *                                      , boolean $return_only_values = FALSE)
+ * @mehtod public static array      columnsExclude(array $matrix, array $column_name_list
+ *                                      , boolean $check_existence = FALSE)
+ * @method public static array      exclude(array $array, array $field_name_list
+ *                                      , boolean $check_existence = FALSE)
+ * @method public static array      extract(array $array, array $field_name_list
+ *                                      , boolean $set_default = FALSE, mixed $default = NULL)
  * @method public static string     getRealPath(string $path)
  * @method public static string     j(mixed $data)
  * @method public static mixed|NULL last(array $array, int $offset = 1)
@@ -123,6 +129,23 @@ final class Kit
     public static function columns($matrix, $column_name_list, $set_default = FALSE
         , $default = NULL, $return_only_values = FALSE)
     {
+        if (FALSE === is_array($column_name_list))
+            $column_name_list = [ $column_name_list ];
+        $result = [];
+        foreach ($matrix as $raw_row) {
+            $row = self::extract($raw_row, $column_name_list, $set_default, $default);
+            if (TRUE === $return_only_values) {
+                if (1 === count($column_name_list)) {
+                    $row = $row[0];
+                } else {
+                    $msg  = 'Can not return only values, '
+                        . 'because the length of $column_name_list is not 1.';
+                    throw new UserException($msg, $column_name_list);
+                }
+            }
+            $result[] = $row;
+        }
+        return $result;
         // $expected_types = [list, str, unicode, int, float, bool]
         // if type(column_name_list) not in expected_types :
             // raise UserTypeError('column_name_list', column_name_list, expected_types)
@@ -141,31 +164,71 @@ final class Kit
         //             % j(column_name_list))
         //     result = [_.values()[0] for _ in result]
         // return result
+    }
+
+    /**
+     * Extracts columns in a matrix by excluding specific fields.
+     * @param array       $matrix
+     * @param array|mixed $column_name_list a list of column names or a column name
+     * @param boolean     $check_existence  whether it will check the existence of the to-be-excluded field
+     * @return array
+     */
+    public static function columnsExclude($matrix, $column_name_list, $check_existence = FALSE)
+    {
         if (FALSE === is_array($column_name_list))
             $column_name_list = [ $column_name_list ];
         $result = [];
         foreach ($matrix as $raw_row) {
-            $row = [];
-            foreach ($column_name_list as $column_name) {
-                if (TRUE === isset($raw_row[$column_name])) {
-                    $row[$column_name] = $raw_row[$column_name];
-                } elseif (TRUE === $set_default) {
-                    $row[$column_name] = $default;
-                } else {
-                    $msg = "Field($column_name) is empty, thus can not be included.";
-                    throw new UserException($msg, $matrix);
-                }
+            $result[] = self::exclude($raw_row, $column_name_list, $check_existence);
+        }
+        return $result;
+    }
+
+    /**
+     * Extracts fields in an array.
+     * @param array       $array
+     * @param array|mixed $field_name_list a list of field names
+     * @param boolean     $set_default     whether it needs to set default value for empty fields
+     * @param mixed       $default         default value to be set for empty fields
+     * @return array
+     * @throws UserException if field($field_name) is empty
+     */
+    public static function extract($array, $field_name_list, $set_default = FALSE, $default = NULL)
+    {
+        if (FALSE === is_array($field_name_list))
+            $field_name_list = [ $field_name_list ];
+        $result = [];
+        foreach ($field_name_list as $field_name) {
+            if (TRUE === isset($array[$field_name])) {
+                $result[$field_name] = $array[$field_name];
+            } elseif (TRUE === $set_default) {
+                $result[$field_name] = $default;
+            } else {
+                $msg = "Field($field_name) is empty, thus can not be included.";
+                throw new UserException($msg, $array);
             }
-            if (TRUE === $return_only_values) {
-                if (1 === count($column_name_list)) {
-                    $row = $row[0];
-                } else {
-                    $msg  = 'Can not return only values, '
-                        . 'because the length of $column_name_list is not 1.';
-                    throw new UserException($msg, $column_name_list);
-                }
+        }
+        return $result;
+    }
+
+    /**
+     * Extracts fields in an array by excluding specific fields.
+     * @param array       $array
+     * @param array|mixed $field_name_list a list of field names
+     * @param boolean     $check_existence whether it will check the existence of the to-be-excluded field
+     * @return array
+     */
+    public static function exclude($array, $field_name_list, $check_existence = FALSE)
+    {
+        if (FALSE === is_array($field_name_list))
+            $field_name_list = [ $field_name_list ];
+        $result = $array;
+        foreach ($field_name_list as $field_name) {
+            if (FALSE === isset($array[$field_name]) AND TRUE === $check_existence) {
+                $msg = "Field($field_name) does not exist, thus can not be exclued.";
+                throw new UserException($msg, $array);
             }
-            $result[] = $row;
+            unset($result[$field_name]);
         }
         return $result;
     }
