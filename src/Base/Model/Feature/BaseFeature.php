@@ -72,8 +72,8 @@ abstract class BaseFeature extends BaseModel
             }
                 
             // Method validateFeaturePrivilege should throw exception if the validation fails.
-            $execution_record['feature_privilege_validation_result']
-                = $this->$config_model_name->validateFeaturePrivilege($method_name, $handler_suffix);
+            $execution_record['validateFeaturePrivilege']
+                = $this->$config_model_name->validateFeaturePrivilege($handler_suffix, $method_name);
 
             $data_model_name = $handler_prefix . 'Data';
             if (TRUE === is_null($this->$data_model_name)) {
@@ -84,14 +84,14 @@ abstract class BaseFeature extends BaseModel
             // Method validateArgs should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
             $args_validation_result
-                = $execution_record['args_validation_result']
-                = $this->$data_model_name->validateArgs($method_name, $arg_list, $handler_suffix);
+                = $execution_record['validateArgs']
+                = $this->$data_model_name->validateArgs($handler_suffix, $method_name, $arg_list);
             // Now the validation passed.
             // Method sanitizeArgs should load the config model and fetch the config info itself.
             $args_sanitization_result // a list
-                = $execution_record['args_sanitization_result']
+                = $execution_record['sanitizeArgs']
                 = $this->$data_model_name->sanitizeArgs(
-                    $method_name, $arg_list, $args_validation_result, $handler_suffix);
+                    $handler_suffix, $method_name, $arg_list, $args_validation_result);
 
             // @TODO: check it, can be called with context info?
             $result
@@ -102,14 +102,14 @@ abstract class BaseFeature extends BaseModel
             // Method validateResult should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
             $result_validation_result
-                = $execution_record['result_validation_result']
-                = $this->$data_model_name->validateResult($method_name, $result, $handler_suffix);
+                = $execution_record['validateResult']
+                = $this->$data_model_name->validateResult($handler_suffix, $method_name, $result);
             // Now the validation passed.
             // Method sanitizeResult should load the config model and fetch the config info itself.
             $result_sanitization_result
-                = $execution_record['result_sanitization_result']
+                = $execution_record['sanitizeResult']
                 = $this->$data_model_name->sanitizeResult(
-                    $method_name, $result, $result_validation_result, $handler_suffix);
+                    $handler_suffix, $method_name, $result, $result_validation_result);
             $execution_record['success'] = TRUE;
             Debug::updateExecutionRecord($execution_id, $execution_record);
             Debug::popExecutionId($execution_id);

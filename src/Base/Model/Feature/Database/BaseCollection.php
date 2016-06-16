@@ -20,6 +20,7 @@ abstract class BaseCollection extends MongoDBCollection
             'countAll',
             'getTheOnlyOneIdBySignature',
             'getTheOnlyOneId',
+            'getTheOnlyOneField',
             'addOneAndGetId',
             'addToSetById',
             // 'getTheOnlyOneContent',
@@ -52,8 +53,22 @@ abstract class BaseCollection extends MongoDBCollection
 
     final protected function getTheOnlyOneId($criterion)
     {
-        $document = $this->call('getTheOnlyOne', $criterion);
-        return $document['_id'];
+        return $this->call('getTheOnlyOneField', $criterion, '_id');
+    }
+
+    final protected function getTheOnlyOneField($criterion, $path_of_field)
+    {
+        $projection = [
+            $path_of_field => 1,
+        ];
+        $document = $this->call('getTheOnlyOne', $criterion, $projection);
+        $field_value = $document;
+        foreach (explode('.', $path_of_field) as $key) {
+            if (FALSE === isset($field_value[$key]))
+                throw new UserException("Can not find field with path($path_of_field).", $document);
+            $field_value = $field_value[$key];
+        }
+        return $field_value;
     }
 
     final protected function addOneAndGetId($content, $meta)

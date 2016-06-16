@@ -46,8 +46,8 @@ abstract class BaseService extends BaseController
             if (TRUE === is_null($this->$config_model_name))
                 throw new UserException("Config model($config_model_name) not loaded in $class_name.");
             // Method validateFeaturePrivilege should throw exception if the validation fails.
-            $execution_record['feature_privilege_validation_result']
-                = $this->$config_model_name->validateFeaturePrivilege($method_name, $handler_suffix);
+            $execution_record['validateFeaturePrivilege']
+                = $this->$config_model_name->validateFeaturePrivilege($handler_suffix, $method_name);
 
             $data_model_name = $handler_prefix . 'Data';
             if (TRUE === is_null($this->$data_model_name))
@@ -55,7 +55,7 @@ abstract class BaseService extends BaseController
             // Method validateInput should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
             $input_validation_result
-                = $execution_record['input_validation_result']
+                = $execution_record['validateInput']
                 = $this->$data_model_name->validateInput($method_name, $input);
             // Now the validation passed.
             
@@ -65,7 +65,7 @@ abstract class BaseService extends BaseController
 
             // Method sanitizeInput should load the config model and fetch the config info itself.
             $input_sanitization_result // a list
-                = $execution_record['input_sanitization_result']
+                = $execution_record['sanitizeInput']
                 = $this->$data_model_name->sanitizeInput(
                     $method_name, $input, $input_validation_result);
             
@@ -79,14 +79,14 @@ abstract class BaseService extends BaseController
             // Method validateServiceResult should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
             $service_result_validation_result
-                = $execution_record['service_result_validation_result']
+                = $execution_record['validateServiceResult']
                 = $this->$data_model_name->validateServiceResult($method_name, $service_result);
             // Now the validation passed.
             
             // Method sanitizeServiceResult should load the config model
             // and fetch the config info itself.
             $service_result_sanitization_result
-                = $execution_record['service_result_sanitization_result']
+                = $execution_record['sanitizeServiceResult']
                 = $this->$data_model_name->sanitizeServiceResult(
                     $method_name, $service_result, $service_result_validation_result);
             // $service_result_validation_result should contains

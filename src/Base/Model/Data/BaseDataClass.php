@@ -29,30 +29,27 @@ abstract class BaseDataClass extends BaseModel
         return TRUE;
     }
 
-    final public function sanitizeServiceResult($method_name, $service_result
-        , $service_result_validation_result)
+    final public function sanitizeServiceResult($method_name, $service_result, $service_result_validation_result)
     {
         return $service_result;
     }
 
-    final public function validateArgs($method_name, $arg_list, $handler_suffix)
+    final public function validateArgs($handler_suffix, $method_name, $arg_list)
     {
         return TRUE;
     }
 
-    final public function sanitizeArgs($method_name, $arg_list, $args_validation_result
-        , $handler_suffix)
+    final public function sanitizeArgs($handler_suffix, $method_name, $arg_list, $args_validation_result)
     {
         return $arg_list;
     }
 
-    final public function validateResult($method_name, $result, $handler_suffix)
+    final public function validateResult($handler_suffix, $method_name, $result)
     {
         return TRUE;
     }
 
-    final public function sanitizeResult($method_name, $result, $result_validation_result
-        , $handler_suffix)
+    final public function sanitizeResult($handler_suffix, $method_name, $result, $result_validation_result)
     {
         return $result;
     }

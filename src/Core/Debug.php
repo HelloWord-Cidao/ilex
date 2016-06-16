@@ -263,13 +263,13 @@ final class Debug
             // 'method'
 
         // 'input'
-        // 'input_validation_result'
-        // 'input_sanitization_result'
+        // 'validateInput'
+        // 'sanitizeInput'
         // 'params'
-        // 'args_validation_result'
-        // 'args_sanitization_result'
+        // 'validateArgs'
+        // 'sanitizeArgs'
 
-        // 'feature_privilege_validation_result'
+        // 'validateFeaturePrivilege'
         // 'method_accessibility'
         // 'method_visibility'
         // 'declaring_class'
@@ -279,11 +279,11 @@ final class Debug
             // 'handler_suffix'
 
         // 'result'
-        // 'result_validation_result'
-        // 'result_sanitization_result'
+        // 'validateResult'
+        // 'sanitizeResult'
         // 'service_result'
-        // 'service_result_validation_result'
-        // 'service_result_sanitization_result'
+        // 'validateServiceResult'
+        // 'sanitizeServiceResult'
 
         // 'is_time_consuming'
         return $result;
