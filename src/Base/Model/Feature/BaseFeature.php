@@ -48,15 +48,17 @@ abstract class BaseFeature extends BaseModel
 
     final private function execute($method_name, $arg_list, $call_parent = FALSE)
     {
+        $execution_record = [];
+        $execution_id = Debug::addExecutionRecord($execution_record);
+        Debug::pushExecutionId($execution_id);
         try {
-            $execution_record     = self::prepareExecutionRecord($method_name, $arg_list, $call_parent);
+            $execution_record     = $this->prepareExecutionRecord($method_name, $arg_list, $call_parent);
             $class_name           = $execution_record['class'];
             $declaring_class_name = $execution_record['declaring_class'];
             $method_accessibility = $execution_record['method_accessibility'];
             $handler_prefix       = $execution_record['handler_prefix'];
             $handler_suffix       = $execution_record['handler_suffix'];
-            $execution_id         = Debug::addExecutionRecord($execution_record);
-            Debug::pushExecutionId($execution_id);
+            Debug::updateExecutionRecord($execution_id, $execution_record);
             
             if (($count = Debug::countExecutionRecord()) > 3000000)
                 throw new UserException('Abnormal execution record count.', $count);
@@ -94,8 +96,13 @@ abstract class BaseFeature extends BaseModel
                     $handler_suffix, $method_name, $arg_list, $args_validation_result);
 
             // @TODO: check it, can be called with context info?
+            // so that XCollection will work correctly.
+            // $method = new ReflectionMethod($declaring_class_name, $method_name);
+            // $method->setAccessible(TRUE);
+            // var_dump($method);
             $result
                 = $execution_record['result']
+                // = $method->invoke(new $declaring_class_name(), $args_sanitization_result);
                 = call_user_func_array(
                     [ $declaring_class_name, $method_name ], $args_sanitization_result);
             
@@ -115,6 +122,7 @@ abstract class BaseFeature extends BaseModel
             Debug::popExecutionId($execution_id);
             return $result;
         } catch (Exception $e) {
+            $execution_record['success'] = FALSE;
             Debug::updateExecutionRecord($execution_id, $execution_record);
             Debug::popExecutionId($execution_id);
             throw new UserException('Feature execution failed.', $execution_record, $e);
@@ -140,22 +148,24 @@ abstract class BaseFeature extends BaseModel
             } catch (Exception $e) {
                 throw new UserException('Search parent failed.', $method_name, $e);
             }
-        } else $class_name = get_called_class();        
+        } else $class_name = get_called_class();
         $class                = new ReflectionClass($class_name);
         if (FALSE === $class->hasMethod($method_name))
             throw new UserException("Method($method_name) does not exist in class($class_name).");
         $method               = new ReflectionMethod($class_name, $method_name);
+        if (TRUE === $method->isPublic())
+            throw new UserException("Method($method_name) in class($class_name) is public.");
         $declaring_class      = $method->getDeclaringClass();
         $declaring_class_name = $declaring_class->getName();
         $methods_visibility   = $declaring_class->getStaticProperties()['methodsVisibility'];
-        $method_visibility    = self::getMethodVisibility($methods_visibility, $method_name);
+        $method_visibility    = $this->getMethodVisibility($methods_visibility, $method_name);
         $handler_prefix       = Loader::getHandlerPrefixFromPath(
             $declaring_class_name, ['Core', 'Collection', 'Log']);
         $handler_suffix       = Loader::getHandlerSuffixFromPath(
-            $declaring_class_name, ['Core', 'Collection', 'Log']);              
+            $declaring_class_name, ['Core', 'Collection', 'Log']);
         list($initiator_class_name, $initiator_type)
-            = self::getInitiatorNameAndType($method_name, $declaring_class);
-        $method_accessibility = self::getMethodAccessibility($method_visibility, $initiator_type);
+            = $this->getInitiatorNameAndType($method_name, $declaring_class);
+        $method_accessibility = $this->getMethodAccessibility($method_visibility, $initiator_type);
 
         $execution_record = [
             'success'              => FALSE,

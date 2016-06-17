@@ -24,13 +24,14 @@ final class RequestLog extends BaseLog
     /**
      * @TODO: check efficiency
      */
-    protected function addRequestLog($class_name, $method_name, $input, $operation_status)
+    protected function addRequestLog($class_name, $method_name, $input, $code, $operation_status)
     {
         $content = [
             'Data' => [
                 'Class'           => $class_name,
                 'Method'          => $method_name,
                 'Input'           => $input,
+                'Code'            => $code,
                 'OperationStatus' => $operation_status,
             ],
             'Info' => [
