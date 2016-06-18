@@ -259,14 +259,21 @@ abstract class BaseService extends BaseController
     /**
      * @param boolean $close_cgi_only
      */
-    final private function succeedRequest($execution_id, $execution_record
-        , $close_cgi_only = FALSE)
+    final private function succeedRequest($execution_id, $execution_record , $close_cgi_only = FALSE)
     {
         $code = $this->getCode();
         if (TRUE === is_null($code)) {
-            $this->setCode(3);
-        } elseif (FALSE === in_array($code, [ 1, 2 ])) {
+            if (TRUE === $close_cgi_only) { // NULL 1 => 3
+                $this->setCode(3);
+            } else { // NULL 0 => error
+                $msg = 'Can not succeed the request before service is finished and code is NULL.';
+                throw new UserException($msg);
+            }
+        } elseif (FALSE === in_array($code, [ 1, 2 ])) { // 0/3 0/1 => error
             throw new UserException('Invalid code.', $code);
+        } elseif (TRUE === $close_cgi_only) { // 1/2 1 => error
+            throw new UserException('Can not only close cgi after service has finished.', $code);
+        } else { // 1/2 0 => 1/2
         }
         // Now code must be 1 or 2 or 3.
         $this->response($execution_id, $execution_record, 200, $close_cgi_only);
@@ -279,7 +286,7 @@ abstract class BaseService extends BaseController
     {
         $code = $this->getCode();
         if (FALSE === is_null($code) AND FALSE === in_array($code, [ 1, 2 ])) {
-            throw new UserException('Invalid code.', $code);
+            throw new UserException('Can not fail the request because of invalid code.', $code);
         }
         // Now code must be NULL or 1 or 2.
         $this->setCode(0);
