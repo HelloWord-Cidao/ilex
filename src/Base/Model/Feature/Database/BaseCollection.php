@@ -21,6 +21,7 @@ abstract class BaseCollection extends MongoDBCollection
             'getTheOnlyOneIdBySignature',
             'getTheOnlyOneId',
             'getTheOnlyOneField',
+            'addOneWithTypeAndGetId',
             'addOneAndGetId',
             'addToSetById',
             // 'getTheOnlyOneContent',
@@ -71,7 +72,13 @@ abstract class BaseCollection extends MongoDBCollection
         return $field_value;
     }
 
-    final protected function addOneAndGetId($content, $meta)
+    final protected function addOneWithTypeAndGetId($type, $content, $meta = [])
+    {
+        $meta['Type'] = $type;
+        return $this->call('addOneAndGetId', $content, $meta);
+    }
+
+    final protected function addOneAndGetId($content, $meta = [])
     {
         return $this->call('addOne', $content, $meta)['_id'];
     }
