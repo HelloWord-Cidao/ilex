@@ -130,6 +130,10 @@ abstract class BaseService extends BaseController
 
     final protected function call($method_name) {
         // @TODO: implement this method
+        $arg_list = func_get_args();
+        $method_name = $arg_list[0];
+        $arg_list = array_slice($arg_list, 1);
+        return call_user_func_array([$this, $method_name], $arg_list);
     }
 
     /**
@@ -139,24 +143,12 @@ abstract class BaseService extends BaseController
     final private function prepareExecutionRecord($method_name)
     {
         $this->loadModel('System/Input');
-        $class_name           = get_called_class();
-        $class                = new ReflectionClass($class_name);
-        if (FALSE === $class->hasMethod($method_name))
-            throw new UserException("Method($method_name) does not exist in class($class_name).");
-        $method               = new ReflectionMethod($class_name, $method_name);
-        if (TRUE === $method->isPublic())
-            throw new UserException("Method($method_name) in class($class_name) is public.");
-        $method_accessibility = $method->isProtected();
-        $input                = $this->Input->input();
-        $handler_prefix       = Loader::getHandlerPrefixFromPath($class_name, ['Service']);
-        $handler_suffix       = Loader::getHandlerSuffixFromPath($class_name, ['Service']);
-        $execution_record = [
-            'class'                => $class_name,
-            'method'               => $method_name,
-            'input'                => $input,
-            'method_accessibility' => $method_accessibility,
-            'handler_prefix'       => $handler_prefix,
-            'handler_suffix'       => $handler_suffix,
+        $input      = $this->Input->input();
+        $class_name = get_called_class();
+        
+        $execution_record = $this->generateExecutionRecord($class_name, $method_name);
+        $execution_record += [
+            'input' => $input,
         ];
         return $execution_record;
     }
