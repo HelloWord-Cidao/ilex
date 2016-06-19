@@ -435,7 +435,7 @@ final class Router
             $function = 'index'; // $uri was '/' at the beginning.
         }
         Kit::log([__METHOD__, ['function' => $function, 'arg_list' => $arg_list]]);
-        return count($arg_list) > 0 ? [$function, $arg_list] : $function;
+        return Kit::len($arg_list) > 0 ? [$function, $arg_list] : $function;
     }
 
     private function popUriList()

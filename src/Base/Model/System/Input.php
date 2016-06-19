@@ -67,7 +67,7 @@ final class Input extends BaseModel
     public static function clear($name = NULL)
     {
         if (FALSE === is_null($name)) {
-            if (TRUE === in_array($name, ['get', 'post', 'input'])) {
+            if (TRUE === Kit::inList($name, ['get', 'post', 'input'])) {
                 $name .= 'Data';
                 self::$$name->clear();
                 return TRUE;
@@ -164,7 +164,7 @@ final class Input extends BaseModel
      */
     public static function merge($name, $data)
     {
-        if (TRUE === in_array($name, ['get', 'post', 'input'])) {
+        if (TRUE === Kit::inList($name, ['get', 'post', 'input'])) {
             $name .= 'Data';
             self::$$name->merge($data);
             /* 

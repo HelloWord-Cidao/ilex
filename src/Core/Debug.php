@@ -191,7 +191,7 @@ final class Debug
      */
     public static function popExecutionId($execution_id)
     {
-        if (0 === count(self::$executionIdStack))
+        if (0 === Kit::len(self::$executionIdStack))
             throw new UserException('$executionIdStack is empty.', 1);
         if (Kit::last(self::$executionIdStack) !== $execution_id) {
             $msg = "\$execution_id($execution_id) does not match the top of \$executionIdStack.";
@@ -206,7 +206,7 @@ final class Debug
      */
     private static function peekExecutionId()
     {
-        if (0 === count(self::$executionIdStack)) {
+        if (0 === Kit::len(self::$executionIdStack)) {
             // throw new UserException('$executionIdStack is empty.', 1);
             return NULL;
         }
@@ -256,7 +256,7 @@ final class Debug
      */
     public static function updateExecutionRecord($execution_id, $execution_record)
     {
-        if ($execution_id >= count(self::$executionRecordStack))
+        if ($execution_id >= Kit::len(self::$executionRecordStack))
             throw new UserException("\$execution_id($execution_id) overflows \$executionRecordStack.");
         // $execution_record = self::simplifyExecutionRecord($execution_record);
         self::$executionRecordStack[$execution_id] = array_merge(
@@ -281,7 +281,7 @@ final class Debug
      */
     public static function countExecutionRecord()
     {
-       return count(self::$executionRecordStack);
+       return Kit::len(self::$executionRecordStack);
     }
 
     /**
@@ -292,7 +292,7 @@ final class Debug
     {
         $result = self::$executionRecordStack;
         $index = 0;
-        while ($index < count($result)) {
+        while ($index < Kit::len($result)) {
             $result[$index] = sprintf('%s%02d.(%02d) (%s) %10s %10s :: %s',
                 $result[$index]['indent'],
                 $index,
@@ -305,7 +305,7 @@ final class Debug
             );
             $index++;
         }
-        // $result = array_slice($result, 0, 10);
+        // $result = Kit::sliceList($result, 0, 10);
             // 'parent_execution_id'
             // 'indent'
             // 'success'
@@ -319,7 +319,7 @@ final class Debug
         // 'validateArgs'
         // 'sanitizeArgs'
 
-        // 'validateFeaturePrivilege'
+        // 'validateModelPrivilege'
         // 'method_accessibility'
         // 'method_visibility'
         // 'declaring_class'
@@ -348,7 +348,7 @@ final class Debug
     {
         $result = [ self::extractExceptionIteratively($exception) ];
         $index = 0;
-        while ($index < count($result)) {
+        while ($index < Kit::len($result)) {
             if (TRUE === isset($result[$index]['previous']))
                 $result[] = $result[$index]['previous'];
             try {
@@ -406,7 +406,7 @@ final class Debug
             if (TRUE === self::checkExceptionDisplay($index, self::D_E_FILE)) {
                 $tmp['file'] = $result[$index]['file'];
             }
-            if (1 === count($tmp))
+            if (1 === Kit::countDict($tmp))
                 $result[$index] = $tmp['msg'];
             else $result[$index] = $tmp;
             $index++;
@@ -524,7 +524,7 @@ final class Debug
             //          // ? $param->getDefaultValue() : 'no default value', 
             //     'arg'                         => $arg_list[$position],
             // ]);
-            if ($position + 1 > count($arg_list)) {
+            if ($position + 1 > Kit::len($arg_list)) {
                 try {
                     // @TODO: check if it will fail
                     $param_mapping[$param_name] = $param->getDefaultValue();
@@ -546,24 +546,24 @@ final class Debug
      */
     private static function extractInitiator($trace)
     {
-        if (count($trace) <= 1) $index = NULL;
+        if (Kit::len($trace) <= 1) $index = NULL;
         else {
             // @todo: add comment to this
-            if (TRUE === in_array($trace[0]['function'], [
+            if (TRUE === Kit::inList($trace[0]['function'], [
                 '__call', 'call', 'callParent', 'execute'
             ])) {
                 if ($trace[0]['args'][0] !== $trace[1]['function']) $index = 1;
                 else {
-                    if (count($trace) <= 2) $index = NULL;
+                    if (Kit::len($trace) <= 2) $index = NULL;
                     else $index = 2;
                 }
-            } elseif (TRUE === in_array($trace[1]['function'], [
+            } elseif (TRUE === Kit::inList($trace[1]['function'], [
                 'call_user_func_array',
                 'call_user_method_array',
                 'call_user_func',
                 'call_user_method'
             ])) {
-                if (count($trace) <= 2) $index = NULL;
+                if (Kit::len($trace) <= 2) $index = NULL;
                 else $index = 2;
             } else $index = 1;
         }
@@ -582,7 +582,7 @@ final class Debug
     {
         $result = [];
         foreach ($trace as $index => $record) {
-            $record['index'] = count($trace) - $index - 1;
+            $record['index'] = Kit::len($trace) - $index - 1;
             if (TRUE === isset($record['file'])) {
                 $record['initiator'] = sprintf('%s (%d)', $record['file'], $record['line']);
                 $record = Kit::exclude($record, [ 'file', 'line' ]);

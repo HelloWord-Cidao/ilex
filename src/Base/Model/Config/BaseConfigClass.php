@@ -12,7 +12,7 @@ use \Ilex\Base\Model\BaseModel;
 abstract class BaseConfigClass extends BaseModel
 {
 
-    final public function validateFeaturePrivilege($handler_suffix, $method_name)
+    final public function validateModelPrivilege($handler_suffix, $method_name)
     {
         return TRUE;
     }

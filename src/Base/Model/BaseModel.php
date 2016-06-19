@@ -27,7 +27,7 @@ abstract class BaseModel extends Base
     {
         $arg_list = func_get_args();
         $method_name = $arg_list[0];
-        $arg_list = array_slice($arg_list, 1);
+        $arg_list = Kit::sliceList($arg_list, 1);
         return $this->execute($method_name, $arg_list);
     }
 
@@ -35,7 +35,7 @@ abstract class BaseModel extends Base
     {
         $arg_list = func_get_args();
         $method_name = $arg_list[0];
-        $arg_list = array_slice($arg_list, 1);
+        $arg_list = Kit::sliceList($arg_list, 1);
         return $this->execute($method_name, $arg_list, TRUE);
     }
 
@@ -59,13 +59,13 @@ abstract class BaseModel extends Base
                 throw new UserException(
                     "Handler($declaring_class_name :: $method_name) is not accessible.", $execution_record);
 
-            $config_model_name = $this->loadConfig(Loader::getFeaturePath($declaring_class_name));
+            $config_model_name = $this->loadConfig(Loader::getModelPath($declaring_class_name));
                 
-            // Method validateFeaturePrivilege should throw exception if the validation fails.
-            $execution_record['validateFeaturePrivilege']
-                = $this->$config_model_name->validateFeaturePrivilege($handler_suffix, $method_name);
+            // Method validateModelPrivilege should throw exception if the validation fails.
+            $execution_record['validateModelPrivilege']
+                = $this->$config_model_name->validateModelPrivilege($handler_suffix, $method_name);
 
-            $data_model_name = $this->loadData(Loader::getFeaturePath($declaring_class_name));
+            $data_model_name = $this->loadData(Loader::getModelPath($declaring_class_name));
 
             // Method validateArgs should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
@@ -108,7 +108,7 @@ abstract class BaseModel extends Base
             $execution_record['success'] = FALSE;
             Debug::updateExecutionRecord($execution_id, $execution_record);
             Debug::popExecutionId($execution_id);
-            throw new UserException('Feature execution failed.', $execution_record, $e);
+            throw new UserException('Model execution failed.', $execution_record, $e);
         }
     }
 

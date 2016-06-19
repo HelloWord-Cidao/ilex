@@ -64,9 +64,9 @@ abstract class BaseService extends BaseController
             $config_model_name = $this->configModelName;
             if (TRUE === is_null($config_model_name) OR TRUE === is_null($this->$config_model_name))
                 throw new UserException("Config model($config_model_name) not loaded in $class_name.");
-            // Method validateFeaturePrivilege should throw exception if the validation fails.
-            $execution_record['validateFeaturePrivilege']
-                = $this->$config_model_name->validateFeaturePrivilege($handler_suffix, $method_name);
+            // Method validateModelPrivilege should throw exception if the validation fails.
+            $execution_record['validateModelPrivilege']
+                = $this->$config_model_name->validateModelPrivilege($handler_suffix, $method_name);
 
             $data_model_name = $this->dataModelName;
             if (TRUE === is_null($data_model_name) OR TRUE === is_null($this->$data_model_name))
@@ -111,7 +111,7 @@ abstract class BaseService extends BaseController
             $computation_data = $service_result_sanitization_result['data'];
             $operation_status = $service_result_sanitization_result['status'];
             
-            $this->loadModel('Feature/Log/RequestLog');
+            $this->loadCore('Log/Request');
             $this->RequestLog->addRequestLog(
                 $execution_record['class'],
                 $execution_record['method'],
@@ -134,7 +134,7 @@ abstract class BaseService extends BaseController
         // @TODO: implement this method
         $arg_list = func_get_args();
         $method_name = $arg_list[0];
-        $arg_list = array_slice($arg_list, 1);
+        $arg_list = Kit::sliceList($arg_list, 1);
         return call_user_func_array([$this, $method_name], $arg_list);
     }
 
@@ -144,7 +144,7 @@ abstract class BaseService extends BaseController
      */
     final private function prepareExecutionRecord($method_name)
     {
-        $this->loadModel('System/Input');
+        $this->loadInput();
         $input      = $this->Input->input();
         $class_name = get_called_class();
         
@@ -167,13 +167,18 @@ abstract class BaseService extends BaseController
 
     final private function setCode($code)
     {
-        if (FALSE === in_array($code, [ 0, 1, 2, 3 ]))
+        $current_code = $this->result['code'];
+        if (FALSE === Kit::inList($code, [ 0, 1, 2, 3 ]))
             throw new UserException('Invalid $code.', $code);
-        if (FALSE === is_null($this->result['code']))
-            throw new UserException("code is not NULL before set to $code");
+        if (FALSE === is_null($current_code) 
+            AND FALSE === Kit::inList($current_code, [ 0, 1, 2, 3 ]))
+            throw new UserException('Invalid $current_code.', $current_code);
+        if (TRUE === Kit::inList($current_code, [ 0, 3 ]))
+            throw new UserException("Can not change code(${current_code}) to $code after the request has finished.", $current_code);
+            
         if (TRUE === $this->checkFinish()) {
             if (0 !== $code) {
-                $msg = "Can not change code to $code after service has finished.";
+                $msg = "Can not change code(${current_code}) to $code after service has finished.";
                 throw new UserException($msg);
             }
         }
@@ -201,7 +206,7 @@ abstract class BaseService extends BaseController
     {
         if (TRUE === $this->checkFinish())
             throw new UserException('Can not handle result after service has finished.');
-        if (FALSE === in_array($type, [ 'computation_data', 'operation_status' ]))
+        if (FALSE === Kit::inList($type, [ 'computation_data', 'operation_status' ]))
             throw new UserException('Invalid $type.', $type);
         if (TRUE === is_string($name)) {
             if (self::R_EMPTY === $value) // (valid)
@@ -221,7 +226,7 @@ abstract class BaseService extends BaseController
 
     final private function setResult($type, $name, $value, $is_list)
     {
-        if (FALSE === in_array($type, [ 'computation_data', 'operation_status' ]))
+        if (FALSE === Kit::inList($type, [ 'computation_data', 'operation_status' ]))
             throw new UserException('Invalid $type.', $type);
         $type = 'computation_data' === $type ? 'data' : 'status';
         if (FALSE === is_string($name))
@@ -247,7 +252,7 @@ abstract class BaseService extends BaseController
 
     final private function getResult($type, $name)
     {
-        if (FALSE === in_array($type, [ 'computation_data', 'operation_status' ]))
+        if (FALSE === Kit::inList($type, [ 'computation_data', 'operation_status' ]))
             throw new UserException('Invalid $type.', $type);
         $type = 'computation_data' === $type ? 'data' : 'status';
         if (TRUE === is_null($name))
@@ -284,7 +289,7 @@ abstract class BaseService extends BaseController
                 $msg = 'Can not succeed the request before service is finished and code is NULL.';
                 throw new UserException($msg);
             }
-        } elseif (FALSE === in_array($code, [ 1, 2 ])) { // 0/3 0/1 => error
+        } elseif (FALSE === Kit::inList($code, [ 1, 2 ])) { // 0/3 0/1 => error
             throw new UserException('Invalid code.', $code);
         } elseif (TRUE === $close_cgi_only) { // 1/2 1 => error
             throw new UserException('Can not only close cgi after service has finished.', $code);
@@ -300,7 +305,7 @@ abstract class BaseService extends BaseController
     final private function failRequest($execution_id, $execution_record, $exception)
     {
         $code = $this->getCode();
-        if (FALSE === is_null($code) AND FALSE === in_array($code, [ 1, 2 ])) {
+        if (FALSE === is_null($code) AND FALSE === Kit::inList($code, [ 1, 2 ])) {
             throw new UserException('Can not fail the request because of invalid code.', $code);
         }
         // Now code must be NULL or 1 or 2.

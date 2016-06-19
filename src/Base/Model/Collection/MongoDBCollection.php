@@ -15,7 +15,7 @@ use \Ilex\Base\Model\Collection\MongoDBCursor;
 /**
  * Class MongoDBCollection
  * Encapsulation of basic operations of MongoCollection class.
- * @package Ilex\Base\Model\Feature\Database
+ * @package Ilex\Base\Model\Collection
  *
  * @property private MongoCollection $collection
  *

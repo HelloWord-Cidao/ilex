@@ -2,6 +2,7 @@
 
 namespace Ilex\Base;
 
+use \Exception;
 use \ReflectionClass;
 use \ReflectionMethod;
 use \Ilex\Core\Loader;
@@ -69,6 +70,12 @@ abstract class Base
             = Loader::loadCollection($path, $with_instantiate));
     }
 
+    final protected function loadInput()
+    {
+        $handler_name = 'Input';
+        return ($this->$handler_name = Loader::loadInput());
+    }
+
     final protected function includeEntity($path)
     {
         return Loader::includeEntity($path);
@@ -111,13 +118,13 @@ abstract class Base
     {
         if (TRUE === isset($methods_visibility[self::V_PUBLIC])
             AND TRUE === isset($methods_visibility[self::V_PROTECTED])
-            AND count(array_intersect(
+            AND Kit::countList(array_intersect(
                 $methods_visibility[self::V_PUBLIC],
                 $methods_visibility[self::V_PROTECTED])) > 0)
             throw new UserException('Public duplicates protected.', $methods_visibility);
         foreach ([self::V_PUBLIC, self::V_PROTECTED] as $type) {
             if (TRUE === isset($methods_visibility[$type])
-                AND TRUE === in_array($method_name, $methods_visibility[$type])) {
+                AND TRUE === Kit::inList($method_name, $methods_visibility[$type])) {
                 return $type;
             }
         }
@@ -131,11 +138,11 @@ abstract class Base
         $initiator_name     = NULL;
         foreach ($backtrace as $record) {
             if (TRUE === is_null($record['class']) 
-                OR  TRUE === in_array(
+                OR  TRUE === Kit::inList(
                     $record['class'], [
                         'Ilex\\Base\\Base',
                         'Ilex\\Base\\Controller\\Service\\BaseService',
-                        'Ilex\\Base\\Model\\Feature\\BaseFeature',
+                        'Ilex\\Base\\Model\\BaseModel',
                     ]
                 )
             ) continue;

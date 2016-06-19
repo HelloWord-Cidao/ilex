@@ -24,8 +24,6 @@ class LogCollection extends BaseCollection
     final public function __construct()
     {
         parent::__construct();
-        $this->loadModel('Config/LogConfig');
-        $this->loadModel('Data/LogData');
     }
 
     final protected function addRequestLog($content)

@@ -18,14 +18,9 @@ final class AdminCore extends BaseCore
         ],
     ];
 
-    public function __construct()
-    {
-        $this->loadModel('Config/AdminConfig');
-        $this->loadModel('Data/AdminData');
-    }
-
     protected function countCollection($input)
     {
+        $this->loadCollection($input['collection_name']);
         $collection_name = $input['collection_name'] . 'Collection';
         unset($input['collection_name']);
         $criterion       = TRUE === isset($input['Criterion']) ? $input['Criterion'] : [];
@@ -40,7 +35,6 @@ final class AdminCore extends BaseCore
         unset($input['limit']);
         $criterion = array_merge($criterion, Kit::recoverMongoDBQuery($input));
 
-        $this->loadModel("Database/$collection_name");
 
         $data = $this->$collection_name->count($criterion, $skip, $limit);
 
@@ -50,6 +44,7 @@ final class AdminCore extends BaseCore
 
     protected static function getCollection($input)
     {
+        $this->loadCollection($input['collection_name']);
         $collection_name = $input['collection_name'] . 'Collection';
         unset($input['collection_name']);
         $criterion       = TRUE === isset($input['Criterion']) ? $input['Criterion'] : [];
@@ -66,7 +61,6 @@ final class AdminCore extends BaseCore
         unset($input['limit']);
         $criterion = array_merge($criterion, Kit::recoverMongoDBQuery($input));
 
-        $this->loadModel("Database/$collection_name");
 
         $data = $this->$collection_name->get($criterion, $projection, $sort_by, $skip, $limit);
 

@@ -5,6 +5,7 @@ namespace Ilex\Core;
 use \Exception;
 use \ReflectionClass;
 use \MongoDB;
+use \MongoClient;
 use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
@@ -55,7 +56,6 @@ final class Loader
         'Data',
         'Core',
         'Entity',
-        'Database',
         'Collection',
         'Log'
     ];
@@ -115,7 +115,7 @@ final class Loader
         if (TRUE === self::has(self::I_MONGODB)) {
             return self::get(self::I_MONGODB);
         } else {
-            $mongo_client = new \MongoClient(SVR_MONGO_HOST . ':' . SVR_MONGO_PORT, [
+            $mongo_client = new MongoClient(SVR_MONGO_HOST . ':' . SVR_MONGO_PORT, [
                 'username'         => SVR_MONGO_USER,
                 'password'         => SVR_MONGO_PASS,
                 'db'               => SVR_MONGO_DB,
@@ -158,17 +158,12 @@ final class Loader
 
     public static function loadCore($path)
     {
-        return self::loadFeature("Core/${path}Core");
+        return self::loadModel("Core/${path}Core");
     }
 
     public static function loadCollection($path, $with_instantiate = FALSE)
     {
-        return self::loadFeature("Database/${path}Collection", $with_instantiate);
-    }
-
-    private static function loadFeature($path, $with_instantiate = TRUE, $arg_list = [])
-    {
-        return self::loadModel("Feature/$path", $with_instantiate, $arg_list);
+        return self::loadModel("Collection/${path}Collection", $with_instantiate);
     }
 
     /**
@@ -218,7 +213,7 @@ final class Loader
 
     public static function includeEntity($path)
     {
-        return self::includeFile("Model/Feature/Entity/${path}Entity");
+        return self::includeFile("Model/Entity/${path}Entity");
     }
 
     /**
@@ -256,8 +251,8 @@ final class Loader
     /**
      * Extracts handler prefix name from path.
      * eg. 'Service/AdminServiceController'           => 'Admin'
-     * eg. 'Database/Content/ResourceCollectionModel' => 'Resource'
-     * eg. 'Database/LogCollection'                   => 'Log'
+     * eg. 'Collection/Content/ResourceCollectionModel' => 'Resource'
+     * eg. 'Collection/LogCollection'                   => 'Log'
      * eg. 'Entity/Resource'                          => 'Resource'
      * @param string $path
      * @param string $delimiter
@@ -267,11 +262,11 @@ final class Loader
     {
         $handler         = self::getHandlerFromPath($path, $delimiter);
         $title_word_list = Kit::separateTitleWords($handler);
-        if (count($title_word_list) > 0) {
-            if (TRUE === in_array(Kit::last($title_word_list), self::$handler_suffix_list))
+        if (Kit::len($title_word_list) > 0) {
+            if (TRUE === Kit::inList(Kit::last($title_word_list), self::$handler_suffix_list))
                 array_pop($title_word_list);
         }
-        if (0 === count($title_word_list))
+        if (0 === Kit::len($title_word_list))
             throw new UserException("Get handler prefix of \$handler($handler) failed.");
         return join($title_word_list);
     }
@@ -279,8 +274,8 @@ final class Loader
     /**
      * Extracts handler suffix name from path.
      * eg. 'Service/AdminServiceController'           => 'Service'
-     * eg. 'Database/Content/ResourceCollectionModel' => 'Collection'
-     * eg. 'Database/LogCollection'                   => 'Collection'
+     * eg. 'Collection/Content/ResourceCollectionModel' => 'Collection'
+     * eg. 'Collection/LogCollection'                   => 'Collection'
      * eg. 'Entity/ResourceEntity'                    => 'Entity'
      * @param string $path
      * @param string $delimiter
@@ -290,8 +285,8 @@ final class Loader
     {
         $handler         = self::getHandlerFromPath($path, $delimiter);
         $title_word_list = Kit::separateTitleWords($handler);
-        if (count($title_word_list) > 0) {
-            if (TRUE === in_array($last_word = Kit::last($title_word_list), self::$handler_suffix_list))
+        if (Kit::len($title_word_list) > 0) {
+            if (TRUE === Kit::inList($last_word = Kit::last($title_word_list), self::$handler_suffix_list))
                 return $last_word;
         }
         throw new UserException("Get handler suffix of \$handler($handler) failed.");
@@ -299,7 +294,7 @@ final class Loader
 
     /**
      * Extracts handler name from path.
-     * eg. 'Database/Content/ResourceCollectionModel' => 'ResourceCollectionModel'
+     * eg. 'Collection/Content/ResourceCollectionModel' => 'ResourceCollectionModel'
      * @param string $path
      * @param string $delimiter
      * @return string
@@ -310,17 +305,17 @@ final class Loader
     }
 
     /**
-     * eg. 'Database/Content/ResourceCollection' => 'Content/Resource'
+     * eg. 'Collection/Content/ResourceCollection' => 'Content/Resource'
      * eg. 'Entity/Content/ResourceEntity'       => 'Content/Resource'
      */
-    public static function getFeaturePath($feature_class_name, $delimiter = '\\')
+    public static function getModelPath($model_class_name, $delimiter = '\\')
     {
-        $handler_prefix = self::getHandlerPrefixFromPath($feature_class_name); // 'Resource'
-        $word_list = explode($delimiter, $feature_class_name);
-        while (count($word_list) > 0 AND 'Feature' !== $word_list[0]) {
-            $word_list = array_slice($word_list, 1);
+        $handler_prefix = self::getHandlerPrefixFromPath($model_class_name); // 'Resource'
+        $word_list = explode($delimiter, $model_class_name);
+        while (Kit::len($word_list) > 0 AND 'Model' !== $word_list[0]) {
+            $word_list = Kit::sliceList($word_list, 1);
         }
-        $word_list = array_slice($word_list, 2); // [ 'Content', 'ResourceCollection' ]
+        $word_list = Kit::sliceList($word_list, 2); // [ 'Content', 'ResourceCollection' ]
         array_pop($word_list); // [ 'Content' ]
         $word_list[] = $handler_prefix; // [ 'Content', 'Resource' ]
         return join('/', $word_list); // 'Content/Resource'
@@ -362,5 +357,5 @@ final class Loader
  */
 function includeFile($file)
 {
-    include $file;
+    include_once $file;
 }
