@@ -5,10 +5,10 @@ namespace Ilex\Base\Model\Data;
 use \Ilex\Base\Model\Data\BaseDataClass;
 
 /**
- * Class RequestData
+ * Class DefaultData
  * @package Ilex\Base\Model\Data
  */
-final class RequestData extends BaseDataClass
+final class DefaultData extends BaseDataClass
 {
     
 }

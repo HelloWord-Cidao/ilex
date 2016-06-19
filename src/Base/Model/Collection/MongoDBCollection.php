@@ -1,6 +1,6 @@
 <?php
 
-namespace Ilex\Base\Model\Feature\Database;
+namespace Ilex\Base\Model\Collection;
 
 use \Exception;
 use \MongoId;
@@ -9,8 +9,8 @@ use \MongoCollection;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
-use \Ilex\Base\Model\Feature\BaseFeature;
-use \Ilex\Base\Model\Feature\Database\MongoDBCursor;
+use \Ilex\Base\Model\BaseModel;
+use \Ilex\Base\Model\Collection\MongoDBCursor;
 
 /**
  * Class MongoDBCollection
@@ -61,7 +61,7 @@ use \Ilex\Base\Model\Feature\Database\MongoDBCursor;
  *                                                 , array $update
  *                                                 , boolean $multiple = FALSE)
  */
-abstract class MongoDBCollection extends BaseFeature
+abstract class MongoDBCollection extends BaseModel
 {
 // https://docs.mongodb.com/manual/core/document-validation/
 // http://blog.mongodb.org/post/87200945828/6-rules-of-thumb-for-mongodb-schema-design-part-1
@@ -99,12 +99,10 @@ abstract class MongoDBCollection extends BaseFeature
     public function __construct()
     {
         try {
-            $this->collection = Loader::db()->selectCollection(static::COLLECTION_NAME);
+            $this->collection = Loader::loadMongoDB()->selectCollection(static::COLLECTION_NAME);
         } catch (Exception $e) {
             throw new UserException('Initializing collection failed.', static::COLLECTION_NAME, $e);
         }
-        $this->loadModel('Config/MongoDBConfig');
-        $this->loadModel('Data/MongoDBData');
     }
 
     /**
@@ -127,13 +125,13 @@ abstract class MongoDBCollection extends BaseFeature
      *                                     The operation in MongoCollection::$wtimeout
      *                                     is milliseconds.
      */
-    final protected function addOne($content, $meta)
+    final protected function addOne($document)
     {
-        $meta['CreationTime'] = new MongoDate();
-        $document = [
-            'Content' => $content,
-            'Meta'    => $meta,
-        ];
+        if (FALSE === is_array($document))
+            throw new UserException('$document is not an array.', $document);
+        if (FALSE === isset($document['Meta']))
+            $document['Meta'] = [];
+        $document['Meta']['CreationTime'] = new MongoDate();
         
         $result = $this->call('mongoInsert', $document);
         

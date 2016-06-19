@@ -251,7 +251,7 @@ final class Router
             foreach ($m as $value) {
                 $mapping[$value[1]] = $value[2]; // 'id' => 'num'
             }
-            $Input = Loader::model('System/Input');
+            $Input = Loader::loadInput();
             foreach ($match_list as $key => $value) { // [0 => 12, 'id' => 12]
                 if (TRUE === is_int($key)) {
                     unset($match_list[$key]);
@@ -267,15 +267,15 @@ final class Router
                     , an instance.'], FALSE);
                 Kit::log([__METHOD__, 'call end', [
                     'function' => $function,
-                    'handler'  => TRUE === is_string($handler) ? Loader::controller($handler) : $handler,
+                    'handler'  => TRUE === is_string($handler) ? Loader::loadService($handler) : $handler,
                     'arg_list' => [ $is_time_consuming ],
                 ]]);
                 if (FALSE === is_string($function))
                     throw new UserException('$function is not a string.', $function);
                 $this->end(
                     call_user_func_array([
-                        // The controller is loaded HERE!
-                        TRUE === is_string($handler) ? Loader::controller($handler) : $handler,
+                        // The service controller is loaded HERE!
+                        TRUE === is_string($handler) ? Loader::loadService($handler) : $handler,
                         $function
                     ], [ $is_time_consuming ])
                 );
@@ -360,7 +360,7 @@ final class Router
         ]]);
         
         // The controller is loaded HERE!
-        $controller  = Loader::controller($handler); // eg. \AboutController
+        $controller  = Loader::loadController($handler); // eg. \AboutController
         $combination = strtolower($this->method) . ucfirst($function); // eg. 'postJoin'
         Kit::log([__METHOD__, ['controller' => $controller, 'combination' => $combination]]);
         // @todo: possibly conflict!? Test cases concerned with the default method: 'get'!

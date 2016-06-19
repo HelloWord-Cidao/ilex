@@ -27,10 +27,9 @@ $Router->post('/user/(uid:any)', function ($name) {
      * because the properties and methods of class Loader are all static,
      * and it is ensured that for each model only one entity is loaded.
      * Thus, the following assignment of $Input will not reload the model,
-     * but just take out the loaded model from Loader::container,
-     * and assign it to $Input.
+     * but just take out the loaded model and assign it to $Input.
      */
-    $Input = Loader::model('System/Input');
+    $Input = Loader::loadInput();
     Kit::log(['Route.php', ['$Input' => $Input]]);
     return ('Hello ' . $Input->post('title', 'Guest') . ' ' . $name . '!');
 });

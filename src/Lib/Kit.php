@@ -46,6 +46,16 @@ final class Kit
     const TYPE_RESOURCE = 'TYPE_RESOURCE';
     const TYPE_NULL     = 'TYPE_NULL';
 
+    public static function isList($variable)
+    {
+        return self::TYPE_LIST === self::type($variable, self::TYPE_LIST);
+    }
+
+    public static function isDict($variable)
+    {
+        return self::TYPE_DICT === self::type($variable, self::TYPE_DICT);
+    }
+
     /**
      * Gets the type of the given variable.
      * @param mixed $variable

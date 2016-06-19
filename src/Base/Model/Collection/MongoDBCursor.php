@@ -1,6 +1,6 @@
 <?php
 
-namespace Ilex\Base\Model\Feature\Database;
+namespace Ilex\Base\Model\Collection;
 
 use \Exception;
 use \MongoCursor;
@@ -9,7 +9,7 @@ use \Ilex\Lib\UserException;
 /**
  * Class MongoDBCursor
  * Encapsulation of basic operations of MongoCursor class.
- * @package Ilex\Base\Model\Feature\Database
+ * @package Ilex\Base\Model\Collection
  *
  * @property private MongoCursor $cursor
  * 
@@ -22,7 +22,8 @@ use \Ilex\Lib\UserException;
  * @method protected boolean hasNext()
  * @method protected         rewind()
  */
-final class MongoDBCursor {
+final class MongoDBCursor
+{
     // If you want to know whether a cursor returned any results
     // it is faster to use 'hasNext()' than 'count'
     

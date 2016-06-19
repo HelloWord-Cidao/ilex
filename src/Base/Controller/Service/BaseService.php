@@ -30,6 +30,8 @@ use \Ilex\Base\Controller\BaseController;
 abstract class BaseService extends BaseController
 {
 
+    const R_EMPTY = '@[EMPTY]#';
+
     private $result   = [
         'code'   => NULL,
         'data'   => [ ],
@@ -59,15 +61,15 @@ abstract class BaseService extends BaseController
                 throw new UserException(
                     "Handler($class_name :: $method_name) is not accessible.", $execution_record);
 
-            $config_model_name = $handler_prefix . 'Config';
-            if (TRUE === is_null($this->$config_model_name))
+            $config_model_name = $this->configModelName;
+            if (TRUE === is_null($config_model_name) OR TRUE === is_null($this->$config_model_name))
                 throw new UserException("Config model($config_model_name) not loaded in $class_name.");
             // Method validateFeaturePrivilege should throw exception if the validation fails.
             $execution_record['validateFeaturePrivilege']
                 = $this->$config_model_name->validateFeaturePrivilege($handler_suffix, $method_name);
 
-            $data_model_name = $handler_prefix . 'Data';
-            if (TRUE === is_null($this->$data_model_name))
+            $data_model_name = $this->dataModelName;
+            if (TRUE === is_null($data_model_name) OR TRUE === is_null($this->$data_model_name))
                 throw new UserException("Data model($data_model_name) not loaded in $class_name.");
             // Method validateInput should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
@@ -185,39 +187,39 @@ abstract class BaseService extends BaseController
         return $this->result['code'];
     }
 
-    final protected function data($name = NULL, $value = '@[EMPTY]#')
+    final protected function data($name = NULL, $value = self::R_EMPTY, $is_list = FALSE)
     {
-        return $this->handleResult('computation_data', $name, $value);
+        return $this->handleResult('computation_data', $name, $value, $is_list);
     }
 
-    final protected function status($name = NULL, $value = '@[EMPTY]#')
+    final protected function status($name = NULL, $value = self::R_EMPTY, $is_list = FALSE)
     {
-        return $this->handleResult('operation_status', $name, $value);
+        return $this->handleResult('operation_status', $name, $value, $is_list);
     }
 
-    final private function handleResult($type, $name = NULL, $value = '@[EMPTY]#')
+    final private function handleResult($type, $name, $value, $is_list)
     {
         if (TRUE === $this->checkFinish())
             throw new UserException('Can not handle result after service has finished.');
         if (FALSE === in_array($type, [ 'computation_data', 'operation_status' ]))
             throw new UserException('Invalid $type.', $type);
         if (TRUE === is_string($name)) {
-            if ('@[EMPTY]#' === $value) // (valid)
+            if (self::R_EMPTY === $value) // (valid)
                 return $this->getResult($type, $name);
             // (valid, valid/NULL)
-            return $this->setResult($type, $name, $value);
+            return $this->setResult($type, $name, $value, $is_list);
         } elseif (TRUE === is_null($name)) {
-            if ('@[EMPTY]#' === $value) // (NULL) / ()
-                return $this->getResult($type);
+            if (self::R_EMPTY === $value) // (NULL) / ()
+                return $this->getResult($type, NULL);
             // (NULL, valid/NULL)
-            throw new UserException('Invalid $value(NULL) when $name is NULL.');
+            throw new UserException('Invalid $value when $name is NULL.', $value);
         } else {
             // (invalid, valid/NULL/empty)
             throw new UserException('Invalid $name.', $name);
         }
     }
 
-    final private function setResult($type, $name, $value)
+    final private function setResult($type, $name, $value, $is_list)
     {
         if (FALSE === in_array($type, [ 'computation_data', 'operation_status' ]))
             throw new UserException('Invalid $type.', $type);
@@ -226,11 +228,24 @@ abstract class BaseService extends BaseController
             throw new UserException('$name is not a string.', $name);
         if ('' === $name)
             throw new UserException('$name is an empty string.', $type);
-        $this->result[$type][$name] = $value;
+        if (TRUE === isset($this->result[$type][$name])) {
+            if (TRUE === $is_list) {
+                if (TRUE === Kit::isList($this->result[$type][$name])) {
+                    $this->result[$type][$name][] = $value;
+                } else {
+                    $msg = "\$this->result[$type][$name] is a non-empty non-list variable.";
+                    throw new UserException($msg, $this->result[$type][$name]);
+                }
+            } else $this->result[$type][$name] = $value;
+        } else {
+            if (TRUE === $is_list)
+                $this->result[$type][$name] = [ $value ];
+            else $this->result[$type][$name] = $value;
+        }
         return $value;
     }
 
-    final private function getResult($type, $name = NULL)
+    final private function getResult($type, $name)
     {
         if (FALSE === in_array($type, [ 'computation_data', 'operation_status' ]))
             throw new UserException('Invalid $type.', $type);
@@ -307,8 +322,13 @@ abstract class BaseService extends BaseController
             Debug::popExecutionId($execution_id);
         }
         header('Content-Type : application/json', TRUE, $status_code);
-        if (FALSE === Debug::isProduction())
-            $this->result['trace'] = Debug::getExecutionRecordStack();
+        if (FALSE === Debug::isProduction()) {
+            $this->result += [
+                'trace'  => Debug::getExecutionRecordStack(),
+                'memory' => Debug::getMemoryUsed(),
+                'time'   => Debug::getTimeUsed(),
+            ];
+        }
         Http::json($this->result);
         if (TRUE === $close_cgi_only) {
             fastcgi_finish_request();

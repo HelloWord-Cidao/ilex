@@ -12,8 +12,9 @@ final class AdminService extends BaseService
 {
     public function __construct()
     {
-        $this->loadModel('Config/AdminConfig');
-        $this->loadModel('Data/AdminData');
-        $this->loadModel('Feature/Core/AdminCore');
+        $path = 'Admin';
+        $this->loadConfig($path);
+        $this->loadData($path);
+        $this->loadCore($path);
     }
 }

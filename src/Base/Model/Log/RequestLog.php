@@ -1,11 +1,12 @@
 <?php
 
-namespace Ilex\Base\Model\Feature\Log;
+namespace Ilex\Base\Model\Log;
 
-use \Ilex\Base\Model\Feature\Log\BaseLog;
+use \Ilex\Lib\Debug;
+use \Ilex\Base\Model\Log\BaseLog;
 /**
  * Class RequestLog
- * @package Ilex\Base\Model\Feature\Log
+ * @package Ilex\Base\Model\Log
  */
 final class RequestLog extends BaseLog
 {
@@ -14,12 +15,6 @@ final class RequestLog extends BaseLog
             'addRequestLog',
         ],
     ];
-
-    public function __construct()
-    {
-        $this->loadModel('Config/RequestConfig');
-        $this->loadModel('Data/RequestData');
-    }
 
     /**
      * @TODO: check efficiency
@@ -44,10 +39,15 @@ final class RequestLog extends BaseLog
                     'RemotePort'    => $_SERVER['REMOTE_PORT'],
                     'ServerPort'    => $_SERVER['SERVER_PORT'],
                 ],
+                'OperationInfo' => [
+                    'TimeUsed'             => Debug::getTimeUsed(Debug::T_MICROSECOND, FALSE),
+                    'MemoryUsed'           => Debug::getMemoryUsed(Debug::M_BYTE, FALSE),
+                    'ExecutionRecordCount' => Debug::countExecutionRecord(),
+                ],
                 'SystemVersion' => SYS_VERSION,
             ],
         ];
-        $this->loadModel('Feature/Database/LogCollection');
+        $this->loadCollection('Log');
         return $this->LogCollection->addRequestLog($content);
     }
 }

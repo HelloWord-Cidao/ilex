@@ -1,12 +1,12 @@
 <?php
 
-namespace Ilex\Base\Model\Feature\Database;
+namespace Ilex\Base\Model\Collection;
 
-use \Ilex\Base\Model\Feature\Database\BaseCollection;
+use \Ilex\Base\Model\Collection\BaseCollection;
 
 /**
  * Class LogCollection
- * @package Ilex\Base\Model\Feature\Database
+ * @package Ilex\Base\Model\Collection
  */
 class LogCollection extends BaseCollection
 {

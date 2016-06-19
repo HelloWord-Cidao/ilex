@@ -52,17 +52,28 @@ final class Debug
     const E_PRODUCTION  = 'PRODUCTION';
     const E_TEST        = 'TEST';
 
+    const M_BYTE     = 'BYTE';
+    const M_KILOBYTE = 'KILOBYTE';
+    const M_MEGABYTE = 'MEGABYTE';
+    const M_GIGABYTE = 'GIGABYTE';
+
+    const T_MICROSECOND = 'MICROSECOND';
+    const T_MILLISECOND = 'MILLISECOND';
+    const T_SECOND      = 'SECOND';
+    const T_MINUTE      = 'MINUTE';
+
     private static $config               = NULL;
     private static $environment          = self::E_PRODUCTION;
-    public static $executionIdStack     = [ ];
+    private static $executionIdStack     = [ ];
     private static $executionRecordStack = [ ];
+    private static $startTime            = NULL;
 
     /**
      * Clears the execution record stack.
      */
     public static function initialize()
     {
-        $Input = Loader::model('System/Input');
+        $Input = Loader::loadInput();
         self::$config = [
             'trace' => [
                 '@-1'  => self::D_NONE,
@@ -81,6 +92,45 @@ final class Debug
         $Input->deleteInput('Debug');
         self::$executionIdStack     = [];
         self::$executionRecordStack = [];
+        self::$startTime            = $_SERVER['REQUEST_TIME_FLOAT'];
+    }
+
+    public static function getMemoryUsed($unit = self::M_MEGABYTE, $to_string = TRUE)
+    {
+        $result = memory_get_peak_usage(true);
+        $result *= [
+            self::M_BYTE     => 1,
+            self::M_KILOBYTE => 1.0 / 1024,
+            self::M_MEGABYTE => 1.0 / (1024 * 1024),
+            self::M_GIGABYTE => 1.0 / (1024 * 1024 * 1024),
+        ][$unit];
+        if (TRUE === $to_string)
+            $result = sprintf([
+                self::M_BYTE     => '%dB',
+                self::M_KILOBYTE => '%.1fKB',
+                self::M_MEGABYTE => '%.1fMB',
+                self::M_GIGABYTE => '%.1fGB',
+            ][$unit], $result);
+        return $result;
+    }
+
+    public static function getTimeUsed($unit = self::T_MILLISECOND, $to_string = TRUE)
+    {
+        $result = microtime(true) - self::$startTime;
+        $result *= [
+            self::T_MICROSECOND => 1000 * 1000,
+            self::T_MILLISECOND => 1000,
+            self::T_SECOND      => 1,
+            self::T_MINUTE      => 1.0 / 60,
+        ][$unit];
+        if (TRUE === $to_string)
+            $result = sprintf([
+                self::T_MICROSECOND => '%dmms',
+                self::T_MILLISECOND => '%.1fms',
+                self::T_SECOND      => '%.1fs',
+                self::T_MINUTE      => '%.1fm',
+            ][$unit], $result);
+        return $result;
     }
 
     public static function setEnvironmentToDevelopment()
@@ -302,10 +352,8 @@ final class Debug
             if (TRUE === isset($result[$index]['previous']))
                 $result[] = $result[$index]['previous'];
             try {
-                $handler_prefix = Loader::getHandlerPrefixFromPath(
-                    $result[$index]['class'], ['Service', 'Feature', 'Core', 'Collection', 'Log']);
-                $handler_suffix = Loader::getHandlerSuffixFromPath(
-                    $result[$index]['class'], ['Service', 'Feature', 'Core', 'Collection', 'Log']);
+                $handler_prefix = Loader::getHandlerPrefixFromPath($result[$index]['class']);
+                $handler_suffix = Loader::getHandlerSuffixFromPath($result[$index]['class']);
                 $handler = sprintf('%10s %10s', $handler_prefix, $handler_suffix);
             } catch (Exception $e) {
                 $handler = $result[$index]['class'];

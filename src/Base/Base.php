@@ -12,9 +12,6 @@ use \Ilex\Lib\UserException;
  * Class Base
  * Base class of controllers and models.
  * @package Ilex\Base
- * 
- * @method final protected static object loadModel(string $path, array $arg_list = []
- *                                           , boolean $with_instantiate = TRUE)
  */
 abstract class Base
 {
@@ -25,18 +22,56 @@ abstract class Base
     const T_DESCENDANT = 'T_DESCENDANT';
     const T_OTHER      = 'T_OTHER';
 
-    /**
-     * @param string  $path
-     * @param array   $arg_list 
-     * @param boolean $with_instantiate 
-     * @return object
-     */
-    final protected function loadModel($path, $arg_list = [], $with_instantiate = TRUE)
+    protected $configModelName = NULL;
+    protected $dataModelName   = NULL;
+
+    final protected function loadConfig($path)
     {
-        $handler_name = Loader::getHandlerFromPath($path);
-        if (TRUE === is_null($this->$handler_name))
-            return ($this->$handler_name = Loader::model($path, $arg_list, $with_instantiate));
-        else return $this->$handler_name;
+        $config_model_name = Loader::getHandlerFromPath($path) . 'Config';
+        if (TRUE === is_null($this->$config_model_name)) {
+            try {
+                $this->$config_model_name = Loader::loadConfig($path);
+            } catch (Exception $e) {
+                $config_model_name = 'DefaultConfig';
+                $this->$config_model_name = Loader::loadConfig('Default');
+            }
+        }
+        $this->configModelName = $config_model_name;
+        return $config_model_name;
+    }
+
+    final protected function loadData($path)
+    {
+        $data_model_name = Loader::getHandlerFromPath($path) . 'Data';
+        if (TRUE === is_null($this->$data_model_name)) {
+            try {
+                $this->$data_model_name = Loader::loadData($path);
+            } catch (Exception $e) {
+                $data_model_name = 'DefaultData';
+                $this->$data_model_name = Loader::loadData('Default');
+            }
+        }
+        $this->dataModelName = $data_model_name;
+        return $data_model_name;
+    }
+
+    final protected function loadCore($path)
+    {
+        $handler_name = Loader::getHandlerFromPath($path) . 'Core';
+        return ($this->$handler_name
+            = Loader::loadCore($path));
+    }
+
+    final protected function loadCollection($path, $with_instantiate = FALSE)
+    {
+        $handler_name = Loader::getHandlerFromPath($path) . 'Collection';
+        return ($this->$handler_name
+            = Loader::loadCollection($path, $with_instantiate));
+    }
+
+    final protected function includeEntity($path)
+    {
+        return Loader::includeEntity($path);
     }
 
     final protected function generateExecutionRecord($class_name, $method_name)
@@ -55,9 +90,8 @@ abstract class Base
         list($initiator_class_name, $initiator_type)
             = $this->getInitiatorNameAndType($method_name, $declaring_class);
         $method_accessibility = $this->getMethodAccessibility($method_visibility, $initiator_type);
-        $more_suffix          = [ 'Service', 'Core', 'Collection', 'Log' ];
-        $handler_prefix       = Loader::getHandlerPrefixFromPath($declaring_class_name, $more_suffix);
-        $handler_suffix       = Loader::getHandlerSuffixFromPath($declaring_class_name, $more_suffix);
+        $handler_prefix       = Loader::getHandlerPrefixFromPath($declaring_class_name);
+        $handler_suffix       = Loader::getHandlerSuffixFromPath($declaring_class_name);
         $execution_record = [
             'success'              => FALSE,
             'class'                => $class_name,
@@ -73,7 +107,7 @@ abstract class Base
         return $execution_record;
     }
 
-    final protected function getMethodVisibility($methods_visibility, $method_name)
+    final private function getMethodVisibility($methods_visibility, $method_name)
     {
         if (TRUE === isset($methods_visibility[self::V_PUBLIC])
             AND TRUE === isset($methods_visibility[self::V_PROTECTED])
@@ -90,7 +124,7 @@ abstract class Base
         return self::V_PRIVATE;
     }
 
-    final protected function getInitiatorNameAndType($method_name, $declaring_class)
+    final private function getInitiatorNameAndType($method_name, $declaring_class)
     {
         $backtrace          = Kit::columns(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 20),
             [ 'class', 'function' ], TRUE);
@@ -127,7 +161,7 @@ abstract class Base
         return $result;
     }
 
-    final protected function getMethodAccessibility($method_visibility, $initiator_type)
+    final private function getMethodAccessibility($method_visibility, $initiator_type)
     {
         if (self::V_PUBLIC === $method_visibility) {
             return TRUE;

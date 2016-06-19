@@ -5,10 +5,10 @@ namespace Ilex\Base\Model\Config;
 use \Ilex\Base\Model\Config\BaseConfigClass;
 
 /**
- * Class RequestConfig
+ * Class DefaultConfig
  * @package Ilex\Base\Model\Config
  */
-final class RequestConfig extends BaseConfigClass
+final class DefaultConfig extends BaseConfigClass
 {
 
 }
