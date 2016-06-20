@@ -152,7 +152,7 @@ final class Router
      */
     private function resolveRestURI($description)
     {
-        $length = strlen($description);
+        $length = Kit::len($description);
         if (substr($this->uri, 0, $length) !== $description) {
         // $description IS NOT a prefix of $this->uri.
             return FALSE;
@@ -343,7 +343,7 @@ final class Router
 
         $function = $this->getFunction($this->uri);
         Kit::log([__METHOD__, ['function' => $function]]);
-        if (TRUE === is_array($function)) {
+        if (TRUE === Kit::isList($function)) {
             // CAN NOT change order!
             $arg_list = $function[1];
             $function = $function[0];
@@ -428,20 +428,20 @@ final class Router
                 $arg_list = []; // eg. '/user/' => 'user/' with no arg_list
             } else {
                 // At least one arg.
-                $arg_list = explode('/', substr($uri, $index + 1)); // eg. ['page', '12']
+                $arg_list = Kit::split('/', substr($uri, $index + 1)); // eg. ['page', '12']
             }
         }
         if ('' === $function) {
             $function = 'index'; // $uri was '/' at the beginning.
         }
         Kit::log([__METHOD__, ['function' => $function, 'arg_list' => $arg_list]]);
-        return Kit::len($arg_list) > 0 ? [$function, $arg_list] : $function;
+        return Kit::len($arg_list) > 0 ? [ $function, $arg_list ] : $function;
     }
 
     private function popUriList()
     {
         // The last of three places where $this->uri is assigned.
         // The last of two places where $this->uriList is updated.
-        $this->uri = array_pop($this->uriList);
+        $this->uri = Kit::popList($this->uriList);
     }
 }

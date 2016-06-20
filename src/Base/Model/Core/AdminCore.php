@@ -64,7 +64,6 @@ final class AdminCore extends BaseCore
 
         $data = $this->$collection_name->get($criterion, $projection, $sort_by, $skip, $limit);
 
-        if (FALSE === is_array($data))
-            $data = Kit::generateError('$data is not array.');
+        Kit::ensureDict($data);
     }
 }

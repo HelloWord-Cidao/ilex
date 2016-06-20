@@ -80,7 +80,7 @@ abstract class BaseCollection extends MongoDBCollection
     //     ];
     //     $document = $this->call('getTheOnlyOne', $criterion, $projection);
     //     $field_value = $document;
-    //     foreach (explode('.', $path_of_field) as $key) {
+    //     foreach (Kit::split('.', $path_of_field) as $key) {
     //         if (FALSE === isset($field_value[$key]))
     //             throw new UserException("Can not find field with path($path_of_field).", $document);
     //         $field_value = $field_value[$key];

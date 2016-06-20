@@ -27,7 +27,6 @@ use \Ilex\Lib\UserTypeException;
  * @method public static            log(mixed $data, boolean $quotation_mark_list = TRUE
  *                                      , string $env = 'TEST')
  * @method public array|FALSE       randomByWeight(array $list_of_dict)
- * @method public static array      recoverMongoDBQuery(array $query)
  * @method public static array      separateTitleWords(string $string)
  * @method public static string     time(int|NULL $time = NULL, string $format = 'Y-m-d H:i:s')
  * @method public static string     toString(mixed $data, boolean $quotation_mark_list = TRUE)
@@ -36,7 +35,7 @@ use \Ilex\Lib\UserTypeException;
 final class Kit
 {
 
-    const TYPE_EMPTY    = '@[EMPTY]#';
+    const TYPE_VACANCY  = '@[VACANCY]#';
     const TYPE_STRING   = 'STRING';
     const TYPE_INT      = 'INT';
     const TYPE_FLOAT    = 'FLOAT';
@@ -102,34 +101,41 @@ final class Kit
         ], TRUE);
     }
 
-    public static function isType(&$variable, $type_list)
+    public static function isType(&$variable, $type_list, $can_be_null = FALSE)
     {
+        if (FALSE === is_bool($can_be_null))
+            throw new UserTypeException($can_be_null, self::TYPE_BOOLEAN);
         if (self::TYPE_ARRAY === $type_list) return TRUE === is_array($variable);
         if (FALSE === is_array($type_list)) $type_list = [ $type_list ];
-        if (FALSE === in_array(self::TYPE_ARRAY, $type_list) 
-            AND (TRUE === in_array(self::TYPE_LIST, $type_list) 
-                OR TRUE === in_array(self::TYPE_DICT, $type_list))) {
+        if (TRUE === $can_be_null AND FALSE === in_array(self::TYPE_NULL, $type_list, TRUE)) {
+            $type_list[] = self::TYPE_NULL;
+        }
+        $distinguish_array = FALSE;
+        $empty_array       = self::TYPE_LIST;
+        if (FALSE === in_array(self::TYPE_ARRAY, $type_list, TRUE) 
+            AND (TRUE === in_array(self::TYPE_LIST, $type_list, TRUE) 
+                OR TRUE === in_array(self::TYPE_DICT, $type_list, TRUE))) {
             $distinguish_array = TRUE;
-            if (TRUE === in_array(self::TYPE_DICT, $type_list)) $empty_array = self::TYPE_DICT;
+            if (TRUE === in_array(self::TYPE_DICT, $type_list, TRUE)) $empty_array = self::TYPE_DICT;
             else $empty_array = self::TYPE_LIST;
         }
         return TRUE === in_array(self::type($variable, $distinguish_array, $empty_array), $type_list, TRUE);
     }
 
-    public static function ensureType(&$variable, $type_list)
+    public static function ensureType(&$variable, $type_list, $can_be_null = FALSE)
     {
-        if (FALSE === self::isType($variable, $type_list))
+        if (FALSE === self::isType($variable, $type_list, $can_be_null))
             throw new UserTypeException($variable, $type_list);
     }
 
-    public static function isList(&$variable)
+    public static function isList(&$variable, $can_be_null = FALSE)
     {
-        return self::isType($variable, self::TYPE_LIST);
+        return self::isType($variable, self::TYPE_LIST, $can_be_null);
     }
 
-    public static function ensureList(&$variable)
+    public static function ensureList(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_LIST);
+        self::ensureType($variable, self::TYPE_LIST, $can_be_null);
     }
 
     public static function isListOfType(&$list, $type_list)
@@ -190,14 +196,14 @@ final class Kit
             throw new UserException('$matrix is not a matrix.', $matrix);
     }
 
-    public static function isDict(&$variable)
+    public static function isDict(&$variable, $can_be_null = FALSE)
     {
-        return self::isType($variable, self::TYPE_DICT);
+        return self::isType($variable, self::TYPE_DICT, $can_be_null);
     }
 
-    public static function ensureDict(&$variable)
+    public static function ensureDict(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_DICT);
+        self::ensureType($variable, self::TYPE_DICT, $can_be_null);
     }
 
     public static function isDictOfType(&$dict, $type_list)
@@ -245,84 +251,74 @@ final class Kit
         return self::ensureDictOfType($dict, self::TYPE_ARRAY);
     }
 
-    public static function isArray(&$variable)
+    public static function isArray(&$variable, $can_be_null = FALSE)
     {
-        return self::isType($variable, self::TYPE_ARRAY);
+        return self::isType($variable, self::TYPE_ARRAY, $can_be_null);
     }
 
-    public static function ensureArray(&$variable)
+    public static function ensureArray(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_ARRAY);
+        self::ensureType($variable, self::TYPE_ARRAY, $can_be_null);
     }
 
-    public static function isString(&$variable)
+    public static function isString(&$variable, $can_be_null = FALSE)
     {
-        return self::isType($variable, self::TYPE_STRING);
+        return self::isType($variable, self::TYPE_STRING, $can_be_null);
     }
 
-    public static function ensureString(&$variable)
+    public static function ensureString(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_STRING);
+        self::ensureType($variable, self::TYPE_STRING, $can_be_null);
     }
 
-    public static function isInt(&$variable)
+    public static function isInt(&$variable, $can_be_null = FALSE)
     {
-        return self::isType($variable, self::TYPE_INT);
+        return self::isType($variable, self::TYPE_INT, $can_be_null);
     }
 
-    public static function ensureInt(&$variable)
+    public static function ensureInt(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_INT);
+        self::ensureType($variable, self::TYPE_INT, $can_be_null);
     }
 
-    public static function isFloat(&$variable)
+    public static function isFloat(&$variable, $can_be_null = FALSE)
     {
-        return self::isType($variable, self::TYPE_FLOAT);
+        return self::isType($variable, self::TYPE_FLOAT, $can_be_null);
     }
 
-    public static function ensureFloat(&$variable)
+    public static function ensureFloat(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_FLOAT);
+        self::ensureType($variable, self::TYPE_FLOAT, $can_be_null);
     }
 
-    public static function isBoolean(&$variable)
+    public static function isBoolean(&$variable, $can_be_null = FALSE)
     {
-        return self::isType($variable, self::TYPE_BOOLEAN);
+        return self::isType($variable, self::TYPE_BOOLEAN, $can_be_null);
     }
 
-    public static function ensureBoolean(&$variable)
+    public static function ensureBoolean(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_BOOLEAN);
+        self::ensureType($variable, self::TYPE_BOOLEAN, $can_be_null);
     }
 
-    public static function isObject(&$variable)
+    public static function isObject(&$variable, $can_be_null = FALSE)
     {
-        return self::isType($variable, self::TYPE_OBJECT);
+        return self::isType($variable, self::TYPE_OBJECT, $can_be_null);
     }
 
-    public static function ensureObject(&$variable)
+    public static function ensureObject(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_OBJECT);
+        self::ensureType($variable, self::TYPE_OBJECT, $can_be_null);
     }
 
-    public static function isObject(&$variable)
+    public static function isResource(&$variable, $can_be_null = FALSE)
     {
-        return self::isType($variable, self::TYPE_OBJECT);
+        return self::isType($variable, self::TYPE_RESOURCE, $can_be_null);
     }
 
-    public static function ensureObject(&$variable)
+    public static function ensureResource(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_OBJECT);
-    }
-
-    public static function isResource(&$variable)
-    {
-        return self::isType($variable, self::TYPE_RESOURCE);
-    }
-
-    public static function ensureResource(&$variable)
-    {
-        self::ensureType($variable, self::TYPE_RESOURCE);
+        self::ensureType($variable, self::TYPE_RESOURCE, $can_be_null);
     }
 
     public static function isNULL(&$variable)
@@ -333,6 +329,18 @@ final class Kit
     public static function ensureNULL(&$variable)
     {
         self::ensureType($variable, self::TYPE_NULL);
+    }
+
+    public static function isVacancy(&$variable)
+    {
+        return self::TYPE_VACANCY === $variable;
+    }
+
+    public static function ensureVacancy(&$variable)
+    {
+        if (FALSE === self::isVacancy($variable))
+            throw new UserException('$variable is not vacancy.', $variable);
+            
     }
 
     // ================================================== //
@@ -346,7 +354,7 @@ final class Kit
         if (TRUE === self::isString($string_or_array)) {
             // strlen() returns the number of bytes rather than the number of characters in a string.
             return strlen($string_or_array);
-        } else count($string_or_array);
+        } else return count($string_or_array);
     }
 
     // ================================================== //
@@ -417,7 +425,7 @@ final class Kit
         return 0 === count($array);
     }
 
-    public static function in(&$value, &$array)
+    public static function in(&$value, $array)
     {
         self::ensureArray($array);
         return TRUE === in_array($value, $array, TRUE);
@@ -451,7 +459,7 @@ final class Kit
             throw new UserException('$array has no $key.', $arg_list);
     }
 
-    public static function isset()
+    public static function issetKey()
     {
         $arg_list = func_get_args();
         $array = $arg_list[0];
@@ -466,10 +474,10 @@ final class Kit
         return TRUE;
     }
 
-    public static function ensureIsset()
+    public static function ensureIssetKey()
     {
         $arg_list = func_get_args();
-        if (FALSE === call_user_func_array([ self, 'isset' ], $arg_list))
+        if (FALSE === call_user_func_array([ self, 'issetKey' ], $arg_list))
             throw new UserException('$key is not set in $array.', $arg_list);
     }
 
@@ -541,17 +549,17 @@ final class Kit
         return $result;
     }
 
-    public static function isAllSame(&$array, $value = self::TYPE_EMPTY)
+    public static function isAllSame(&$array, $value = self::TYPE_VACANCY)
     {
         self::ensureArray($array);
         $value_list = array_values($array);
         if (0 === count($value_list)) return TRUE;
-        if (self::TYPE_EMPTY !== $value AND $value_list[0] !== $value) return FALSE
+        if (FALSE === Kit::isVacancy($value) AND $value_list[0] !== $value) return FALSE;
         if (self::count($value_list[0], $value_list) !== self::len($value_list)) return FALSE;
         return TRUE;
     }
 
-    public static function ensureAllSame(&$array, $value = self::TYPE_EMPTY)
+    public static function ensureAllSame(&$array, $value = self::TYPE_VACANCY)
     {
         if (FALSE === self::isAllSame($array, $value))
             throw new UserException('Values in $array are not same (or $value).', [ $array, $value ]);
@@ -571,7 +579,7 @@ final class Kit
     {
         self::ensureList($list);
         self::ensureInt($offset);
-        self::ensureType($length, [ self::TYPE_NULL, self::TYPE_INT ]);
+        self::ensureInt($length, TRUE);
         return array_slice($list, $offset, $length);
     }
 
@@ -586,7 +594,7 @@ final class Kit
     {
         self::ensureList($list);
         self::ensureInt($offset);
-        if ($offset > self::len($array))
+        if ($offset > self::len($list))
             throw new UserException("\$offset($offset) overflows $list.", $list);
         return self::slice($list, - $offset)[0];
     }
@@ -609,7 +617,7 @@ final class Kit
         self::ensureList($list);
         if (0 === count($list))
             throw new UserException('Can not pop from an empty list.');
-        return array_slice($list, 0, count($list) - 1);
+        return Kit::slice($list, 0, count($list) - 1);
     }
 
     public static function popList(&$list)
@@ -863,12 +871,13 @@ final class Kit
         return round($number, $precision);
     }
 
-    public static function randomInt($min = 0, $max = mt_getrandmax())
+    public static function randomInt($min = 0, $max = self::TYPE_VACANCY)
     {
+        $randmax = mt_getrandmax();
+        if (TRUE === self::isVacancy($max)) $max = $randmax;
         self::ensureInt($min);
         self::ensureInt($max);
         if ($min > $max) throw new UserException("Min($min) is larger than max($max).", [ $min, $max ]);
-        $randmax = mt_getrandmax();
         return $min + self::round(1.0 * mt_rand() / $randmax * ($max - $min));
             
     }
@@ -964,11 +973,11 @@ final class Kit
         }
         if (TRUE === self::isList($data)) {
             if (0 === self::len($data)) return '[]';
-            return '[ ' . join(', ', $data) . ' ]';
+            return '[ ' . self::join(', ', $data) . ' ]';
         }
         else if (TRUE === self::isDict($data)) {
             return '{ '
-                . join(', ',
+                . self::join(', ',
                     array_map(
                         function($key, $value) {
                             return self::toString($key, FALSE) . ' : ' . $value;

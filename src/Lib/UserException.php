@@ -16,7 +16,7 @@ use \Exception;
  *                          , Exception $previous = NULL, int $code = 0)
  * @method public mixed getDetail()
  */
-final class UserException extends Exception
+class UserException extends Exception
 {
     // http://php.net/manual/en/language.exceptions.php
     // Using a return statement inside a finally block will override any other return statement 

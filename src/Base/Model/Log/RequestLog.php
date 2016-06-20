@@ -2,7 +2,7 @@
 
 namespace Ilex\Base\Model\Log;
 
-use \Ilex\Lib\Debug;
+use \Ilex\Core\Debug;
 use \Ilex\Base\Model\Log\BaseLog;
 /**
  * Class RequestLog
@@ -47,7 +47,7 @@ final class RequestLog extends BaseLog
                 'SystemVersion' => SYS_VERSION,
             ],
         ];
-        $this->loadCollection('Log');
+        $this->loadCollection('Log', TRUE);
         return $this->LogCollection->addRequestLog($content);
     }
 }

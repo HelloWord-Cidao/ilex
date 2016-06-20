@@ -50,11 +50,11 @@ final class Input extends BaseModel
         self::merge('post', $_POST);
         $input = file_get_contents('php://input');
         $data  = json_decode($input, TRUE);
-        if (TRUE === is_null($data) AND strlen($input) > 0)
+        if (TRUE === is_null($data) AND Kit::len($input) > 0)
             throw new UserException(json_last_error_msg(), $input);
         if (FALSE === is_null($data)) self::merge('post', $data);
         $limit = 100000;
-        if (strlen(json_encode(self::input())) > $limit) 
+        if (Kit::len(json_encode(self::input())) > $limit) 
             throw new UserException("Input size exceeds limit($limit).");
         self::deleteInput('_url');
     }
@@ -66,8 +66,9 @@ final class Input extends BaseModel
      */
     public static function clear($name = NULL)
     {
+        Kit::ensureString($name, TRUE);
         if (FALSE === is_null($name)) {
-            if (TRUE === Kit::inList($name, ['get', 'post', 'input'])) {
+            if (TRUE === Kit::in($name, ['get', 'post', 'input'])) {
                 $name .= 'Data';
                 self::$$name->clear();
                 return TRUE;
@@ -164,7 +165,7 @@ final class Input extends BaseModel
      */
     public static function merge($name, $data)
     {
-        if (TRUE === Kit::inList($name, ['get', 'post', 'input'])) {
+        if (TRUE === Kit::in($name, ['get', 'post', 'input'])) {
             $name .= 'Data';
             self::$$name->merge($data);
             /* 

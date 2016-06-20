@@ -37,7 +37,7 @@ final class UserTypeException extends UserException
         $variable_type = $this->variableType = Kit::type($variable, TRUE);
         $this->expectedTypeList = $expected_type_list;
         $expected_type_string = Kit::join(' or ', $expected_type_list);
-        $message = "Invalid type(${variable_type}), ${expected_type_string} is expected."
+        $message = "Invalid type(${variable_type}), ${expected_type_string} is expected.";
         $detail = [
             'variable'           => $variable,
             'variable_type'      => $variable_type,

@@ -76,14 +76,15 @@ final class Debug
         $Input = Loader::loadInput();
         self::$config = [
             'trace' => [
-                '@-1'  => self::D_NONE,
+                '@-1' => self::D_NONE,
             ],
             'exception' => [
-                '@-1'  => self::D_NONE,
+                '@-1' => self::D_NONE,
             ],
         ];
         $config = $Input->input('Debug', NULL);
-        if (TRUE === is_array($config)) {
+        Kit::ensureDict($config, TRUE);
+        if (TRUE === Kit::isDict($config)) {
             if (TRUE === isset($config['trace']))
                 self::$config['trace'] = array_merge(self::$config['trace'], $config['trace']);
             if (TRUE === isset($config['exception']))
@@ -197,7 +198,7 @@ final class Debug
             $msg = "\$execution_id($execution_id) does not match the top of \$executionIdStack.";
             throw new UserException($msg, self::$executionIdStack);
         }
-        array_pop(self::$executionIdStack);
+        Kit::popList(self::$executionIdStack);
     }
 
     /**
@@ -305,7 +306,7 @@ final class Debug
             );
             $index++;
         }
-        // $result = Kit::sliceList($result, 0, 10);
+        // $result = Kit::slice($result, 0, 10);
             // 'parent_execution_id'
             // 'indent'
             // 'success'
@@ -406,7 +407,7 @@ final class Debug
             if (TRUE === self::checkExceptionDisplay($index, self::D_E_FILE)) {
                 $tmp['file'] = $result[$index]['file'];
             }
-            if (1 === Kit::countDict($tmp))
+            if (1 === Kit::len($tmp))
                 $result[$index] = $tmp['msg'];
             else $result[$index] = $tmp;
             $index++;
@@ -549,7 +550,7 @@ final class Debug
         if (Kit::len($trace) <= 1) $index = NULL;
         else {
             // @todo: add comment to this
-            if (TRUE === Kit::inList($trace[0]['function'], [
+            if (TRUE === Kit::in($trace[0]['function'], [
                 '__call', 'call', 'callParent', 'execute'
             ])) {
                 if ($trace[0]['args'][0] !== $trace[1]['function']) $index = 1;
@@ -557,7 +558,7 @@ final class Debug
                     if (Kit::len($trace) <= 2) $index = NULL;
                     else $index = 2;
                 }
-            } elseif (TRUE === Kit::inList($trace[1]['function'], [
+            } elseif (TRUE === Kit::in($trace[1]['function'], [
                 'call_user_func_array',
                 'call_user_method_array',
                 'call_user_func',

@@ -27,7 +27,7 @@ abstract class BaseModel extends Base
     {
         $arg_list = func_get_args();
         $method_name = $arg_list[0];
-        $arg_list = Kit::sliceList($arg_list, 1);
+        $arg_list = Kit::slice($arg_list, 1);
         return $this->execute($method_name, $arg_list);
     }
 
@@ -35,7 +35,7 @@ abstract class BaseModel extends Base
     {
         $arg_list = func_get_args();
         $method_name = $arg_list[0];
-        $arg_list = Kit::sliceList($arg_list, 1);
+        $arg_list = Kit::slice($arg_list, 1);
         return $this->execute($method_name, $arg_list, TRUE);
     }
 

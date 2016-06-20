@@ -156,6 +156,11 @@ final class Loader
         return self::loadModel("Data/${path}Data");
     }
 
+    public static function loadLog($path)
+    {
+        return self::loadModel("Log/${path}Log");
+    }
+
     public static function loadCore($path)
     {
         return self::loadModel("Core/${path}Core");
@@ -263,12 +268,12 @@ final class Loader
         $handler         = self::getHandlerFromPath($path, $delimiter);
         $title_word_list = Kit::separateTitleWords($handler);
         if (Kit::len($title_word_list) > 0) {
-            if (TRUE === Kit::inList(Kit::last($title_word_list), self::$handler_suffix_list))
-                array_pop($title_word_list);
+            if (TRUE === Kit::in(Kit::last($title_word_list), self::$handler_suffix_list))
+                Kit::popList($title_word_list);
         }
         if (0 === Kit::len($title_word_list))
             throw new UserException("Get handler prefix of \$handler($handler) failed.");
-        return join($title_word_list);
+        return Kit::join('', $title_word_list);
     }
 
     /**
@@ -286,7 +291,7 @@ final class Loader
         $handler         = self::getHandlerFromPath($path, $delimiter);
         $title_word_list = Kit::separateTitleWords($handler);
         if (Kit::len($title_word_list) > 0) {
-            if (TRUE === Kit::inList($last_word = Kit::last($title_word_list), self::$handler_suffix_list))
+            if (TRUE === Kit::in($last_word = Kit::last($title_word_list), self::$handler_suffix_list))
                 return $last_word;
         }
         throw new UserException("Get handler suffix of \$handler($handler) failed.");
@@ -301,7 +306,7 @@ final class Loader
      */
     public static function getHandlerFromPath($path, $delimiter = '/')
     {
-        return Kit::last(explode($delimiter, $path));
+        return Kit::last(Kit::split($delimiter, $path));
     }
 
     /**
@@ -311,14 +316,14 @@ final class Loader
     public static function getModelPath($model_class_name, $delimiter = '\\')
     {
         $handler_prefix = self::getHandlerPrefixFromPath($model_class_name); // 'Resource'
-        $word_list = explode($delimiter, $model_class_name);
+        $word_list = Kit::split($delimiter, $model_class_name);
         while (Kit::len($word_list) > 0 AND 'Model' !== $word_list[0]) {
-            $word_list = Kit::sliceList($word_list, 1);
+            $word_list = Kit::slice($word_list, 1);
         }
-        $word_list = Kit::sliceList($word_list, 2); // [ 'Content', 'ResourceCollection' ]
-        array_pop($word_list); // [ 'Content' ]
+        $word_list = Kit::slice($word_list, 2); // [ 'Content', 'ResourceCollection' ]
+        Kit::popList($word_list); // [ 'Content' ]
         $word_list[] = $handler_prefix; // [ 'Content', 'Resource' ]
-        return join('/', $word_list); // 'Content/Resource'
+        return Kit::join('/', $word_list); // 'Content/Resource'
     }
 
     /**
