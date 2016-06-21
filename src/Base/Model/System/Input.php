@@ -48,7 +48,9 @@ final class Input extends BaseModel
         self::$inputData = new Container();
         self::merge('get', $_GET);
         self::merge('post', $_POST);
-        $input = file_get_contents('php://input');
+        $opts = [ 'http' => [ 'timeout' => 60 ] ];
+        $context = stream_context_create($opts);
+        $input = file_get_contents('php://input', FALSE, $context);
         $data  = json_decode($input, TRUE);
         if (TRUE === is_null($data) AND Kit::len($input) > 0)
             throw new UserException(json_last_error_msg(), $input);

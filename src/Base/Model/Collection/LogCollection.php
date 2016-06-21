@@ -21,11 +21,6 @@ class LogCollection extends BaseCollection
 
     const COLLECTION_NAME = 'Log';
 
-    final public function __construct()
-    {
-        parent::__construct();
-    }
-
     final protected function addRequestLog($content)
     {
         $type = 'Request';

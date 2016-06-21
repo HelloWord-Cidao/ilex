@@ -150,21 +150,21 @@ final class Validator
     {
         switch ($rule['type']) {
             case 'int':
-                if (TRUE === self::is_int($value)) {
+                if (TRUE === self::isInt($value)) {
                     $value = intval($value); // Convert to int!
                     return TRUE;
                 } else {
                     return FALSE;
                 }
             case 'float':
-                if (TRUE === self::is_float($value)) {
+                if (TRUE === self::isFloat($value)) {
                     $value = floatval($value); // Convert to float!
                     return TRUE;
                 } else {
                     return FALSE;
                 }
             case 'array':
-                return is_array($value);
+                return Kit::isArray($value);
             default:
                 throw new \Exception('Unrecognizable type "' . $rule['type'] . '" for Validation.');
         }
@@ -232,7 +232,7 @@ final class Validator
      */
     public static function isInt($value)
     {
-        if (TRUE === is_int($value)) {
+        if (TRUE === Kit::isInt($value)) {
             return TRUE;
         } elseif (1 === preg_match('@^\d+$@', $value)) {
             return TRUE;
@@ -247,7 +247,7 @@ final class Validator
      */
     public static function isFloat($value)
     {
-        if (TRUE === is_float($value) OR TRUE === is_int($value)) {
+        if (TRUE === Kit::isFloat($value) OR TRUE === Kit::isInt($value)) {
             return TRUE;
         } elseif (1 === preg_match('@^(\d+(\.\d*)?|\.\d+)$@', $value)) {
             return TRUE;

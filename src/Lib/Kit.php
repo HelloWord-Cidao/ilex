@@ -105,7 +105,34 @@ final class Kit
     {
         if (FALSE === is_bool($can_be_null))
             throw new UserTypeException($can_be_null, self::TYPE_BOOLEAN);
-        if (self::TYPE_ARRAY === $type_list) return TRUE === is_array($variable);
+        if (FALSE === $can_be_null AND FALSE === is_array($type_list)) {
+            switch ($type_list) {
+                case self::TYPE_STRING:
+                    return TRUE === is_string($variable);
+                    break;
+                case self::TYPE_INT:
+                    return TRUE === is_int($variable);
+                    break;
+                case self::TYPE_FLOAT:
+                    return TRUE === is_float($variable);
+                    break;
+                case self::TYPE_BOOLEAN:
+                    return TRUE === is_bool($variable);
+                    break;
+                case self::TYPE_ARRAY:
+                    return TRUE === is_array($variable);
+                    break;
+                case self::TYPE_NULL:
+                    return TRUE === is_null($variable);
+                    break;
+                case self::TYPE_OBJECT:
+                    return TRUE === is_object($variable);
+                    break;
+                case self::TYPE_RESOURCE:
+                    return TRUE === is_resource($variable);
+                    break;
+            }
+        }
         if (FALSE === is_array($type_list)) $type_list = [ $type_list ];
         if (TRUE === $can_be_null AND FALSE === in_array(self::TYPE_NULL, $type_list, TRUE)) {
             $type_list[] = self::TYPE_NULL;
@@ -871,10 +898,10 @@ final class Kit
         return round($number, $precision);
     }
 
-    public static function randomInt($min = 0, $max = self::TYPE_VACANCY)
+    public static function randomInt($min = 0, $max = NULL)
     {
         $randmax = mt_getrandmax();
-        if (TRUE === self::isVacancy($max)) $max = $randmax;
+        if (TRUE === is_null($max)) $max = $randmax;
         self::ensureInt($min);
         self::ensureInt($max);
         if ($min > $max) throw new UserException("Min($min) is larger than max($max).", [ $min, $max ]);
@@ -996,7 +1023,7 @@ final class Kit
             return TRUE === $data ? 'TRUE' : 'FALSE';
         else if (TRUE === is_null($data))
             return 'NULL';
-        else if (TRUE === is_string($data))
+        else if (TRUE === self::isString($data))
             return TRUE === $quotation_mark_list ? ('\'' . $data . '\'') : $data;
         else return strval($data);
     }

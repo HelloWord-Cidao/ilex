@@ -35,7 +35,6 @@ use \Ilex\Lib\UserException;
  * @method private static mixed   get(mixed $key)
  * @method private static boolean has(mixed $key)
  * @method private static string  includeFile(string $path, string $type)
- * @method private static boolean isLoaded(string $path, string $type)
  * @method private static object  load(string $path, string $type, array $arg_list = []
  *                                    , boolean $with_instantiate)
  * @method private static mixed   set(mixed $key, mixed $value)
@@ -56,6 +55,7 @@ final class Loader
         'Data',
         'Core',
         'Entity',
+        'Wrapper',
         'Collection',
         'Log'
     ];
@@ -166,9 +166,9 @@ final class Loader
         return self::loadModel("Core/${path}Core");
     }
 
-    public static function loadCollection($path, $with_instantiate = FALSE)
+    public static function loadCollection($path)
     {
-        return self::loadModel("Collection/${path}Collection", $with_instantiate);
+        return self::loadModel("Collection/${path}Collection");
     }
 
     /**
@@ -218,7 +218,10 @@ final class Loader
 
     public static function includeEntity($path)
     {
-        return self::includeFile("Model/Entity/${path}Entity");
+        $class_name = self::includeFile("Model/Entity/${path}Entity");
+        // $instance   = self::createInstance($class_name, TRUE, []);
+        // return $instance;
+        return $class_name; // full name
     }
 
     /**

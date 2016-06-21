@@ -253,7 +253,7 @@ final class Router
             }
             $Input = Loader::loadInput();
             foreach ($match_list as $key => $value) { // [0 => 12, 'id' => 12]
-                if (TRUE === is_int($key)) {
+                if (TRUE === Kit::isInt($key)) {
                     unset($match_list[$key]);
                 } elseif ('num' === $mapping[$key]) {
                     $Input->setInput($key, intval($value));
@@ -261,21 +261,20 @@ final class Router
                     $Input->setInput($key, $value);
                 }
             }
-            if (TRUE === is_string($handler) OR FALSE === ($handler instanceof \Closure)) {
+            if (TRUE === Kit::isString($handler) OR FALSE === ($handler instanceof \Closure)) {
             // $handler is a string or IS NOT an anonymous function, i.e., an instance.
                 Kit::log([__METHOD__, '$handler is a string or IS NOT an anonymous function, i.e.
                     , an instance.'], FALSE);
                 Kit::log([__METHOD__, 'call end', [
                     'function' => $function,
-                    'handler'  => TRUE === is_string($handler) ? Loader::loadService($handler) : $handler,
+                    'handler'  => TRUE === Kit::isString($handler) ? Loader::loadService($handler) : $handler,
                     'arg_list' => [ $is_time_consuming ],
                 ]]);
-                if (FALSE === is_string($function))
-                    throw new UserException('$function is not a string.', $function);
+                Kit::ensureString($function);
                 $this->end(
                     call_user_func_array([
                         // The service controller is loaded HERE!
-                        TRUE === is_string($handler) ? Loader::loadService($handler) : $handler,
+                        TRUE === Kit::isString($handler) ? Loader::loadService($handler) : $handler,
                         $function
                     ], [ $is_time_consuming ])
                 );
@@ -343,7 +342,8 @@ final class Router
 
         $function = $this->getFunction($this->uri);
         Kit::log([__METHOD__, ['function' => $function]]);
-        if (TRUE === Kit::isList($function)) {
+        // if (TRUE === Kit::isList($function)) {
+        if (TRUE === Kit::isArray($function)) { // @CAUTION
             // CAN NOT change order!
             $arg_list = $function[1];
             $function = $function[0];

@@ -109,14 +109,14 @@ abstract class BaseService extends BaseController
             $computation_data = $service_result_sanitization_result['data'];
             $operation_status = $service_result_sanitization_result['status'];
             
-            $this->loadLog('Request');
-            $this->RequestLog->addRequestLog(
-                $execution_record['class'],
-                $execution_record['method'],
-                $input,
-                $code,
-                $operation_status
-            );
+            // $this->loadLog('Request');
+            // $this->RequestLog->addRequestLog(
+            //     $execution_record['class'],
+            //     $execution_record['method'],
+            //     $input,
+            //     $code,
+            //     $operation_status
+            // );
             $this->succeedRequest($execution_id, $execution_record);
         } catch (Exception $e) {
             $this->failRequest(
@@ -174,7 +174,7 @@ abstract class BaseService extends BaseController
         if (TRUE === Kit::in($current_code, [ 0, 3 ]))
             throw new UserException("Can not change code(${current_code}) to $code after the request has finished.", $current_code);
             
-        if (TRUE === $this->checkFinish()) {
+        if (TRUE === $this->isFinish()) {
             if (0 !== $code) {
                 $msg = "Can not change code(${current_code}) to $code after service has finished.";
                 throw new UserException($msg);
@@ -202,11 +202,13 @@ abstract class BaseService extends BaseController
 
     final private function handleResult($type, $name, $value, $is_list)
     {
-        if (TRUE === $this->checkFinish())
+        if (TRUE === $this->isFinish())
             throw new UserException('Can not handle result after service has finished.');
+        Kit::ensureString($type);
         if (FALSE === Kit::in($type, [ 'computation_data', 'operation_status' ]))
             throw new UserException('Invalid $type.', $type);
-        if (TRUE === is_string($name)) {
+        Kit::ensureString($name, TRUE);
+        if (TRUE === Kit::isString($name)) {
             if (TRUE === Kit::isVacancy($value)) // (valid)
                 return $this->getResult($type, $name);
             // (valid, valid/NULL)
@@ -224,11 +226,11 @@ abstract class BaseService extends BaseController
 
     final private function setResult($type, $name, $value, $is_list)
     {
+        Kit::ensureString($type);
         if (FALSE === Kit::in($type, [ 'computation_data', 'operation_status' ]))
             throw new UserException('Invalid $type.', $type);
         $type = 'computation_data' === $type ? 'data' : 'status';
-        if (FALSE === is_string($name))
-            throw new UserException('$name is not a string.', $name);
+        Kit::ensureString($name);
         if ('' === $name)
             throw new UserException('$name is an empty string.', $type);
         if (TRUE === isset($this->result[$type][$name])) {
@@ -250,13 +252,13 @@ abstract class BaseService extends BaseController
 
     final private function getResult($type, $name)
     {
+        Kit::ensureString($type);
         if (FALSE === Kit::in($type, [ 'computation_data', 'operation_status' ]))
             throw new UserException('Invalid $type.', $type);
         $type = 'computation_data' === $type ? 'data' : 'status';
+        Kit::ensureString($name, TRUE);
         if (TRUE === is_null($name))
             return $this->result[$type];
-        if (FALSE === is_string($name))
-            throw new UserException('$name is not a string.', $name);
         if (FALSE === isset($this->result[$type][$name])) {
             $msg = "Field($name) does not exist in $type.";
             throw new UserException($msg, $this->result[$type]);
@@ -269,7 +271,7 @@ abstract class BaseService extends BaseController
         $this->isFinish = TRUE;
     }
 
-    final private function checkFinish()
+    final private function isFinish()
     {
         return $this->isFinish;
     }
@@ -294,6 +296,7 @@ abstract class BaseService extends BaseController
         } else { // 1/2 0 => 1/2
         }
         // Now code must be 1 or 2 or 3.
+        $execution_record['success'] = TRUE;
         $this->response($execution_id, $execution_record, 200, $close_cgi_only);
     }
 
@@ -310,6 +313,7 @@ abstract class BaseService extends BaseController
         $this->setCode(0);
         if (FALSE === Debug::isProduction())
             $this->result['exception'] = Debug::extractException($exception);
+        $execution_record['success'] = FALSE;
         $this->response($execution_id, $execution_record, 200); // @TODO: change code
     }
 

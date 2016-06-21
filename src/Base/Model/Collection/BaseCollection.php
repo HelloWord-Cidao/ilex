@@ -2,15 +2,16 @@
 
 namespace Ilex\Base\Model\Collection;
 
-use \MongoDate;
-use \Ilex\Base\Model\Collection\MongoDBCollection;
+use \Ilex\Core\Loader;
+use \Ilex\Lib\Kit;
+use \Ilex\Base\Model\BaseModel;
 
 /**
  * Class BaseCollection
  * Base class of collection models of Ilex.
  * @package Ilex\Base\Model\Collection
  */
-abstract class BaseCollection extends MongoDBCollection
+abstract class BaseCollection extends BaseModel
 {
     protected static $methodsVisibility = [
         self::V_PUBLIC => [
@@ -32,6 +33,54 @@ abstract class BaseCollection extends MongoDBCollection
         ],
     ];
 
+    private $hasIncludedEntity = FALSE;
+    private $entityName        = NULL;
+    private $entityClassName   = NULL;
+
+    private $collection = NULL;
+
+    final public function __construct()
+    {
+        $collection_name = static::COLLECTION_NAME;
+        Kit::ensureString($collection_name, TRUE);
+        if (TRUE === is_null($collection_name)) {
+            // throw new UserException('COLLECTION_NAME is not set.');
+        } else $this->collection = MongoDBCollection::getInstance($collection_name);
+    }
+
+    final protected function ensureInitialized()
+    {
+        if (FALSE === isset($this->collection))
+            throw new UserException('This collection has not been initialized.');
+    }
+
+    final protected function createEntity()
+    {
+        $this->call('includeEntity');
+        return new $this->entityClassName($this->collection, $this->entityName, FALSE);
+    }
+
+    final protected function createEntityWithDocument($document)
+    {
+        // Kit::ensureDict($document); // @CAUTION
+        Kit::ensureArray($document);
+        $this->call('includeEntity');
+        return new $this->entityClassName($this->collection, $this->entityName, TRUE, $document);
+    }
+
+    final protected function includeEntity()
+    {
+        if (TRUE === is_null(static::ENTITY_PATH)) {
+            throw new UserException('ENTITY_PATH is not set.', static::COLLECTION_NAME);
+        }
+        if (FALSE === $this->hasIncludedEntity) {
+            $entity_path = static::ENTITY_PATH;
+            $this->entityName        = Loader::getHandlerFromPath($entity_path);
+            $this->entityClassName   = Loader::includeEntity($entity_path);
+            $this->hasIncludedEntity = TRUE;
+        }
+    }
+
     final protected function checkExists_id($_id)
     {
         return $this->call('checkExistsField', '_id', $_id);
@@ -47,12 +96,12 @@ abstract class BaseCollection extends MongoDBCollection
         $criterion = [
             $path_of_field => $field_value,
         ];
-        return $this->call('checkExistence', $criterion);
+        return $this->collection->checkExistence($criterion);
     }
 
     final protected function countAll()
     {
-        return $this->call('count');
+        return $this->collection->count();
     }
 
     // final protected function getTheOnlyOneIdBySignature($signature)
@@ -86,35 +135,6 @@ abstract class BaseCollection extends MongoDBCollection
     //         $field_value = $field_value[$key];
     //     }
     //     return $field_value;
-    // }
-
-    // final protected function addOneWithTypeAndSignatureThenGetId($type, $signature, $content, $meta = [])
-    // {
-    //     $meta['Type'] = $type;
-    //     return $this->call('addOneWithSignatureThenGetId', $signature, $content, $meta);
-    // }
-
-    // final protected function addOneWithSignatureThenGetId($signature, $content, $meta = [])
-    // {
-
-    // }
-
-    // final protected function addOneThenGetId($document)
-    // {
-    //     return $this->call('addOne', $document)['_id'];
-    // }
-
-    // final protected function updateOneWithAddToSetById($_id, $path_of_set, $element)
-    // {
-    //     $criterion = [
-    //         '_id' => $_id,
-    //     ];
-    //     $update = [
-    //         '$addToSet' => [
-    //             $path_of_set => $element,
-    //         ],
-    //     ];
-    //     return $this->call('updateOne', $criterion, $update);
     // }
     
     // final protected function getTheOnlyOneContent($criterion)

@@ -74,15 +74,10 @@ abstract class Base
         return ($this->$handler_name = Loader::loadCore($path));
     }
 
-    final protected function loadCollection($path, $with_instantiate = FALSE)
+    final protected function loadCollection($path)
     {
         $handler_name = Loader::getHandlerFromPath($path) . 'Collection';
-        return ($this->$handler_name = Loader::loadCollection($path, $with_instantiate));
-    }
-
-    final protected function includeEntity($path)
-    {
-        return Loader::includeEntity($path);
+        return ($this->$handler_name = Loader::loadCollection($path));
     }
 
     final protected function generateExecutionRecord($class_name, $method_name)
