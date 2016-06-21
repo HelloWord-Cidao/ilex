@@ -2,6 +2,7 @@
 
 namespace Ilex\Base\Model\Wrapper;
 
+use \Exception;
 use \Ilex\Base\Model\Collection\MongoDBCollection;
 
 /**
@@ -12,6 +13,9 @@ final class CollectionWrapper extends MongoDBCollection
 {
     protected static $methodsVisibility = [
         self::V_PUBLIC => [
+            'getEntityName',
+            'getEntityClassName',
+            'getMultiEntities',
         ],
         self::V_PROTECTED => [
         ],
@@ -19,34 +23,125 @@ final class CollectionWrapper extends MongoDBCollection
 
     private static $collectionWrapperContainer = NULL;
 
-    final public static function getInstance($collection_name)
+    private $entityName        = NULL;
+    private $entityClassName   = NULL;
+    private $hasIncludedEntity = FALSE;
+
+    private $bulkClassName     = NULL;
+    private $hasIncludedBulk   = FALSE;
+
+    final public static function getInstance($collection_name, $entity_path)
     {
         Kit::ensureString($collection_name);
         if (FALSE === isset(self::$collectionWrapperContainer))
             self::$collectionWrapperContainer = new Container();
         if (TRUE === self::$collectionWrapperContainer->has($collection_name)) 
             return self::$collectionWrapperContainer[$collection_name];
-        else return (self::$collectionWrapperContainer->set($collection_name, new static($collection_name)));
+        else return (self::$collectionWrapperContainer->set(
+            $collection_name, new static($collection_name, $entity_path)));
     }
 
-    final private function __construct($collection_name)
+    final private function __construct($collection_name, $entity_path)
     {
         parent::__construct($collection_name);
+        if (TRUE === is_null($entity_path)) {
+            // throw new UserException('ENTITY_PATH is not set.'); // @CAUTION
+        } else {
+            $this->call('includeEntity', $entity_path);
+            $this->call('includeBulk', $entity_path);
+        }
     }
 
-    'checkExistence',
-    'ensureExistence',
-    'checkExistsOnlyOnce',
-    'ensureExistsOnlyOnce',
-
-    final private function __construct($collection_name)
+    final protected function includeEntity($entity_path)
     {
-        parent::__construct($collection_name);
+        $collection_name = $this->call('getCollectionName');
+        if (TRUE === is_null($entity_path)) {
+            throw new UserException("ENTITY_PATH is not set in collection($collection_name).");
+        }
+        if (FALSE === $this->hasIncludedEntity) {
+            $this->entityName        = Loader::getHandlerFromPath($entity_path);
+            $this->entityClassName   = Loader::includeEntity($entity_path);
+            $this->hasIncludedEntity = TRUE;
+        }
     }
-    
-    'count',
-    'getMulti',
-    'getOne',
-    'getTheOnlyOne',
-    
+
+    final protected function includeBulk($entity_path)
+    {
+        $collection_name = $this->call('getCollectionName');
+        if (TRUE === is_null($entity_path)) {
+            throw new UserException("ENTITY_PATH is not set in collection($collection_name).");
+        }
+        if (FALSE === $this->hasIncludedBulk) {
+            try {
+                $this->bulkClassName = Loader::includeBulk($entity_path);
+            } catch (Exception $e) {
+                $this->bulkClassName = Loader::includeBulk('Base');
+            }
+            $this->hasIncludedBulk = TRUE;
+        }
+    }
+
+    final protected function getEntityName()
+    {
+        $collection_name = $this->call('getCollectionName');
+        if (FALSE === isset($this->entityName))
+            throw new UserException("Enity has not been included in this collection($collection_name)");
+        return $this->entityName;
+    }
+
+    final protected function getEntityClassName()
+    {
+        $collection_name = $this->call('getCollectionName');
+        if (FALSE === isset($this->entityClassName))
+            throw new UserException("Enity has not been included in this collection($collection_name)");
+        return $this->entityClassName;
+    }
+
+    final protected function getBulkClassName()
+    {
+        $collection_name = $this->call('getCollectionName');
+        if (FALSE === isset($this->bulkClassName))
+            throw new UserException("Bulk has not been included in this collection($collection_name)");
+        return $this->bulkClassName;
+    }
+
+    final protected function createEntityWithDocument($document)
+    {
+        // Kit::ensureDict($document); // @CAUTION
+        Kit::ensureArray($document);
+        $entity_name       = $this->call('getEntityName');
+        $entity_class_name = $this->call('getEntityClassName');
+        $collection_name   = $this->call('getCollectionName');
+        $entity_wrapper    = EntityWrapper::getInstance($collection_name);
+        return new $entity_class_name($entity_wrapper, $entity_name, TRUE, $document);
+    }
+
+    // 'checkExistence',
+    // 'ensureExistence',
+    // 'checkExistsOnlyOnce',
+    // 'ensureExistsOnlyOnce',
+     
+    final protected function countEntities($criterion = [], $skip = NULL, $limit = NULL)
+    {
+        return $this->call('count', $criterion, $skip, $limit);
+    }
+
+    final protected function getMultiEntities($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
+    {
+        $cursor = $this->call('getMulti', $criterion, [], $sort_by, $skip, $limit);
+        $bulk_class_name = $this->call('getBulkClassName');
+        return new $bulk_class_name($this, $cursor);
+    }
+
+    final protected function getTheOnlyOneEntity($criterion)
+    {
+        $document = $this->call('getTheOnlyOne', $criterion);
+        return $this->call('createEntityWithDocument', $document);
+    }
+
+    final protected function getOneEntity($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
+    {
+        $document = $this->call('getOne', $criterion, [], $sort_by, $skip, $limit);
+        return $this->call('createEntityWithDocument', $document);
+    }
 }

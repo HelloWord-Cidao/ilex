@@ -54,10 +54,11 @@ final class Loader
         'Config',
         'Data',
         'Core',
-        'Entity',
-        'Wrapper',
-        'Collection',
         'Log'
+        'Collection',
+        'Wrapper',
+        'Entity',
+        'Bulk',
     ];
 
     /**
@@ -219,6 +220,14 @@ final class Loader
     public static function includeEntity($path)
     {
         $class_name = self::includeFile("Model/Entity/${path}Entity");
+        // $instance   = self::createInstance($class_name, TRUE, []);
+        // return $instance;
+        return $class_name; // full name
+    }
+
+    public static function includeBulk($path)
+    {
+        $class_name = self::includeFile("Model/Bulk/${path}Bulk");
         // $instance   = self::createInstance($class_name, TRUE, []);
         // return $instance;
         return $class_name; // full name

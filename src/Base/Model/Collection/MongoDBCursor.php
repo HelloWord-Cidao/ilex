@@ -29,7 +29,7 @@ final class MongoDBCursor
     
     private $cursor;
 
-    public function __construct($mongo_cursor)
+    public function __construct(MongoCursor $mongo_cursor)
     {
         $this->cursor = $mongo_cursor;
         $this->cursor->rewind(); // @TODO: check this logic.

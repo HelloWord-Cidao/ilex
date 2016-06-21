@@ -5,6 +5,7 @@ namespace Ilex\Base\Model\Collection;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Base\Model\Wrapper\CollectionWrapper;
+use \Ilex\Base\Model\Wrapper\EntityWrapper;
 use \Ilex\Base\Model\BaseModel;
 
 /**
@@ -16,11 +17,12 @@ abstract class BaseCollection extends BaseModel
 {
     protected static $methodsVisibility = [
         self::V_PUBLIC => [
-            'checkExistsId',
-            'checkExistsSignature',
+            'createEntity',
+            // 'checkExistsId',
+            // 'checkExistsSignature',
         ],
         self::V_PROTECTED => [
-            'countAll',
+            // 'countAll',
             // 'getTheOnlyOneIdBySignature',
             // 'getTheOnlyOneId',
             // 'getTheOnlyOneField',
@@ -35,13 +37,9 @@ abstract class BaseCollection extends BaseModel
     ];
 
     private $collectionWrapper = NULL;
-    
-    private $entityName        = NULL;
-    private $entityClassName   = NULL;
-    private $hasIncludedEntity = FALSE;
 
-    const COLLECTION_NAME = NULL; // should set in subclass
-    const ENTITY_PATH     = NULL; // should set in subclass
+    // const COLLECTION_NAME = NULL; // should set in subclass
+    // const ENTITY_PATH     = NULL; // should set in subclass
 
     final public function __construct()
     {
@@ -50,10 +48,9 @@ abstract class BaseCollection extends BaseModel
         Kit::ensureString($collection_name, TRUE);
         if (TRUE === is_null($collection_name)) {
             // throw new UserException('COLLECTION_NAME is not set.'); // @CAUTION
-        } else $this->collectionWrapper = CollectionWrapper::getInstance($collection_name);
-        if (TRUE === is_null($entity_path)) {
-            // throw new UserException('ENTITY_PATH is not set.'); // @CAUTION
-        } else $this->call('includeEntity');
+        } else {
+            $this->collectionWrapper = CollectionWrapper::getInstance($collection_name, $entity_path);
+        }
     }
 
     final protected function ensureInitialized()
@@ -63,56 +60,38 @@ abstract class BaseCollection extends BaseModel
             throw new UserException('This collection has not been initialized.');
     }
 
-    final protected function includeEntity()
-    {
-        $collection_name = static::COLLECTION_NAME;
-        $entity_path     = static::ENTITY_PATH;
-        if (TRUE === is_null($entity_path)) {
-            throw new UserException('ENTITY_PATH is not set.', $collection_name);
-        }
-        if (FALSE === $this->hasIncludedEntity) {
-            $this->entityName        = Loader::getHandlerFromPath($entity_path);
-            $this->entityClassName   = Loader::includeEntity($entity_path);
-            $this->hasIncludedEntity = TRUE;
-        }
-    }
-
     final protected function createEntity()
     {
-        $this->call('includeEntity');
-        return new $this->entityClassName($this->collection, $this->entityName, FALSE);
+        $this->call('ensureInitialized');
+        $entity_name       = $this->collectionWrapper->getEntityName();
+        $entity_class_name = $this->collectionWrapper->getEntityClassName();
+        $collection_name   = $this->collectionWrapper->getCollectionName();
+        $entity_wrapper    = EntityWrapper::getInstance($collection_name);
+        return new $entity_class_name($entity_wrapper, $entity_name);
     }
 
-    final protected function createEntityWithDocument($document)
-    {
-        // Kit::ensureDict($document); // @CAUTION
-        Kit::ensureArray($document);
-        $this->call('includeEntity');
-        return new $this->entityClassName($this->collection, $this->entityName, TRUE, $document);
-    }
+    // final protected function checkExistsId($_id)
+    // {
+    //     return $this->call('checkExistsField', '_id', $_id);
+    // }
 
-    final protected function checkExistsId($_id)
-    {
-        return $this->call('checkExistsField', '_id', $_id);
-    }
+    // final protected function checkExistsSignature($signature)
+    // {
+    //     return $this->call('checkExistsField', 'Signature', $signature);
+    // }
 
-    final protected function checkExistsSignature($signature)
-    {
-        return $this->call('checkExistsField', 'Signature', $signature);
-    }
+    // final protected function checkExistsField($path_of_field, $field_value)
+    // {
+    //     $criterion = [
+    //         $path_of_field => $field_value,
+    //     ];
+    //     return $this->collection->checkExistence($criterion);
+    // }
 
-    final protected function checkExistsField($path_of_field, $field_value)
-    {
-        $criterion = [
-            $path_of_field => $field_value,
-        ];
-        return $this->collection->checkExistence($criterion);
-    }
-
-    final protected function countAll()
-    {
-        return $this->collection->count();
-    }
+    // final protected function countAll()
+    // {
+    //     return $this->collection->count();
+    // }
 
     // final protected function getTheOnlyOneIdBySignature($signature)
     // {

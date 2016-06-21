@@ -3,6 +3,7 @@
 namespace Ilex\Base\Model\Wrapper;
 
 use \Ilex\Base\Model\Collection\MongoDBCollection;
+use \Ilex\Base\Model\Entity\BaseEntity;
 
 /**
  * Class EntityWrapper
@@ -36,13 +37,13 @@ final class EntityWrapper extends MongoDBCollection
         parent::__construct($collection_name);
     }
 
-    final protected function addOneEntityThenGetId($entity)
+    final protected function addOneEntityThenGetId(Entity $entity)
     {
         $document = $entity->getDocument();
         return $this->call('addOne', $document)['_id'];
     }
 
-    final protected function updateTheOnlyOneEntity($entity)
+    final protected function updateTheOnlyOneEntity(Entity $entity)
     {
         $criterion = [ '_id' => $entity->getId() ];
         $document = $this->getDocument();
