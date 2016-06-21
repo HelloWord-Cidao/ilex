@@ -98,8 +98,6 @@ abstract class MongoDBCollection extends BaseModel
         ],
     ];
 
-    private static $collectionWrapperContainer = NULL;
-
     private $collectionName = NULL;
     private $collection     = NULL;
 

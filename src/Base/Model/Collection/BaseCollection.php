@@ -18,21 +18,19 @@ abstract class BaseCollection extends BaseModel
     protected static $methodsVisibility = [
         self::V_PUBLIC => [
             'createEntity',
-            // 'checkExistsId',
-            // 'checkExistsSignature',
+            'checkExistsId',
+            'checkExistsSignature',
+            'countAll',
         ],
         self::V_PROTECTED => [
-            // 'countAll',
-            // 'getTheOnlyOneIdBySignature',
-            // 'getTheOnlyOneId',
-            // 'getTheOnlyOneField',
-            // 'addOneWithTypeAndSignatureThenGetId',
-            // 'addOneThenGetId',
-            // 'updateOneWithAddToSetById',
-            // 'getTheOnlyOneContent',
-            // 'getTheOnlyOneData',
-            // 'getTheOnlyOneInfo',
-            // 'getTheOnlyOneMeta',
+            'checkExistEntities',
+            'ensureExistEntities',
+            'checkExistsOnlyOneEntity',
+            'ensureExistsOnlyOneEntity',
+            'countEntities',
+            'getMultiEntities',
+            'getTheOnlyOneEntity',
+            'getOneEntity',
         ],
     ];
 
@@ -67,87 +65,75 @@ abstract class BaseCollection extends BaseModel
         $entity_class_name = $this->collectionWrapper->getEntityClassName();
         $collection_name   = $this->collectionWrapper->getCollectionName();
         $entity_wrapper    = EntityWrapper::getInstance($collection_name);
-        return new $entity_class_name($entity_wrapper, $entity_name);
+        return new $entity_class_name($entity_wrapper, $entity_name, FALSE);
     }
 
-    // final protected function checkExistsId($_id)
-    // {
-    //     return $this->call('checkExistsField', '_id', $_id);
-    // }
+    final protected function checkExistsId($_id)
+    {
+        $criterion = [ '_id' => $_id ]
+        return $this->call('checkExistsOnlyOneEntity', $criterion);
+    }
 
-    // final protected function checkExistsSignature($signature)
-    // {
-    //     return $this->call('checkExistsField', 'Signature', $signature);
-    // }
+    final protected function checkExistsSignature($signature)
+    {
+        $criterion = [ 'Signature' => $signature ]
+        return $this->call('checkExistsOnlyOneEntity', $criterion);
+    }
 
-    // final protected function checkExistsField($path_of_field, $field_value)
-    // {
-    //     $criterion = [
-    //         $path_of_field => $field_value,
-    //     ];
-    //     return $this->collection->checkExistence($criterion);
-    // }
-
-    // final protected function countAll()
-    // {
-    //     return $this->collection->count();
-    // }
-
-    // final protected function getTheOnlyOneIdBySignature($signature)
-    // {
-    //     return $this->call('getTheOnlyOneIdByField', 'Signature', $signature);
-    // }
-
-    // final protected function getTheOnlyOneIdByField($path_of_field, $field_value)
-    // {
-    //     $criterion = [
-    //         $path_of_field => $field_value,
-    //     ];
-    //     return $this->call('getTheOnlyOneId', $criterion);
-    // }
-
-    // final protected function getTheOnlyOneId($criterion)
-    // {
-    //     return $this->call('getTheOnlyOneField', $criterion, '_id');
-    // }
-
-    // final protected function getTheOnlyOneField($criterion, $path_of_field)
-    // {
-    //     $projection = [
-    //         $path_of_field => 1,
-    //     ];
-    //     $document = $this->call('getTheOnlyOne', $criterion, $projection);
-    //     $field_value = $document;
-    //     foreach (Kit::split('.', $path_of_field) as $key) {
-    //         if (FALSE === isset($field_value[$key]))
-    //             throw new UserException("Can not find field with path($path_of_field).", $document);
-    //         $field_value = $field_value[$key];
-    //     }
-    //     return $field_value;
-    // }
+    final protected function countAll()
+    {
+        return $this->call('countEntities');
+    }
     
-    // final protected function getTheOnlyOneContent($criterion)
-    // {
-    //     $document = $this->call('getTheOnlyOne', $criterion);
-    //     return $document['Content'];
-    // }
 
-    // final protected function getTheOnlyOneData($criterion)
-    // {
-    //     $document = $this->call('getTheOnlyOne', $criterion);
-    //     return $document['Content']['Data'];
-    // }
+    //==============================================================================
 
-    // final protected function getTheOnlyOneInfo($criterion)
-    // {
-    //     $document = $this->call('getTheOnlyOne', $criterion);
-    //     return $document['Content']['Info'];
-    // }
 
-    // final protected function getTheOnlyOneMeta($criterion)
-    // {
-    //     $document = $this->call('getTheOnlyOne', $criterion);
-    //     return $document['Meta'];
-    // }
-    
+    final protected function checkExistEntities($criterion)
+    {
+        $this->call('ensureInitialized');
+        return $this->collectionWrapper->checkExistEntities($criterion);
+    }
+
+    final protected function ensureExistEntities($criterion)
+    {
+        $this->call('ensureInitialized');
+        $this->collectionWrapper->ensureExistEntities($criterion);
+    }
+
+    final protected function checkExistsOnlyOneEntity($criterion)
+    {
+        $this->call('ensureInitialized');
+        return $this->collectionWrapper->checkExistsOnlyOneEntity($criterion);
+    }
+
+    final protected function ensureExistsOnlyOneEntity($criterion)
+    {
+        $this->call('ensureInitialized');
+        $this->collectionWrapper->ensureExistsOnlyOneEntity($criterion);
+    }
+     
+    final protected function countEntities($criterion = [], $skip = NULL, $limit = NULL)
+    {
+        $this->call('ensureInitialized');
+        return $this->collectionWrapper->countEntities($criterion, $skip, $limit);
+    }
+
+    final protected function getMultiEntities($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
+    {
+        $this->call('ensureInitialized');
+        return $this->collectionWrapper->getMultiEntities($criterion, $sort_by, $skip, $limit);
+    }
+
+    final protected function getTheOnlyOneEntity($criterion)
+    {
+        $this->call('ensureInitialized');
+        return $this->collectionWrapper->getTheOnlyOneEntity($criterion);
+    }
+
+    final protected function getOneEntity($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
+    {
+        $this->call('ensureInitialized');
+        return $this->collectionWrapper->getOneEntity($criterion, $sort_by, $skip, $limit);
+    }
 }

@@ -65,7 +65,7 @@ final class Debug
     private static $config               = NULL;
     private static $environment          = self::E_PRODUCTION;
     private static $executionIdStack     = [ ];
-    private static $executionRecordStack = [ ];
+    private static $executionRecordStack = [ ]; // @TODO: disable it in production mode to save memory
     private static $startTime            = NULL;
 
     /**

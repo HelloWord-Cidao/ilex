@@ -28,7 +28,7 @@ final class EntityWrapper extends MongoDBCollection
         if (FALSE === isset(self::$entityWrapperContainer))
             self::$entityWrapperContainer = new Container();
         if (TRUE === self::$entityWrapperContainer->has($collection_name)) 
-            return self::$entityWrapperContainer[$collection_name];
+            return self::$entityWrapperContainer->get($collection_name);
         else return (self::$entityWrapperContainer->set($collection_name, new static($collection_name)));
     }
 
@@ -39,14 +39,14 @@ final class EntityWrapper extends MongoDBCollection
 
     final protected function addOneEntityThenGetId(Entity $entity)
     {
-        $document = $entity->getDocument();
+        $document = $entity->document();
         return $this->call('addOne', $document)['_id'];
     }
 
     final protected function updateTheOnlyOneEntity(Entity $entity)
     {
         $criterion = [ '_id' => $entity->getId() ];
-        $document = $this->getDocument();
+        $document = $this->document();
         unset($document['_id']);
         return $this->call('updateTheOnlyOne', $criterion, $document, TRUE);
     }

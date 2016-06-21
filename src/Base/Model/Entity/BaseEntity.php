@@ -16,13 +16,34 @@ abstract class BaseEntity extends BaseModel
 {
     protected static $methodsVisibility = [
         self::V_PUBLIC => [
-            'getId',
-            'getDocument',
+            'getName',
+            'document',
+            'buildReference',
             'addToCollection',
             'updateToCollection',
+        ],
+        self::V_PROTECTED => [
             'isInCollection',
             'isSameAsInCollection',
+            'getId',
+            'getDocument',
+            'setSignature',
+            'getSignature',
+            'setData',
+            'getData',
+            'setInfo',
+            'getInfo',
+            'setMeta',
+            'getMeta',
         ],
+    ];
+
+    private static $rootFieldNameList = [
+        'Data',
+        'Info',
+        'Signature',
+        'Reference',
+        'Meta',
     ];
 
     private $entityWrapper = NULL;
@@ -31,9 +52,9 @@ abstract class BaseEntity extends BaseModel
     private $isInCollection    = FALSE;
     private $isSameAsCollecton = FALSE;
 
-    private $document = NULL
+    private $document = NULL;
 
-    final public function __construct($entity_wrapper, $name, $is_in_collection, $document = [])
+    final public function __construct($entity_wrapper, $name, $is_in_collection, $document = NULL)
     {
         Kit::ensureObject($entity_wrapper);
         Kit::ensureString($name);
@@ -48,7 +69,19 @@ abstract class BaseEntity extends BaseModel
         $this->name              = $name;
         $this->isInCollection    = $is_in_collection;
         $this->isSameAsCollecton = $is_in_collection;
-        $this->document          = $document;
+        if (FALSE === is_null($document))
+            $this->document = $document;
+        else $this->document = [
+            'Data'      => [ ],
+            'Info'      => [ ],
+            'Reference' => [ ],
+            'Meta'      => [ ],
+        ];
+    }
+
+    final protected function getName()
+    {
+        return $this->name;
     }
 
     final protected function ensureInitialized()
@@ -74,44 +107,81 @@ abstract class BaseEntity extends BaseModel
         return $this->isSameAsCollecton;
     }
 
-    final protected function inCollection()
+    final private function inCollection()
     {
         $this->isInCollecton     = TRUE;
         $this->isSameAsCollecton = TRUE;
     }
 
-    final protected function notInCollection()
+    final private function notInCollection()
     {
         $this->isInCollecton     = FALSE;
         $this->isSameAsCollecton = FALSE;
     }
 
-    final protected function sameAsCollection()
+    final private function sameAsCollection()
     {
         $this->isSameAsCollecton = TRUE;
     }
 
-    final protected function notSameAsCollection()
+    final private function notSameAsCollection()
     {
         $this->isSameAsCollecton = FALSE;
     }
 
-    final protected function getDocument()
+    final protected function buildReference(BaseEntity $entity, $check_duplicate = FALSE)
+    {
+        Kit::ensureBoolean($check_duplicate);
+        $field_name = $entity->getName() . 'IdList';
+        $entity_id  = $entity->getId();
+        $field_value = $this->call('getDocument', 'Reference', FALSE, []);
+        if (TRUE === $check_duplicate) {
+            foreach ($field_value as $id) {
+                if (strval($id) === strval($entity_id)) return FALSE;
+            }
+        }
+        $field_value[] = $entity_id;
+        $this->setDocument('Reference', $field_name, $field_value);
+        return TRUE;
+    }
+
+    final protected function addToCollection()
+    {
+        if (TRUE === $this->call('isInCollection')) {
+            $msg = 'Can not add to collection, because the entity is already in the collection.';
+            throw new UserException($msg, $this);
+        }
+        $_id = $this->entityWrapper->addOneEntityThenGetId($this);
+        $this->setId($_id);
+        $this->inCollection();
+    }
+
+    final protected function updateToCollection()
+    {
+        if (FALSE === $this->call('isInCollection')) {
+            $msg = 'Can not update to collection, because the entity is not in the collection.';
+            throw new UserException($msg, $this);
+        }
+        $this->entityWrapper->updateTheOnlyOneEntity($this);
+        $this->sameAsCollection();
+    }
+
+    final protected function document()
     {
         Kit::ensureDict($this->document); // @CAUTION
         return $this->document;
     }
 
-    final protected function setId($_id)
+    final private function setId($_id)
     {
         if (FALSE === $_id instanceof MongoId)
             throw new UserException('$_id is not a MongoId.', [ $_id, $this ]);
-        return $this->call('set', '_id', $_id, FALSE);
+        return $this->set('_id', $_id, FALSE);
     }
 
-    final protected function deleteId()
+    final private function deleteId()
     {
-        return $this->call('delete', '_id');
+        return $this->delete('_id');
     }
 
     final protected function hasId()
@@ -124,26 +194,116 @@ abstract class BaseEntity extends BaseModel
         return $this->call('get', '_id');
     }
 
-    final protected function set($path, $value, $ensure_existence = NULL)
+    final protected function setSignature($signature)
+    {
+        $this->call('ensureHasNo', 'Signature');
+        return $this->setDocument('Signature', NULL, $signature, FALSE);
+    }
+    
+    final protected function getSignature()
+    {
+        return $this->call('getDocument', 'Signature', NULL);
+    }
+    
+    final protected function setData($arg1 = NULL, $arg2 = Kit::TYPE_VACANCY)
+    {
+        return $this->handleSet('Data', $arg1, $arg2);
+    }
+
+    final protected function getData($name = NULL, $ensure_existence = TRUE, $default = NULL)
+    {
+        return $this->call('handleGet', 'Data', $name, $ensure_existence, $default);
+    }
+
+    final protected function setInfo($arg1 = NULL, $arg2 = Kit::TYPE_VACANCY)
+    {
+        return $this->handleSet('Info', $arg1, $arg2);
+    }
+
+    final protected function getInfo($name = NULL, $ensure_existence = TRUE, $default = NULL)
+    {
+        return $this->call('handleGet', 'Info', $name, $ensure_existence, $default);
+    }
+    
+    final protected function setMeta($arg1 = NULL, $arg2 = Kit::TYPE_VACANCY)
+    {
+        return $this->handleSet('Meta', $arg1, $arg2);
+    }
+
+    final protected function getMeta($name = NULL, $ensure_existence = TRUE, $default = NULL)
+    {
+        return $this->call('handleGet', 'Meta', $name, $ensure_existence, $default);
+    }
+
+    final private function handleSet($root_field_name, $arg1, $arg2)
+    {
+        if (TRUE === Kit::isVacancy($arg2))
+            return $this->setDocument($root_field_name, NULL, $arg1);
+        else {
+            Kit::ensureString($arg1);
+            return $this->setDocument($root_field_name, $arg1, $arg2);
+        }
+    }
+
+    final protected function handleGet($root_field_name, $field_name, $ensure_existence, $default)
+    {
+        if (TRUE === is_null($name)) return $this->call('getDocument', $root_field_name);
+        else return $this->call('getDocument', $root_field_name, $field_name, $ensure_existence, $default);
+    }
+
+    final private function setDocument($root_field_name, $field_name, $field_value, $ensure_dict = TRUE)
+    {
+        if (FALSE === Kit::in($root_field_name, self::$rootFieldNameList))
+            throw new UserException('Invalid $root_field_name.', $root_field_name);
+        Kit::ensureString($field_name, TRUE);
+        if ('' === $field_name)
+            throw new UserException('$field_name is a empty string.', [ $root_field_name, $field_value ]);
+        if (TRUE === is_null($field_name)) {
+            if (TRUE === $ensure_dict) Kit::ensureDict($field_value); // @CAUTION
+            return $this->set($root_field_name, $field_value);
+        } else {
+            $root_field_value = $this->call('get', $root_field_name);
+            $root_field_value[$field_name] = $field_value;
+            return $this->set($root_field_name, $root_field_value);
+        }
+    }
+
+    final protected function getDocument($root_field_name, $field_name, $ensure_existence = TRUE, $default = NULL)
+    {
+        if (FALSE === Kit::in($root_field_name, self::$rootFieldNameList))
+            throw new UserException('Invalid $root_field_name.', $root_field_name);
+        Kit::ensureString($field_name, TRUE);
+        $root_field_value = $this->call('get', $root_field_name);
+        if (TRUE === is_null($field_name)) return $root_field_value;
+        if (FALSE === isset($root_field_value[$field_name])) {
+            if (TRUE === $ensure_existence) {
+                $msg = "Field($field_name) does not exist in root field($root_field_name).";
+                throw new UserException($msg, $root_field_value);
+            } else return $default;
+        } else return $root_field_value[$field_name];
+    }
+
+    final private function set($path, $value, $ensure_existence = NULL)
     {
         // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_LIST ]); // @CAUTION
-        Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_ARRAY ]);
+        // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_ARRAY ]);
+        Kit::ensureString($path)
         // Kit::ensureDict($this->document); // @CAUTION
         Kit::ensureArray($this->document);
         if (TRUE === Kit::isString($path)) {
             if (TRUE === $ensure_existence) $this->call('ensureHas', $path);
             if (FALSE === $ensure_existence) $this->call('ensureHasNo', $path);
             $this->document[$path] = $value
-            $this->call('notSameAsCollection');
+            $this->notSameAsCollection();
             return $value;
-        }
-        else throw new UserException('Can not support list-type $path yet.', [ $path, $value ]);
+        } else throw new UserException('Can not support list-type $path yet.', [ $path, $value ]);
     }
 
     final protected function get($path, $ensure_existence = TRUE, $default = NULL)
     {
         // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_LIST ]); // @CAUTION
-        Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_ARRAY ]);
+        // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_ARRAY ]);
+        Kit::ensureString($path);
         // Kit::ensureDict($this->document); // @CAUTION
         Kit::ensureArray($this->document);
         Kit::ensureBoolean($ensure_existence);
@@ -152,11 +312,10 @@ abstract class BaseEntity extends BaseModel
             if (FALSE === $ensure_existence AND TRUE === is_null($this->document[$path]))
                 return $default;
             return $this->document[$path];
-        }
-        else throw new UserException('Can not support list-type $path yet.', $path);
+        } else throw new UserException('Can not support list-type $path yet.', $path);
     }
 
-    final protected function delete($path, $ensure_existence = TRUE)
+    final private function delete($path, $ensure_existence = TRUE)
     {
         // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_LIST ]); // @CAUTION
         Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_ARRAY ]);
@@ -169,7 +328,7 @@ abstract class BaseEntity extends BaseModel
                 return NULL;
             $value = $this->document[$path];
             unset($this->document[$path]);
-            $this->call('notSameAsCollection');
+            $this->notSameAsCollection();
             return $value;
         }
         else throw new UserException('Can not support list-type $path yet.', $path);
@@ -202,26 +361,5 @@ abstract class BaseEntity extends BaseModel
     {
         if (FALSE === $this->call('hasNo', $path))
             throw new UserException("\$path($path) does exist.", $this->document);
-    }
-
-    final protected function addToCollection()
-    {
-        if (TRUE === $this->call('isInCollection')) {
-            $msg = 'Can not add to collection, because the entity is already in the collection.';
-            throw new UserException($msg, $this);
-        }
-        $_id = $this->entityWrapper->addOneEntityThenGetId($this);
-        $this->call('setId', $_id);
-        $this->call('inCollection');
-    }
-
-    final protected function updateToCollection()
-    {
-        if (FALSE === $this->call('isInCollection')) {
-            $msg = 'Can not update to collection, because the entity is not in the collection.';
-            throw new UserException($msg, $this);
-        }
-        $this->entityWrapper->updateTheOnlyOneEntity($this);
-        $this->call('sameAsCollection');
     }
 }

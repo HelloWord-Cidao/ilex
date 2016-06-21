@@ -15,7 +15,14 @@ final class CollectionWrapper extends MongoDBCollection
         self::V_PUBLIC => [
             'getEntityName',
             'getEntityClassName',
+            'checkExistEntities',
+            'ensureExistEntities',
+            'checkExistsOnlyOneEntity',
+            'ensureExistsOnlyOneEntity',
+            'countEntities',
             'getMultiEntities',
+            'getTheOnlyOneEntity',
+            'getOneEntity',
         ],
         self::V_PROTECTED => [
         ],
@@ -36,7 +43,7 @@ final class CollectionWrapper extends MongoDBCollection
         if (FALSE === isset(self::$collectionWrapperContainer))
             self::$collectionWrapperContainer = new Container();
         if (TRUE === self::$collectionWrapperContainer->has($collection_name)) 
-            return self::$collectionWrapperContainer[$collection_name];
+            return self::$collectionWrapperContainer->get($collection_name);
         else return (self::$collectionWrapperContainer->set(
             $collection_name, new static($collection_name, $entity_path)));
     }
@@ -116,10 +123,25 @@ final class CollectionWrapper extends MongoDBCollection
         return new $entity_class_name($entity_wrapper, $entity_name, TRUE, $document);
     }
 
-    // 'checkExistence',
-    // 'ensureExistence',
-    // 'checkExistsOnlyOnce',
-    // 'ensureExistsOnlyOnce',
+    final protected function checkExistEntities($criterion)
+    {
+        return $this->call('checkExistence', $criterion);
+    }
+
+    final protected function ensureExistEntities($criterion)
+    {
+        $this->call('ensureExistence', $criterion);
+    }
+
+    final protected function checkExistsOnlyOneEntity($criterion)
+    {
+        return $this->call('checkExistsOnlyOnce', $criterion);
+    }
+
+    final protected function ensureExistsOnlyOneEntity($criterion)
+    {
+        $this->call('ensureExistsOnlyOnce', $criterion);
+    }
      
     final protected function countEntities($criterion = [], $skip = NULL, $limit = NULL)
     {

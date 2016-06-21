@@ -204,9 +204,6 @@ abstract class BaseService extends BaseController
     {
         if (TRUE === $this->isFinish())
             throw new UserException('Can not handle result after service has finished.');
-        Kit::ensureString($type);
-        if (FALSE === Kit::in($type, [ 'computation_data', 'operation_status' ]))
-            throw new UserException('Invalid $type.', $type);
         Kit::ensureString($name, TRUE);
         if (TRUE === Kit::isString($name)) {
             if (TRUE === Kit::isVacancy($value)) // (valid)
@@ -226,7 +223,6 @@ abstract class BaseService extends BaseController
 
     final private function setResult($type, $name, $value, $is_list)
     {
-        Kit::ensureString($type);
         if (FALSE === Kit::in($type, [ 'computation_data', 'operation_status' ]))
             throw new UserException('Invalid $type.', $type);
         $type = 'computation_data' === $type ? 'data' : 'status';
@@ -252,7 +248,6 @@ abstract class BaseService extends BaseController
 
     final private function getResult($type, $name)
     {
-        Kit::ensureString($type);
         if (FALSE === Kit::in($type, [ 'computation_data', 'operation_status' ]))
             throw new UserException('Invalid $type.', $type);
         $type = 'computation_data' === $type ? 'data' : 'status';
