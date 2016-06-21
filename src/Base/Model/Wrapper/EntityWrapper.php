@@ -48,7 +48,7 @@ final class EntityWrapper extends MongoDBCollection
     final protected function updateTheOnlyOneEntity(BaseEntity $entity)
     {
         $criterion = [ '_id' => $entity->getId() ];
-        $document = $this->document();
+        $document = $entity->document();
         unset($document['_id']);
         return $this->call('updateTheOnlyOne', $criterion, $document, TRUE);
     }

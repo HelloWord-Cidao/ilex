@@ -17,7 +17,9 @@ abstract class BaseEntity extends BaseModel
     protected static $methodsVisibility = [
         self::V_PUBLIC => [
             'getName',
+            'isInCollection',
             'document',
+            'getId',
             'setSignature',
             'setData',
             'setInfo',
@@ -26,9 +28,7 @@ abstract class BaseEntity extends BaseModel
             'updateToCollection',
         ],
         self::V_PROTECTED => [
-            'isInCollection',
             'isSameAsInCollection',
-            'getId',
             'getDocument',
             'getSignature',
             'getData',
@@ -91,6 +91,7 @@ abstract class BaseEntity extends BaseModel
         if (FALSE === isset($this->entityWrapper)
             OR FALSE === $this->entityWrapper instanceof EntityWrapper)
             throw new UserException('This entity has not been initialized.', $this);
+        return $this;
     }
 
     final protected function isInCollection()
@@ -102,6 +103,7 @@ abstract class BaseEntity extends BaseModel
     {
         if (FALSE === $this->call('isInCollection'))
             throw new UserException('This entity is not in collection.', $this);
+        return $this;
     }
 
     final protected function isSameAsCollecton()
@@ -113,38 +115,45 @@ abstract class BaseEntity extends BaseModel
     {
         $this->isInCollecton     = TRUE;
         $this->isSameAsCollecton = TRUE;
+        return $this;
     }
 
     final private function notInCollection()
     {
         $this->isInCollecton     = FALSE;
         $this->isSameAsCollecton = FALSE;
+        return $this;
     }
 
     final private function sameAsCollection()
     {
         $this->isSameAsCollecton = TRUE;
+        return $this;
     }
 
     final private function notSameAsCollection()
     {
         $this->isSameAsCollecton = FALSE;
+        return $this;
     }
 
-    final protected function buildReference(BaseEntity $entity, $check_duplicate = FALSE)
+    final protected function buildReference(BaseEntity $entity, $check_duplicate = TRUE)
     {
         Kit::ensureBoolean($check_duplicate);
         $field_name = $entity->getName() . 'IdList';
         $entity_id  = $entity->getId();
-        $field_value = $this->call('getDocument', 'Reference', FALSE, []);
+        $field_value = $this->call('getDocument', 'Reference', $field_name, FALSE, []);
         if (TRUE === $check_duplicate) {
             foreach ($field_value as $id) {
-                if (strval($id) === strval($entity_id)) return FALSE;
+                if (strval($id) === strval($entity_id))
+                    // return FALSE;
+                    return $this;
             }
         }
         $field_value[] = $entity_id;
         $this->setDocument('Reference', $field_name, $field_value);
-        return TRUE;
+        // return TRUE;
+        return $this;
     }
 
     final protected function addToCollection()
@@ -156,7 +165,7 @@ abstract class BaseEntity extends BaseModel
         $_id = $this->entityWrapper->addOneEntityThenGetId($this);
         $this->setId($_id);
         $this->inCollection();
-        return $_id;
+        return $this;
     }
 
     final protected function updateToCollection()
@@ -167,6 +176,7 @@ abstract class BaseEntity extends BaseModel
         }
         $this->entityWrapper->updateTheOnlyOneEntity($this);
         $this->sameAsCollection();
+        return $this;
     }
 
     final protected function document()
@@ -179,12 +189,14 @@ abstract class BaseEntity extends BaseModel
     {
         if (FALSE === $_id instanceof MongoId)
             throw new UserException('$_id is not a MongoId.', [ $_id, $this ]);
-        return $this->set('_id', $_id, FALSE);
+        $this->set('_id', $_id, FALSE);
+        return $this;
     }
 
     final private function deleteId()
     {
-        return $this->delete('_id');
+        $this->delete('_id');
+        return $this;
     }
 
     final protected function hasId()
@@ -362,11 +374,13 @@ abstract class BaseEntity extends BaseModel
     {
         if (FALSE === $this->call('has', $path))
             throw new UserException("\$path($path) does not exist.", $this->document);
+        return $this;
     }
 
     final protected function ensureHasNo($path)
     {
         if (FALSE === $this->call('hasNo', $path))
             throw new UserException("\$path($path) does exist.", $this->document);
+        return $this;
     }
 }

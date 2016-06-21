@@ -21,6 +21,7 @@ abstract class BaseCollection extends BaseModel
             'checkExistsId',
             'checkExistsSignature',
             'countAll',
+            'getTheOnlyOneEntityBySignature',
         ],
         self::V_PROTECTED => [
             'checkExistEntities',
@@ -85,6 +86,14 @@ abstract class BaseCollection extends BaseModel
         return $this->call('countEntities');
     }
     
+    final protected function getTheOnlyOneEntityBySignature($signature)
+    {
+        $criterion = [
+            'Signature' => $signature,
+        ];
+        return $this->call('getTheOnlyOneEntity', $criterion);
+    }
+
 
     //==============================================================================
 
