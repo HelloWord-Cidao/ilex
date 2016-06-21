@@ -64,19 +64,19 @@ abstract class BaseCollection extends BaseModel
         $entity_name       = $this->collectionWrapper->getEntityName();
         $entity_class_name = $this->collectionWrapper->getEntityClassName();
         $collection_name   = $this->collectionWrapper->getCollectionName();
-        $entity_wrapper    = EntityWrapper::getInstance($collection_name);
+        $entity_wrapper    = EntityWrapper::getInstance($collection_name, $entity_class_name);
         return new $entity_class_name($entity_wrapper, $entity_name, FALSE);
     }
 
     final protected function checkExistsId($_id)
     {
-        $criterion = [ '_id' => $_id ]
+        $criterion = [ '_id' => $_id ];
         return $this->call('checkExistsOnlyOneEntity', $criterion);
     }
 
     final protected function checkExistsSignature($signature)
     {
-        $criterion = [ 'Signature' => $signature ]
+        $criterion = [ 'Signature' => $signature ];
         return $this->call('checkExistsOnlyOneEntity', $criterion);
     }
 

@@ -3,6 +3,7 @@
 namespace Ilex\Base\Model\Bulk;
 
 use \Closure;
+use \Iterator;
 use \Ilex\Lib\Kit;
 use \Ilex\Base\Model\BaseModel;
 use \Ilex\Base\Model\Collection\MongoDBCursor;
@@ -28,7 +29,7 @@ class BaseBulk extends BaseModel implements Iterator
             'toList',
             'count',
             'batch',
-            'foreach',
+            'map',
 
         ],
         self::V_PROTECTED => [
@@ -65,28 +66,27 @@ class BaseBulk extends BaseModel implements Iterator
         $entity_name       = $this->collectionWrapper->getEntityName();
         $entity_class_name = $this->collectionWrapper->getEntityClassName();
         $collection_name   = $this->collectionWrapper->getCollectionName();
-        $entity_wrapper    = EntityWrapper::getInstance($collection_name);
+        $entity_wrapper    = EntityWrapper::getInstance($collection_name, $entity_class_name);
         return new $entity_class_name($entity_wrapper, $entity_name, TRUE, $document);
     }
 
-
-    final protected function rewind() {
+    final public function rewind() {
         $this->position = 0;
     }
 
-    final protected function current() {
+    final public function current() {
         return $this->entityList[$this->position];
     }
 
-    final protected function key() {
+    final public function key() {
         return $this->position;
     }
 
-    final protected function next() {
+    final public function next() {
         ++$this->position;
     }
 
-    final protected function valid() {
+    final public function valid() {
         return TRUE === isset($this->entityList[$this->position]);
     }
 
@@ -126,7 +126,7 @@ class BaseBulk extends BaseModel implements Iterator
         return $result;
     }
 
-    final protected function foreach(Closure $function)
+    final protected function map(Closure $function)
     {
         $result = [];
         foreach ($this->entityList as $index => $entity) {

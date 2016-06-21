@@ -2,6 +2,8 @@
 
 namespace Ilex\Base\Model\Wrapper;
 
+use \Ilex\Lib\Container;
+use \Ilex\Lib\Kit;
 use \Ilex\Base\Model\Collection\MongoDBCollection;
 use \Ilex\Base\Model\Entity\BaseEntity;
 
@@ -22,28 +24,28 @@ final class EntityWrapper extends MongoDBCollection
 
     private static $entityWrapperContainer = NULL;
 
-    final public static function getInstance($collection_name)
+    final public static function getInstance($collection_name, $entity_class_name)
     {
-        Kit::ensureString($collection_name);
+        Kit::ensureString($entity_class_name);
         if (FALSE === isset(self::$entityWrapperContainer))
             self::$entityWrapperContainer = new Container();
-        if (TRUE === self::$entityWrapperContainer->has($collection_name)) 
-            return self::$entityWrapperContainer->get($collection_name);
-        else return (self::$entityWrapperContainer->set($collection_name, new static($collection_name)));
+        if (TRUE === self::$entityWrapperContainer->has($entity_class_name)) 
+            return self::$entityWrapperContainer->get($entity_class_name);
+        else return (self::$entityWrapperContainer->set($entity_class_name, new static($collection_name)));
     }
 
-    final private function __construct($collection_name)
+    final protected function __construct($collection_name)
     {
         parent::__construct($collection_name);
     }
 
-    final protected function addOneEntityThenGetId(Entity $entity)
+    final protected function addOneEntityThenGetId(BaseEntity $entity)
     {
         $document = $entity->document();
         return $this->call('addOne', $document)['_id'];
     }
 
-    final protected function updateTheOnlyOneEntity(Entity $entity)
+    final protected function updateTheOnlyOneEntity(BaseEntity $entity)
     {
         $criterion = [ '_id' => $entity->getId() ];
         $document = $this->document();

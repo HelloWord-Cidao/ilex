@@ -76,8 +76,10 @@ abstract class MongoDBCollection extends BaseModel
 // https://www.idontplaydarts.com/2010/07/mongodb-is-vulnerable-to-sql-injection-in-php-at-least/
 
     protected static $methodsVisibility = [
-        self::V_PROTECTED => [
+        self::V_PUBLIC => [
             'getCollectionName',
+        ],
+        self::V_PROTECTED => [
             // 'addMulti',
             'addOne',
             'checkExistence',
@@ -101,7 +103,7 @@ abstract class MongoDBCollection extends BaseModel
     private $collectionName = NULL;
     private $collection     = NULL;
 
-    final protected function __construct($collection_name)
+    protected function __construct($collection_name)
     {
         Kit::ensureString($collection_name);
         try {

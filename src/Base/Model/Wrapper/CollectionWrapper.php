@@ -3,6 +3,9 @@
 namespace Ilex\Base\Model\Wrapper;
 
 use \Exception;
+use \Ilex\Core\Loader;
+use \Ilex\Lib\Container;
+use \Ilex\Lib\Kit;
 use \Ilex\Base\Model\Collection\MongoDBCollection;
 
 /**
@@ -40,15 +43,16 @@ final class CollectionWrapper extends MongoDBCollection
     final public static function getInstance($collection_name, $entity_path)
     {
         Kit::ensureString($collection_name);
+        Kit::ensureString($entity_path);
         if (FALSE === isset(self::$collectionWrapperContainer))
             self::$collectionWrapperContainer = new Container();
-        if (TRUE === self::$collectionWrapperContainer->has($collection_name)) 
-            return self::$collectionWrapperContainer->get($collection_name);
+        if (TRUE === self::$collectionWrapperContainer->has($entity_path)) 
+            return self::$collectionWrapperContainer->get($entity_path);
         else return (self::$collectionWrapperContainer->set(
-            $collection_name, new static($collection_name, $entity_path)));
+            $entity_path, new static($collection_name, $entity_path)));
     }
 
-    final private function __construct($collection_name, $entity_path)
+    final protected function __construct($collection_name, $entity_path)
     {
         parent::__construct($collection_name);
         if (TRUE === is_null($entity_path)) {
@@ -119,7 +123,7 @@ final class CollectionWrapper extends MongoDBCollection
         $entity_name       = $this->call('getEntityName');
         $entity_class_name = $this->call('getEntityClassName');
         $collection_name   = $this->call('getCollectionName');
-        $entity_wrapper    = EntityWrapper::getInstance($collection_name);
+        $entity_wrapper    = EntityWrapper::getInstance($collection_name, $entity_class_name);
         return new $entity_class_name($entity_wrapper, $entity_name, TRUE, $document);
     }
 

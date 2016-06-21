@@ -245,6 +245,8 @@ final class Debug
             $execution_record['parent_execution_id'] = $parent_execution_id;
             $execution_record['indent']              = $indent . ' ';
         }
+        $execution_record['time_used']   = self::getTimeUsed(self::T_MILLISECOND, FALSE);
+        $execution_record['memory_used'] = self::getMemoryUsed(self::M_KILOBYTE, FALSE);
         // $execution_record = self::simplifyExecutionRecord($execution_record);
         self::$executionRecordStack[] = $execution_record;
         return self::countExecutionRecord() - 1;
@@ -294,7 +296,9 @@ final class Debug
         $result = self::$executionRecordStack;
         $index = 0;
         while ($index < Kit::len($result)) {
-            $result[$index] = sprintf('%s%02d.(%02d) (%s) %10s %10s :: %s',
+            $result[$index] = sprintf('%5.1fms %.0fKB %s%02d.(%02d) (%s) %10s %10s :: %s',
+                $result[$index]['time_used'],
+                $result[$index]['memory_used'],
                 $result[$index]['indent'],
                 $index,
                 $result[$index]['parent_execution_id'],

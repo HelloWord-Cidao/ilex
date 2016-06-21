@@ -54,7 +54,7 @@ final class Loader
         'Config',
         'Data',
         'Core',
-        'Log'
+        'Log',
         'Collection',
         'Wrapper',
         'Entity',

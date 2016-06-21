@@ -18,6 +18,9 @@ abstract class BaseEntity extends BaseModel
         self::V_PUBLIC => [
             'getName',
             'document',
+            'setSignature',
+            'setData',
+            'setInfo',
             'buildReference',
             'addToCollection',
             'updateToCollection',
@@ -27,11 +30,8 @@ abstract class BaseEntity extends BaseModel
             'isSameAsInCollection',
             'getId',
             'getDocument',
-            'setSignature',
             'getSignature',
-            'setData',
             'getData',
-            'setInfo',
             'getInfo',
             'setMeta',
             'getMeta',
@@ -60,7 +60,7 @@ abstract class BaseEntity extends BaseModel
         Kit::ensureString($name);
         Kit::ensureBoolean($is_in_collection);
         // Kit::ensureDict($document); // @CAUTION
-        Kit::ensureArray($document);
+        Kit::ensureArray($document, TRUE);
         if (TRUE === $is_in_collection AND
             (FALSE === isset($document['_id']) 
                 OR FALSE === ($document['_id'] instanceof MongoId)))
@@ -75,7 +75,9 @@ abstract class BaseEntity extends BaseModel
             'Data'      => [ ],
             'Info'      => [ ],
             'Reference' => [ ],
-            'Meta'      => [ ],
+            'Meta'      => [
+                'Type' => $name,
+            ],
         ];
     }
 
@@ -154,6 +156,7 @@ abstract class BaseEntity extends BaseModel
         $_id = $this->entityWrapper->addOneEntityThenGetId($this);
         $this->setId($_id);
         $this->inCollection();
+        return $_id;
     }
 
     final protected function updateToCollection()
@@ -197,7 +200,8 @@ abstract class BaseEntity extends BaseModel
     final protected function setSignature($signature)
     {
         $this->call('ensureHasNo', 'Signature');
-        return $this->setDocument('Signature', NULL, $signature, FALSE);
+        $this->setDocument('Signature', NULL, $signature, FALSE);
+        return $this;
     }
     
     final protected function getSignature()
@@ -207,7 +211,8 @@ abstract class BaseEntity extends BaseModel
     
     final protected function setData($arg1 = NULL, $arg2 = Kit::TYPE_VACANCY)
     {
-        return $this->handleSet('Data', $arg1, $arg2);
+        $this->handleSet('Data', $arg1, $arg2);
+        return $this;
     }
 
     final protected function getData($name = NULL, $ensure_existence = TRUE, $default = NULL)
@@ -217,7 +222,8 @@ abstract class BaseEntity extends BaseModel
 
     final protected function setInfo($arg1 = NULL, $arg2 = Kit::TYPE_VACANCY)
     {
-        return $this->handleSet('Info', $arg1, $arg2);
+        $this->handleSet('Info', $arg1, $arg2);
+        return $this;
     }
 
     final protected function getInfo($name = NULL, $ensure_existence = TRUE, $default = NULL)
@@ -227,7 +233,8 @@ abstract class BaseEntity extends BaseModel
     
     final protected function setMeta($arg1 = NULL, $arg2 = Kit::TYPE_VACANCY)
     {
-        return $this->handleSet('Meta', $arg1, $arg2);
+        $this->handleSet('Meta', $arg1, $arg2);
+        return $this;
     }
 
     final protected function getMeta($name = NULL, $ensure_existence = TRUE, $default = NULL)
@@ -287,13 +294,13 @@ abstract class BaseEntity extends BaseModel
     {
         // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_LIST ]); // @CAUTION
         // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_ARRAY ]);
-        Kit::ensureString($path)
+        Kit::ensureString($path);
         // Kit::ensureDict($this->document); // @CAUTION
         Kit::ensureArray($this->document);
         if (TRUE === Kit::isString($path)) {
             if (TRUE === $ensure_existence) $this->call('ensureHas', $path);
             if (FALSE === $ensure_existence) $this->call('ensureHasNo', $path);
-            $this->document[$path] = $value
+            $this->document[$path] = $value;
             $this->notSameAsCollection();
             return $value;
         } else throw new UserException('Can not support list-type $path yet.', [ $path, $value ]);
