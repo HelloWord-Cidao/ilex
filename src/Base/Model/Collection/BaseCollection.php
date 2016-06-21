@@ -4,6 +4,7 @@ namespace Ilex\Base\Model\Collection;
 
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
+use \Ilex\Base\Model\Wrapper\CollectionWrapper;
 use \Ilex\Base\Model\BaseModel;
 
 /**
@@ -15,7 +16,7 @@ abstract class BaseCollection extends BaseModel
 {
     protected static $methodsVisibility = [
         self::V_PUBLIC => [
-            'checkExists_id',
+            'checkExistsId',
             'checkExistsSignature',
         ],
         self::V_PROTECTED => [
@@ -33,25 +34,47 @@ abstract class BaseCollection extends BaseModel
         ],
     ];
 
-    private $hasIncludedEntity = FALSE;
+    private $collectionWrapper = NULL;
+    
     private $entityName        = NULL;
     private $entityClassName   = NULL;
+    private $hasIncludedEntity = FALSE;
 
-    private $collection = NULL;
+    const COLLECTION_NAME = NULL; // should set in subclass
+    const ENTITY_PATH     = NULL; // should set in subclass
 
     final public function __construct()
     {
         $collection_name = static::COLLECTION_NAME;
+        $entity_path     = static::ENTITY_PATH;
         Kit::ensureString($collection_name, TRUE);
         if (TRUE === is_null($collection_name)) {
-            // throw new UserException('COLLECTION_NAME is not set.');
-        } else $this->collection = MongoDBCollection::getInstance($collection_name);
+            // throw new UserException('COLLECTION_NAME is not set.'); // @CAUTION
+        } else $this->collectionWrapper = CollectionWrapper::getInstance($collection_name);
+        if (TRUE === is_null($entity_path)) {
+            // throw new UserException('ENTITY_PATH is not set.'); // @CAUTION
+        } else $this->call('includeEntity');
     }
 
     final protected function ensureInitialized()
     {
-        if (FALSE === isset($this->collection))
+        if (FALSE === isset($this->collectionWrapper)
+            OR FALSE === $this->collectionWrapper instanceof CollectionWrapper)
             throw new UserException('This collection has not been initialized.');
+    }
+
+    final protected function includeEntity()
+    {
+        $collection_name = static::COLLECTION_NAME;
+        $entity_path     = static::ENTITY_PATH;
+        if (TRUE === is_null($entity_path)) {
+            throw new UserException('ENTITY_PATH is not set.', $collection_name);
+        }
+        if (FALSE === $this->hasIncludedEntity) {
+            $this->entityName        = Loader::getHandlerFromPath($entity_path);
+            $this->entityClassName   = Loader::includeEntity($entity_path);
+            $this->hasIncludedEntity = TRUE;
+        }
     }
 
     final protected function createEntity()
@@ -68,20 +91,7 @@ abstract class BaseCollection extends BaseModel
         return new $this->entityClassName($this->collection, $this->entityName, TRUE, $document);
     }
 
-    final protected function includeEntity()
-    {
-        if (TRUE === is_null(static::ENTITY_PATH)) {
-            throw new UserException('ENTITY_PATH is not set.', static::COLLECTION_NAME);
-        }
-        if (FALSE === $this->hasIncludedEntity) {
-            $entity_path = static::ENTITY_PATH;
-            $this->entityName        = Loader::getHandlerFromPath($entity_path);
-            $this->entityClassName   = Loader::includeEntity($entity_path);
-            $this->hasIncludedEntity = TRUE;
-        }
-    }
-
-    final protected function checkExists_id($_id)
+    final protected function checkExistsId($_id)
     {
         return $this->call('checkExistsField', '_id', $_id);
     }

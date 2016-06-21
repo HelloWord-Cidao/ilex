@@ -21,7 +21,7 @@ final class EntityWrapper extends MongoDBCollection
 
     private static $entityWrapperContainer = NULL;
 
-    final public static function getEntityWrapper($collection_name)
+    final public static function getInstance($collection_name)
     {
         Kit::ensureString($collection_name);
         if (FALSE === isset(self::$entityWrapperContainer))
@@ -36,14 +36,17 @@ final class EntityWrapper extends MongoDBCollection
         parent::__construct($collection_name);
     }
 
-    final protected function addOneEntityThenGetId($document)
+    final protected function addOneEntityThenGetId($entity)
     {
+        $document = $entity->getDocument();
         return $this->call('addOne', $document)['_id'];
     }
 
-    final protected function updateTheOnlyOneEntity($_id, $document)
+    final protected function updateTheOnlyOneEntity($entity)
     {
-        $criterion = [ '_id' => $_id ];
+        $criterion = [ '_id' => $entity->getId() ];
+        $document = $this->getDocument();
+        unset($document['_id']);
         return $this->call('updateTheOnlyOne', $criterion, $document, TRUE);
     }
     

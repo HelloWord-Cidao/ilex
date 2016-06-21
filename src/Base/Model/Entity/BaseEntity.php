@@ -5,6 +5,7 @@ namespace Ilex\Base\Model\Entity;
 use \MongoId;
 use \Ilex\Lib\Kit;
 use \Ilex\Base\Model\BaseModel;
+use \Ilex\Base\Model\Wrapper\EntityWrapper;
 
 /**
  * Class BaseEntity
@@ -15,6 +16,8 @@ abstract class BaseEntity extends BaseModel
 {
     protected static $methodsVisibility = [
         self::V_PUBLIC => [
+            'getId',
+            'getDocument',
             'addToCollection',
             'updateToCollection',
             'isInCollection',
@@ -50,7 +53,8 @@ abstract class BaseEntity extends BaseModel
 
     final protected function ensureInitialized()
     {
-        if (FALSE === isset($this->entityWrapper))
+        if (FALSE === isset($this->entityWrapper)
+            OR FALSE === $this->entityWrapper instanceof EntityWrapper)
             throw new UserException('This entity has not been initialized.', $this);
     }
 
@@ -206,7 +210,7 @@ abstract class BaseEntity extends BaseModel
             $msg = 'Can not add to collection, because the entity is already in the collection.';
             throw new UserException($msg, $this);
         }
-        $_id = $this->entityWrapper->addOneAndGetId($this->call('getDocument'));
+        $_id = $this->entityWrapper->addOneEntityThenGetId($this);
         $this->call('setId', $_id);
         $this->call('inCollection');
     }
@@ -217,10 +221,7 @@ abstract class BaseEntity extends BaseModel
             $msg = 'Can not update to collection, because the entity is not in the collection.';
             throw new UserException($msg, $this);
         }
-        $_id = $this->getId();
-        $document = $this->document;
-        unset($document['_id']);
-        $this->entityWrapper->updateTheOnlyOneEntity($_id, $document);
+        $this->entityWrapper->updateTheOnlyOneEntity($this);
         $this->call('sameAsCollection');
     }
 }

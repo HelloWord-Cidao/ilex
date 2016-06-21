@@ -78,8 +78,6 @@ abstract class MongoDBCollection extends BaseModel
     protected static $methodsVisibility = [
         self::V_PROTECTED => [
             'getCollectionName',
-            'ensureDocumentHasNoId',
-            'ensureMongoId',
             // 'addMulti',
             'addOne',
             'checkExistence',
@@ -124,7 +122,8 @@ abstract class MongoDBCollection extends BaseModel
     final protected function ensureInitialized()
     {
         $collection_name = $this->collectionName;
-        if (FALSE === isset($this->collection))
+        if (FALSE === isset($this->collection)
+            OR FALSE === $this->collection instanceof MongoCollection)
             throw new UserException("This collection($collection_name) has not been initialized.");
     }
 
