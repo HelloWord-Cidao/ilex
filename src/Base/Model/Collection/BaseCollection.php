@@ -18,13 +18,13 @@ abstract class BaseCollection extends BaseModel
     protected static $methodsVisibility = [
         self::V_PUBLIC => [
             'createEntity',
+            'checkExistEntities',
             'checkExistsId',
             'checkExistsSignature',
             'countAll',
             'getTheOnlyOneEntityBySignature',
         ],
         self::V_PROTECTED => [
-            'checkExistEntities',
             'ensureExistEntities',
             'checkExistsOnlyOneEntity',
             'ensureExistsOnlyOneEntity',
