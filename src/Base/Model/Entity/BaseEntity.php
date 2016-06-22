@@ -4,6 +4,7 @@ namespace Ilex\Base\Model\Entity;
 
 use \MongoId;
 use \Ilex\Lib\Kit;
+use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\BaseModel;
 use \Ilex\Base\Model\Wrapper\EntityWrapper;
 
