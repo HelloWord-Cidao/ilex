@@ -17,21 +17,21 @@ abstract class BaseCollection extends BaseModel
 {
     protected static $methodsVisibility = [
         self::V_PUBLIC => [
-            'createEntity',
-            'checkExistEntities',
-            'checkExistsId',
-            'checkExistsSignature',
-            'countAll',
-            'getTheOnlyOneEntityBySignature',
+            // 'createEntity',
+            // 'checkExistEntities',
+            // 'checkExistsId',
+            // 'checkExistsSignature',
+            // 'countAll',
+            // 'getTheOnlyOneEntityBySignature',
         ],
         self::V_PROTECTED => [
-            'ensureExistEntities',
-            'checkExistsOnlyOneEntity',
-            'ensureExistsOnlyOneEntity',
-            'countEntities',
-            'getMultiEntities',
-            'getTheOnlyOneEntity',
-            'getOneEntity',
+            // 'ensureExistEntities',
+            // 'checkExistsOnlyOneEntity',
+            // 'ensureExistsOnlyOneEntity',
+            // 'countEntities',
+            // 'getMultiEntities',
+            // 'getTheOnlyOneEntity',
+            // 'getOneEntity',
         ],
     ];
 
@@ -52,16 +52,16 @@ abstract class BaseCollection extends BaseModel
         }
     }
 
-    final protected function ensureInitialized()
+    final private function ensureInitialized()
     {
         if (FALSE === isset($this->collectionWrapper)
             OR FALSE === $this->collectionWrapper instanceof CollectionWrapper)
             throw new UserException('This collection has not been initialized.');
     }
 
-    final protected function createEntity()
+    final public function createEntity()
     {
-        $this->call('ensureInitialized');
+        $this->ensureInitialized();
         $entity_name       = $this->collectionWrapper->getEntityName();
         $entity_class_name = $this->collectionWrapper->getEntityClassName();
         $collection_name   = $this->collectionWrapper->getCollectionName();
@@ -69,29 +69,29 @@ abstract class BaseCollection extends BaseModel
         return new $entity_class_name($entity_wrapper, $entity_name, FALSE);
     }
 
-    final protected function checkExistsId($_id)
+    final public function checkExistsId($_id)
     {
         $criterion = [ '_id' => $_id ];
-        return $this->call('checkExistsOnlyOneEntity', $criterion);
+        return $this->checkExistsOnlyOneEntity($criterion);
     }
 
-    final protected function checkExistsSignature($signature)
+    final public function checkExistsSignature($signature)
     {
         $criterion = [ 'Signature' => $signature ];
-        return $this->call('checkExistsOnlyOneEntity', $criterion);
+        return $this->checkExistsOnlyOneEntity($criterion);
     }
 
-    final protected function countAll()
+    final public function countAll()
     {
-        return $this->call('countEntities');
+        return $this->countEntities();
     }
     
-    final protected function getTheOnlyOneEntityBySignature($signature)
+    final public function getTheOnlyOneEntityBySignature($signature)
     {
         $criterion = [
             'Signature' => $signature,
         ];
-        return $this->call('getTheOnlyOneEntity', $criterion);
+        return $this->getTheOnlyOneEntity($criterion);
     }
 
 
@@ -100,49 +100,49 @@ abstract class BaseCollection extends BaseModel
 
     final protected function checkExistEntities($criterion)
     {
-        $this->call('ensureInitialized');
+        $this->ensureInitialized();
         return $this->collectionWrapper->checkExistEntities($criterion);
     }
 
     final protected function ensureExistEntities($criterion)
     {
-        $this->call('ensureInitialized');
+        $this->ensureInitialized();
         $this->collectionWrapper->ensureExistEntities($criterion);
     }
 
     final protected function checkExistsOnlyOneEntity($criterion)
     {
-        $this->call('ensureInitialized');
+        $this->ensureInitialized();
         return $this->collectionWrapper->checkExistsOnlyOneEntity($criterion);
     }
 
     final protected function ensureExistsOnlyOneEntity($criterion)
     {
-        $this->call('ensureInitialized');
+        $this->ensureInitialized();
         $this->collectionWrapper->ensureExistsOnlyOneEntity($criterion);
     }
      
     final protected function countEntities($criterion = [], $skip = NULL, $limit = NULL)
     {
-        $this->call('ensureInitialized');
+        $this->ensureInitialized();
         return $this->collectionWrapper->countEntities($criterion, $skip, $limit);
     }
 
     final protected function getMultiEntities($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
     {
-        $this->call('ensureInitialized');
+        $this->ensureInitialized();
         return $this->collectionWrapper->getMultiEntities($criterion, $sort_by, $skip, $limit);
     }
 
     final protected function getTheOnlyOneEntity($criterion)
     {
-        $this->call('ensureInitialized');
+        $this->ensureInitialized();
         return $this->collectionWrapper->getTheOnlyOneEntity($criterion);
     }
 
     final protected function getOneEntity($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
     {
-        $this->call('ensureInitialized');
+        $this->ensureInitialized();
         return $this->collectionWrapper->getOneEntity($criterion, $sort_by, $skip, $limit);
     }
 }

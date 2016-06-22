@@ -5,7 +5,6 @@ namespace Ilex\Base\Model\System;
 use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
-use \Ilex\Base\Model\BaseModel;
 
 /**
  * @todo: method arg type validate
@@ -32,7 +31,7 @@ use \Ilex\Base\Model\BaseModel;
  * @method public static mixed   setInput(mixed $key, mixed $value)
  * @method public static boolean deleteInput(mixed $key)
  */
-final class Input extends BaseModel
+final class Input
 {
     private static $getData;
     private static $postData;

@@ -5,7 +5,6 @@ namespace Ilex\Base\Model\Bulk;
 use \Closure;
 use \Iterator;
 use \Ilex\Lib\Kit;
-use \Ilex\Base\Model\BaseModel;
 use \Ilex\Base\Model\Collection\MongoDBCursor;
 use \Ilex\Base\Model\Wrapper\CollectionWrapper;
 use \Ilex\Base\Model\Wrapper\EntityWrapper;
@@ -15,26 +14,26 @@ use \Ilex\Base\Model\Wrapper\EntityWrapper;
  * Base class of bulk models of Ilex.
  * @package Ilex\Base\Model\Bulk
  */
-class BaseBulk extends BaseModel implements Iterator
+class BaseBulk implements Iterator
 {
 
-    protected static $methodsVisibility = [
-        self::V_PUBLIC => [
-            // 'getEntity',
-            'rewind',
-            'current',
-            'key',
-            'next',
-            'valid',
-            'toList',
-            'count',
-            'batch',
-            'map',
+    // protected static $methodsVisibility = [
+    //     self::V_PUBLIC => [
+    //         // 'getEntity',
+    //         'rewind',
+    //         'current',
+    //         'key',
+    //         'next',
+    //         'valid',
+    //         'toList',
+    //         'count',
+    //         'batch',
+    //         'map',
 
-        ],
-        self::V_PROTECTED => [
-        ],
-    ];
+    //     ],
+    //     self::V_PROTECTED => [
+    //     ],
+    // ];
 
     private $position = 0;
 
@@ -51,19 +50,18 @@ class BaseBulk extends BaseModel implements Iterator
         }
     }
 
-    final protected function ensureInitialized()
+    final private function ensureInitialized()
     {
         if (FALSE === isset($this->collectionWrapper)
             OR FALSE === $this->collectionWrapper instanceof CollectionWrapper)
             throw new UserException('This bulk has not been initialized.');
     }
 
-    final protected function createEntityWithDocument($document)
+    final private function createEntityWithDocument($document)
     {
         // Kit::ensureDict($document); // @CAUTION
         Kit::ensureArray($document);
-        $this->call('ensureInitialized');
-        // $this->ensureInitialized();
+        $this->ensureInitialized();
         $entity_name       = $this->collectionWrapper->getEntityName();
         $entity_class_name = $this->collectionWrapper->getEntityClassName();
         $collection_name   = $this->collectionWrapper->getCollectionName();
@@ -91,31 +89,31 @@ class BaseBulk extends BaseModel implements Iterator
         return TRUE === isset($this->entityList[$this->position]);
     }
 
-    final protected function toList()
+    final public function toList()
     {
         return $this->entityList;
     }
 
-    final protected function count()
+    final public function count()
     {
         return Kit::len($this->entityList);
     }
 
-    final protected function first()
+    final public function first()
     {
-        if (0 === $this->call('count'))
+        if (0 === $this->count())
             throw new UserException('Failed to get the first entity, because this bulk is empty.', $this);
         return $this->entityList[0];
     }
 
-    final protected function last()
+    final public function last()
     {
-        if (0 === $this->call('count'))
+        if (0 === $this->count())
             throw new UserException('Failed to get the last entity, because this bulk is empty.', $this);
         return Kit::last($this->entityList);
     }
 
-    final protected function batch()
+    final public function batch()
     {
         $arg_list = func_get_args();
         $method_name = $arg_list[0];
@@ -127,7 +125,7 @@ class BaseBulk extends BaseModel implements Iterator
         return $result;
     }
 
-    final protected function map(Closure $function)
+    final public function map(Closure $function)
     {
         $result = [];
         foreach ($this->entityList as $index => $entity) {

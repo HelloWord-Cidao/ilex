@@ -20,6 +20,7 @@ class LogCollection extends BaseCollection
     ];
 
     const COLLECTION_NAME = 'Log';
+    const ENTITY_PATH     = 'Log';
 
     final protected function addRequestLog($content)
     {

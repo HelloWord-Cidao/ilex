@@ -376,7 +376,8 @@ final class Debug
             if (TRUE === self::checkExceptionDisplay($index, self::D_E_DETAIL)) {
                 if (TRUE === isset($result[$index]['detail'])) {
                     $tmp['detail'] = $result[$index]['detail'];
-                    if (FALSE === self::checkExceptionDisplay($index, self::D_E_DETAIL_MORE)) {
+                    if (FALSE === self::checkExceptionDisplay($index, self::D_E_DETAIL_MORE)
+                        AND TRUE === Kit::isArray($tmp['detail'])) {
                         $tmp['detail'] = Kit::extract($tmp['detail'], [
                             'class',
                             'method',
@@ -392,7 +393,8 @@ final class Debug
                             unset($tmp['detail']['method']);
                         }
                     }
-                    if (FALSE === self::checkExceptionDisplay($index, self::D_E_DETAIL_ARGS)) {
+                    if (FALSE === self::checkExceptionDisplay($index, self::D_E_DETAIL_ARGS)
+                        AND TRUE === Kit::isArray($tmp['detail'])) {
                         unset($tmp['detail']['args']);
                         unset($tmp['detail']['args_sanitization_result']);
                     }
@@ -596,6 +598,13 @@ final class Debug
                 $record['handler'] = sprintf('%s %s ', $record['class'], $record['type']);
                 $record = Kit::exclude($record, [ 'class', 'type' ]);
             } else $record['handler'] = '';
+            if (TRUE === Kit::in($record['function'], [
+                    'call_user_func_array',
+                    'execute',
+                    'call',
+                    '__call',
+                    
+                ])) continue;
             $record['handler'] .= $record['function'];
             unset($record['function']);
             $result[] = $record;

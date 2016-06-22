@@ -121,9 +121,7 @@ abstract class BaseService extends BaseController
         } catch (Exception $e) {
             $this->failRequest(
                 $execution_id, $execution_record,
-                new UserException(
-                    'Service execution failed.', $execution_record, $e
-                )
+                new UserException('Service execution failed.', $execution_record, $e)
             );
         }
     }
@@ -302,7 +300,7 @@ abstract class BaseService extends BaseController
     {
         $code = $this->getCode();
         if (FALSE === is_null($code) AND FALSE === Kit::in($code, [ 1, 2 ])) {
-            throw new UserException('Can not fail the request because of invalid code.', $code);
+            throw new UserException('Can not fail the request because of invalid code.', $code, $exception);
         }
         // Now code must be NULL or 1 or 2.
         $this->setCode(0);

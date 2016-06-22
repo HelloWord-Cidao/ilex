@@ -47,7 +47,7 @@ final class RequestLog extends BaseLog
                 'SystemVersion' => SYS_VERSION,
             ],
         ];
-        $this->loadCollection('Log', TRUE);
+        $this->loadCollection('Log');
         return $this->LogCollection->addRequestLog($content);
     }
 }

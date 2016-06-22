@@ -13,14 +13,14 @@ use \Ilex\Base\Model\Entity\BaseEntity;
  */
 final class EntityWrapper extends MongoDBCollection
 {
-    protected static $methodsVisibility = [
-        self::V_PUBLIC => [
-            'addOneEntityThenGetId',
-            'updateTheOnlyOneEntity',
-        ],
-        self::V_PROTECTED => [
-        ],
-    ];
+    // protected static $methodsVisibility = [
+    //     self::V_PUBLIC => [
+    //         'addOneEntity',
+    //         'updateTheOnlyOneEntity',
+    //     ],
+    //     self::V_PROTECTED => [
+    //     ],
+    // ];
 
     private static $entityWrapperContainer = NULL;
 
@@ -39,18 +39,21 @@ final class EntityWrapper extends MongoDBCollection
         parent::__construct($collection_name);
     }
 
-    final protected function addOneEntityThenGetId(BaseEntity $entity)
+    final public function addOneEntity(BaseEntity $entity)
     {
         $document = $entity->document();
-        return $this->call('addOne', $document)['_id'];
+        return $this->addOne($document)['document'];
     }
 
-    final protected function updateTheOnlyOneEntity(BaseEntity $entity)
+    final public function updateTheOnlyOneEntity(BaseEntity $entity)
     {
-        $criterion = [ '_id' => $entity->getId() ];
+        $_id = $entity->getId();
+        $criterion = [ '_id' => $_id ];
         $document = $entity->document();
         unset($document['_id']);
-        return $this->call('updateTheOnlyOne', $criterion, $document, TRUE);
+        $document = $this->updateTheOnlyOne($criterion, $document, TRUE);
+        $document['_id'] = $_id;
+        return $document;
     }
     
 }
