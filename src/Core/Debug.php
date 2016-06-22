@@ -426,7 +426,7 @@ final class Debug
         // initiator_function
             // trace
             // detail
-        return $result;
+        return Kit::reversed($result);
     }
 
     /**
