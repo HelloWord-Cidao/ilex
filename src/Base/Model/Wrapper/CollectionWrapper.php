@@ -65,7 +65,8 @@ final class CollectionWrapper extends MongoDBCollection
 
     final protected function includeEntity($entity_path)
     {
-        $collection_name = $this->call('getCollectionName');
+        $collection_name = $this->collectionName;
+        // $collection_name = $this->call('getCollectionName');
         if (TRUE === is_null($entity_path)) {
             throw new UserException("ENTITY_PATH is not set in collection($collection_name).");
         }

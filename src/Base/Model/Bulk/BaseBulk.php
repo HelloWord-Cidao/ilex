@@ -63,6 +63,7 @@ class BaseBulk extends BaseModel implements Iterator
         // Kit::ensureDict($document); // @CAUTION
         Kit::ensureArray($document);
         $this->call('ensureInitialized');
+        // $this->ensureInitialized();
         $entity_name       = $this->collectionWrapper->getEntityName();
         $entity_class_name = $this->collectionWrapper->getEntityClassName();
         $collection_name   = $this->collectionWrapper->getCollectionName();

@@ -266,7 +266,7 @@ abstract class BaseEntity extends BaseModel
 
     final protected function handleGet($root_field_name, $field_name, $ensure_existence, $default)
     {
-        if (TRUE === is_null($name)) return $this->call('getDocument', $root_field_name);
+        if (TRUE === is_null($field_name)) return $this->call('getDocument', $root_field_name, $field_name);
         else return $this->call('getDocument', $root_field_name, $field_name, $ensure_existence, $default);
     }
 

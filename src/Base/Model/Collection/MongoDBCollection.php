@@ -100,7 +100,7 @@ abstract class MongoDBCollection extends BaseModel
         ],
     ];
 
-    private $collectionName = NULL;
+    protected $collectionName = NULL;
     private $collection     = NULL;
 
     protected function __construct($collection_name)
