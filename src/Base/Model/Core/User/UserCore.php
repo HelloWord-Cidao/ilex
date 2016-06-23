@@ -35,7 +35,7 @@ class UserCore extends BaseCore
         Kit::ensureString($jwt);
         $token = JWT::decode($jwt, JWT_SEC_KEY, array('HS512'));
         return [
-            'userId' => $token['data']['userId'],
+            'userId' => $token->data->userId,
         ];
     }
 
