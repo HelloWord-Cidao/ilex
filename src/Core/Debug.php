@@ -129,9 +129,9 @@ final class Debug
 
     public static function handleFatalError() {
         $error = error_get_last();
-        if (FALSE === self::$isErrorHandled 
+        if (FALSE === self::$isErrorHandled
             AND FALSE === is_null($error)
-            AND self::$errorTypes & $error['type'] === $error['type']) {
+            AND (self::$errorTypes & $error['type']) === $error['type']) {
             $error['type'] = self::polishErrorType($error['type']);
             self::respondOnFail($error, TRUE);
         }

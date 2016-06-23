@@ -40,7 +40,7 @@ abstract class BaseCollection extends BaseModel
     // const COLLECTION_NAME = NULL; // should set in subclass
     // const ENTITY_PATH     = NULL; // should set in subclass
 
-    final public function __construct()
+    public function __construct($user = NULL)
     {
         $collection_name = static::COLLECTION_NAME;
         $entity_path     = static::ENTITY_PATH;
@@ -50,6 +50,7 @@ abstract class BaseCollection extends BaseModel
         } else {
             $this->collectionWrapper = CollectionWrapper::getInstance($collection_name, $entity_path);
         }
+        $this->user = $user;
     }
 
     final private function ensureInitialized()
@@ -71,6 +72,7 @@ abstract class BaseCollection extends BaseModel
 
     final public function checkExistsId($_id)
     {
+        $_id = $this->collectionWrapper->convertStringToMongoId($_id);
         $criterion = [ '_id' => $_id ];
         return $this->checkExistsOnlyOneEntity($criterion);
     }
@@ -91,6 +93,13 @@ abstract class BaseCollection extends BaseModel
         $criterion = [
             'Signature' => $signature,
         ];
+        return $this->getTheOnlyOneEntity($criterion);
+    }
+
+    final public function getTheOnlyOneEntityById($_id)
+    {
+        $_id = $this->collectionWrapper->convertStringToMongoId($_id);
+        $criterion = [ '_id' => $_id ];
         return $this->getTheOnlyOneEntity($criterion);
     }
 

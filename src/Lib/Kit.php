@@ -446,7 +446,7 @@ final class Kit
         return count(array_keys($array, $value, TRUE));
     }
 
-    public static function isEmpty($array)
+    public static function isEmpty(&$array)
     {
         self::ensureArray($array);
         return 0 === count($array);
@@ -458,7 +458,7 @@ final class Kit
         return TRUE === in_array($value, $array, TRUE);
     }
 
-    public static function ensureIn(&$value, &$array)
+    public static function ensureIn(&$value, $array)
     {
         if (FALSE === self::in($value, $array))
             throw new UserException('$value is not in $array.', [ $value, $array ]);
@@ -532,7 +532,7 @@ final class Kit
      * @return array
      * @throws UserException if field($field_name) is empty
      */
-    public static function extract($array, $key_list, $set_default = FALSE, $default = NULL)
+    public static function extract(&$array, $key_list, $set_default = FALSE, $default = NULL)
     {
         self::ensureArray($array);
         if (FALSE === is_array($key_list))
@@ -882,7 +882,7 @@ final class Kit
         }
     }
 
-    public static function extremum($type, $value_list)
+    public static function extremum($type, &$value_list)
     {
         self::ensureIn($type, [ self::M_MIN, self::M_MAX ]);
         self::ensureListOfType($value_list, [ self::TYPE_INT, self::TYPE_FLOAT ]);
@@ -936,20 +936,21 @@ final class Kit
      * @return array
      * @throws UserException if the sum of weights is 0.
      */
-    public static function randomByWeight($list_of_dict)
+    public static function randomByWeight(&$list_of_dict)
     {
         self::ensureListOfDict($list_of_dict);
         $weight_list = self::columns($list_of_dict, 'weight', FALSE, NULL, TRUE);
         self::ensureAllSame(self::map([ self, 'sign' ], $weight_list), 1);
         $sum = self::sum($weight_list);
         if (0 === $sum) throw new UserException('The sum of weights is 0.', $list_of_dict);
-        $randmax = getrandmax();
-        $rand = mt_rand(1, (int)$randmax);
-        // @todo: use bisection method when length of $list_of_dict > 50!
-        foreach ($list_of_dict as $object) {
-            $rand -= $object['weight'];
-            if ($rand <= 0) return $object['item'];
-        }
+        throw new UserException('randomByWeight TODO');
+        // $randmax = getrandmax();
+        // $rand = mt_rand(1, (int)$randmax);
+        // // @todo: use bisection method when length of $list_of_dict > 50!
+        // foreach ($list_of_dict as $object) {
+        //     $rand -= $object['weight'];
+        //     if ($rand <= 0) return $object['item'];
+        // }
     }
 
     // ================================================== //
@@ -987,7 +988,7 @@ final class Kit
      *                                     when dealing with strings
      * @return string
      */
-    public static function toString($data, $quotation_mark_list = TRUE)
+    public static function toString(&$data, $quotation_mark_list = TRUE)
     {
         if (TRUE === is_array($data)) {
             array_walk(

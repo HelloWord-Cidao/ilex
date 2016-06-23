@@ -455,21 +455,21 @@ abstract class MongoDBCollection// extends BaseModel
     //     return $criterion;
     // }
 
-    // /**
-    //  * Converts a string to a MongoId.
-    //  * @param string $string
-    //  * @return MongoId
-    //  * @throws UserException if $string is not a string or can not be parsed as a MongoId.
-    //  */
-    // final private function convertStringToMongoId($string)
-    // {
-    //     Kit::ensureString($string);
-    //     try {
-    //         return new MongoId($string);
-    //     } catch (Exception $e) {
-    //         throw new UserException('Can not be parsed as a MongoId.', $string);
-    //     }
-    // }
+    /**
+     * Converts a string to a MongoId.
+     * @param string $string
+     * @return MongoId
+     * @throws UserException if $string is not a string or can not be parsed as a MongoId.
+     */
+    final public function convertStringToMongoId($string)
+    {
+        Kit::ensureString($string);
+        try {
+            return new MongoId($string);
+        } catch (Exception $e) {
+            throw new UserException('Can not be parsed as a MongoId.', $string);
+        }
+    }
 
     // /**
     //  * Converts a MongoId to a string.

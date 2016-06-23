@@ -19,7 +19,6 @@ use \Ilex\Base\Model\Collection\MongoDBCollection;
  * Base class of service controllers.
  * @package Ilex\Base\Controller\Service
  *
- * @method final public __construct()
  * @method final public __call(string $method_name, array $arg_list)
  * 
  * @method final private       fail(Exception $exception)
@@ -38,9 +37,9 @@ abstract class BaseService extends BaseController
         'status' => [ ],
     ];
 
-    final public function __construct()
+    public function __construct()
     {
-
+        $this->setCurrentUserEntity();
     }
 
     /**
@@ -183,7 +182,9 @@ abstract class BaseService extends BaseController
             ) {
             $this->result['code'] = $code;
             return $code;
-        } throw new UserException("Can not set code($current_code) to $code.");
+        } elseif (1 === $current_code AND 2 === $code) {
+            // ignore in case
+        } else throw new UserException("Can not set code($current_code) to $code.");
     }
 
     final private function getCode()
@@ -195,7 +196,8 @@ abstract class BaseService extends BaseController
     {
         if (FALSE === Kit::isVacancy($value) AND FALSE === Kit::isArray($value))
             throw new UserException('$value of process should be a dict.', [ $name, $value, $is_list ]);
-        if (FALSE === isset($value[BaseCore::S_OK]) OR TRUE !== $value[BaseCore::S_OK]) {
+        if (FALSE === Kit::isVacancy($value) AND 
+            (FALSE === isset($value[BaseCore::S_OK]) OR TRUE !== $value[BaseCore::S_OK])) {
             $this->fail();
         }
         return $this->handleResult('process', $name, $value, $is_list);
@@ -335,8 +337,9 @@ abstract class BaseService extends BaseController
         header('Content-Type : application/json', TRUE, $status_code);
         if (FALSE === Debug::isProduction()) {
             $this->result += Debug::getDebugInfo();
+        } else {
+            unset($this->result['process']);
         }
-        unset($this->result['process']);
         Http::json($this->result);
         if (TRUE === $close_cgi_only) {
             fastcgi_finish_request();

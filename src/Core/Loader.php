@@ -162,14 +162,14 @@ final class Loader
         return self::loadModel("Log/${path}Log");
     }
 
-    public static function loadCore($path)
+    public static function loadCore($path, $arg_list = [])
     {
-        return self::loadModel("Core/${path}Core");
+        return self::loadModel("Core/${path}Core", TRUE, $arg_list);
     }
 
-    public static function loadCollection($path)
+    public static function loadCollection($path, $arg_list = [])
     {
-        return self::loadModel("Collection/${path}Collection");
+        return self::loadModel("Collection/${path}Collection", TRUE, $arg_list);
     }
 
     /**
@@ -194,6 +194,7 @@ final class Loader
       */
     private static function load($path, $with_instantiate, $arg_list)
     {
+        // var_dump([$path, self::has($path)]);
         if (TRUE === self::has($path)) {
             return self::get($path);
         } else {
@@ -228,6 +229,14 @@ final class Loader
     public static function includeBulk($path)
     {
         $class_name = self::includeFile("Model/Bulk/${path}Bulk");
+        // $instance   = self::createInstance($class_name, TRUE, []);
+        // return $instance;
+        return $class_name; // full name
+    }
+
+    public static function includeCore($path)
+    {
+        $class_name = self::includeFile("Model/Core/${path}Core");
         // $instance   = self::createInstance($class_name, TRUE, []);
         // return $instance;
         return $class_name; // full name

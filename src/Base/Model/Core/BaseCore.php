@@ -12,5 +12,10 @@ use \Ilex\Base\Model\BaseModel;
 abstract class BaseCore extends BaseModel
 {
     const S_OK = 'ok';
-    protected $ok = [ S_OK => TRUE ];
+    protected $ok = [ self::S_OK => TRUE ];
+
+    public function __construct($user = NULL)
+    {
+        $this->user = $user;
+    }
 }
