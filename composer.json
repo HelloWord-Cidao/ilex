@@ -20,6 +20,7 @@
         "psr-4": {"Ilex\\": "src/"}
     },
     "require": {
-        "phpunit/phpunit": "~4.0"
+        "phpunit/phpunit": "~4.0",
+        "firebase/php-jwt": "^3.0"
     }
 }
