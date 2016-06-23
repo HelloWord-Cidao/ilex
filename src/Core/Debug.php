@@ -6,8 +6,10 @@ use \Exception;
 use \ReflectionFunction;
 use \ReflectionMethod;
 use \Ilex\Core\Loader;
+use \Ilex\Lib\Http;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
+use \Ilex\Base\Model\Collection\MongoDBCollection;
 
 /**
  * @todo: method arg type validate
@@ -62,15 +64,20 @@ final class Debug
     const T_SECOND      = 'SECOND';
     const T_MINUTE      = 'MINUTE';
 
+    private static $errorTypes     = E_ALL;
+    private static $isErrorHandled = FALSE;
+
     private static $config               = NULL;
     private static $environment          = self::E_PRODUCTION;
     private static $executionIdStack     = [ ];
     private static $executionRecordStack = [ ]; // @TODO: disable it in production mode to save memory
     private static $startTime            = NULL;
 
-    /**
-     * Clears the execution record stack.
-     */
+    public static function setErrorTypes($error_types)
+    {
+        self::$errorTypes = $error_types;
+    }
+
     public static function initialize()
     {
         $Input = Loader::loadInput();
@@ -94,6 +101,58 @@ final class Debug
         self::$executionIdStack     = [];
         self::$executionRecordStack = [];
         self::$startTime            = $_SERVER['REQUEST_TIME_FLOAT'];
+    }
+
+    private static function respondOnFail($exception_or_error, $is_error = FALSE)
+    {
+        Kit::ensureBoolean($is_error);
+        $result = [
+            'rollback' => MongoDBCollection::rollback(),
+            'code'     => 0,
+        ];
+        if (FALSE === self::isProduction()) {
+            if (FALSE === $is_error) {
+                try {
+                    $exception = self::extractException($exception_or_error);
+                } catch (Exception $e) {
+                    $exception = self::extractException($e);
+                    $result['last_exception'] = $exception_or_error;
+                }
+                $result['exception'] = $exception;
+            } else {
+                $result['error'] = $exception_or_error;
+            }
+            $result += self::getDebugInfo();
+        }
+        Http::json($result);
+    }
+
+    public static function handleFatalError() {
+        $error = error_get_last();
+        if (FALSE === self::$isErrorHandled 
+            AND FALSE === is_null($error)
+            AND self::$errorTypes & $error['type'] === $error['type']) {
+            $error['type'] = self::polishErrorType($error['type']);
+            self::respondOnFail($error, TRUE);
+        }
+        self::$isErrorHandled = TRUE;
+        exit();
+    }
+
+    public static function handleUncaughtException(Exception $e)
+    {
+        self::respondOnFail($e);
+        self::$isErrorHandled = TRUE;
+        exit();
+    }
+
+    public static function getDebugInfo()
+    {
+        return [
+            'trace'     => self::getExecutionRecordStack(),
+            'memory'    => self::getMemoryUsed(),
+            'time'      => self::getTimeUsed(),
+        ];
     }
 
     public static function getMemoryUsed($unit = self::M_MEGABYTE, $to_string = TRUE)
@@ -349,7 +408,7 @@ final class Debug
      * @param Exception $exception
      * @return array
      */
-    public static function extractException($exception)
+    public static function extractException(Exception $exception)
     {
         $result = [ self::extractExceptionIteratively($exception) ];
         $index = 0;
@@ -436,7 +495,7 @@ final class Debug
      * @param Exception $exception
      * @return array
      */
-    private static function extractExceptionIteratively($exception)
+    private static function extractExceptionIteratively(Exception $exception)
     {
         $result = [
             'message' => $exception->getMessage(),
@@ -603,7 +662,7 @@ final class Debug
                     'execute',
                     'call',
                     '__call',
-                    
+
                 ])) continue;
             $record['handler'] .= $record['function'];
             unset($record['function']);
@@ -611,5 +670,27 @@ final class Debug
         }
         return $result;
     }
+
+    private static function polishErrorType($error_type) 
+    {
+        Kit::ensureInt($error_type);
+        return [
+            E_ERROR             => 'E_ERROR', 
+            E_WARNING           => 'E_WARNING', 
+            E_PARSE             => 'E_PARSE', 
+            E_NOTICE            => 'E_NOTICE', 
+            E_CORE_ERROR        => 'E_CORE_ERROR', 
+            E_CORE_WARNING      => 'E_CORE_WARNING', 
+            E_COMPILE_ERROR     => 'E_COMPILE_ERROR', 
+            E_COMPILE_WARNING   => 'E_COMPILE_WARNING', 
+            E_USER_ERROR        => 'E_USER_ERROR', 
+            E_USER_WARNING      => 'E_USER_WARNING', 
+            E_USER_NOTICE       => 'E_USER_NOTICE', 
+            E_STRICT            => 'E_STRICT', 
+            E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR', 
+            E_DEPRECATED        => 'E_DEPRECATED', 
+            E_USER_DEPRECATED   => 'E_USER_DEPRECATED', 
+        ][$error_type];
+    } 
 
 }

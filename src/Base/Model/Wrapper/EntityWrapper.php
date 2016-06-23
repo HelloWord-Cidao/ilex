@@ -51,7 +51,7 @@ final class EntityWrapper extends MongoDBCollection
         $criterion = [ '_id' => $_id ];
         $document = $entity->document();
         unset($document['_id']);
-        $document = $this->updateTheOnlyOne($criterion, $document, TRUE);
+        $document = $this->updateTheOnlyOne($criterion, $document);
         $document['_id'] = $_id;
         return $document;
     }

@@ -51,7 +51,7 @@ abstract class BaseEntity// extends BaseModel
     protected $name          = NULL;
 
     protected $isInCollection     = FALSE;
-    protected $isSameAsCollection = FALSE;
+    protected $isSameAsCollection = FALSE; // @TODO private it
 
     private $document = NULL;
 

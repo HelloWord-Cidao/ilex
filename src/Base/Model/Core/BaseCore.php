@@ -11,5 +11,6 @@ use \Ilex\Base\Model\BaseModel;
  */
 abstract class BaseCore extends BaseModel
 {
-
+    const S_OK = 'ok';
+    protected $ok = [ S_OK => TRUE ];
 }

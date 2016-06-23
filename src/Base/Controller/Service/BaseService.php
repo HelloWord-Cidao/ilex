@@ -11,6 +11,8 @@ use \Ilex\Lib\Http;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 use \Ilex\Base\Controller\BaseController;
+use \Ilex\Base\Model\Core\BaseCore;
+use \Ilex\Base\Model\Collection\MongoDBCollection;
 
 /**
  * Class BaseService
@@ -22,7 +24,7 @@ use \Ilex\Base\Controller\BaseController;
  * 
  * @method final private       fail(Exception $exception)
  * @method final private array prepareExecutionRecord(string $method_name)
- * @method final private       response(array $result, int $status_code
+ * @method final private       respond(array $result, int $status_code
  *                                 , boolean $close_cgi_only = FALSE)
  * @method final private       succeed(mixed $computation_data, mixed $operation_status
  *                                 , boolean $close_cgi_only = FALSE)
@@ -35,7 +37,11 @@ abstract class BaseService extends BaseController
         'data'   => [ ],
         'status' => [ ],
     ];
-    private $isFinish = FALSE;
+
+    final public function __construct()
+    {
+
+    }
 
     /**
      * @param string $method_name
@@ -88,10 +94,18 @@ abstract class BaseService extends BaseController
             $this->$method_name($input_sanitization_result);
             $service_result
                 = $execution_record['service_result']
-                = $this->result;
+                = Kit::extract($this->result, [ 'data', 'status' ]);
+            $code = $this->getCode();
+            if (FALSE === Kit::in($code, [ 1, 2 ]))
+                throw new UserException('Invalid code after service has finished.', $code);
+            if (1 === $code)
+                $this->succeedRequest($execution_id, $execution_record); // END NOW
             
+            // Now code must be 2.
+
             // Method validateServiceResult should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
+            // @CAUTION 
             $service_result_validation_result
                 = $execution_record['validateServiceResult']
                 = $this->$data_model_name->validateServiceResult($method_name, $service_result);
@@ -105,9 +119,8 @@ abstract class BaseService extends BaseController
                     $method_name, $service_result, $service_result_validation_result);
             // $service_result_validation_result should contains
             // and only contains three fields: code, data, status.
-            $code             = $service_result_sanitization_result['code'];
-            $computation_data = $service_result_sanitization_result['data'];
-            $operation_status = $service_result_sanitization_result['status'];
+            $this->result['data'] = $computation_data = $service_result_sanitization_result['data'];
+            $this->result['status'] = $operation_status = $service_result_sanitization_result['status'];
             
             // $this->loadLog('Request');
             // $this->RequestLog->addRequestLog(
@@ -124,14 +137,6 @@ abstract class BaseService extends BaseController
                 new UserException('Service execution failed.', $execution_record, $e)
             );
         }
-    }
-
-    final protected function call($method_name) {
-        // @TODO: implement this method
-        $arg_list = func_get_args();
-        $method_name = $arg_list[0];
-        $arg_list = Kit::slice($arg_list, 1);
-        return call_user_func_array([$this, $method_name], $arg_list);
     }
 
     /**
@@ -156,7 +161,7 @@ abstract class BaseService extends BaseController
         $this->setCode(2);
     }
 
-    final protected function fail()
+    final private function fail() // @CAUTION can not be invoked from XService
     {
         $this->setCode(1);
     }
@@ -171,16 +176,14 @@ abstract class BaseService extends BaseController
             throw new UserException('Invalid $current_code.', $current_code);
         if (TRUE === Kit::in($current_code, [ 0, 3 ]))
             throw new UserException("Can not change code(${current_code}) to $code after the request has finished.", $current_code);
-            
-        if (TRUE === $this->isFinish()) {
-            if (0 !== $code) {
-                $msg = "Can not change code(${current_code}) to $code after service has finished.";
-                throw new UserException($msg);
-            }
-        }
-        $this->finish();
-        $this->result['code'] = $code;
-        return $code;
+        // current_code = NULL/1/2; code = 0/1/2/3
+        if ((TRUE === is_null($current_code) AND TRUE === Kit::in($code, [ 0, 1, 2, 3 ]))
+            OR (1 === $current_code AND TRUE === Kit::in($code, [ 0, 1 ]))
+            OR (2 === $current_code AND TRUE === Kit::in($code, [ 0, 1, 2 ]))
+            ) {
+            $this->result['code'] = $code;
+            return $code;
+        } throw new UserException("Can not set code($current_code) to $code.");
     }
 
     final private function getCode()
@@ -188,20 +191,28 @@ abstract class BaseService extends BaseController
         return $this->result['code'];
     }
 
+    final protected function process($name = NULL, $value = Kit::TYPE_VACANCY, $is_list = FALSE)
+    {
+        if (FALSE === Kit::isVacancy($value) AND FALSE === Kit::isArray($value))
+            throw new UserException('$value of process should be a dict.', [ $name, $value, $is_list ]);
+        if (FALSE === isset($value[BaseCore::S_OK]) OR TRUE !== $value[BaseCore::S_OK]) {
+            $this->fail();
+        }
+        return $this->handleResult('process', $name, $value, $is_list);
+    }
+    
     final protected function data($name = NULL, $value = Kit::TYPE_VACANCY, $is_list = FALSE)
     {
-        return $this->handleResult('computation_data', $name, $value, $is_list);
+        return $this->handleResult('data', $name, $value, $is_list);
     }
 
     final protected function status($name = NULL, $value = Kit::TYPE_VACANCY, $is_list = FALSE)
     {
-        return $this->handleResult('operation_status', $name, $value, $is_list);
+        return $this->handleResult('status', $name, $value, $is_list);
     }
 
     final private function handleResult($type, $name, $value, $is_list)
     {
-        if (TRUE === $this->isFinish())
-            throw new UserException('Can not handle result after service has finished.');
         Kit::ensureString($name, TRUE);
         if (TRUE === Kit::isString($name)) {
             if (TRUE === Kit::isVacancy($value)) // (valid)
@@ -221,9 +232,8 @@ abstract class BaseService extends BaseController
 
     final private function setResult($type, $name, $value, $is_list)
     {
-        if (FALSE === Kit::in($type, [ 'computation_data', 'operation_status' ]))
+        if (FALSE === Kit::in($type, [ 'data', 'status', 'process' ]))
             throw new UserException('Invalid $type.', $type);
-        $type = 'computation_data' === $type ? 'data' : 'status';
         Kit::ensureString($name);
         if ('' === $name)
             throw new UserException('$name is an empty string.', $type);
@@ -246,9 +256,8 @@ abstract class BaseService extends BaseController
 
     final private function getResult($type, $name)
     {
-        if (FALSE === Kit::in($type, [ 'computation_data', 'operation_status' ]))
+        if (FALSE === Kit::in($type, [ 'data', 'status', 'process' ]))
             throw new UserException('Invalid $type.', $type);
-        $type = 'computation_data' === $type ? 'data' : 'status';
         Kit::ensureString($name, TRUE);
         if (TRUE === is_null($name))
             return $this->result[$type];
@@ -259,44 +268,42 @@ abstract class BaseService extends BaseController
         return $this->result[$type][$name];
     }
 
-    final private function finish()
-    {
-        $this->isFinish = TRUE;
-    }
-
-    final private function isFinish()
-    {
-        return $this->isFinish;
-    }
-
     /**
+     * Only the following cases are valid:
+     * code = 1/2 => 1/2; close_cgi_only = FALSE
+     * code = NULL => 3;  close_cgi_only = TRUE
+     * @param int     $execution_id
+     * @param array   $execution_record
      * @param boolean $close_cgi_only
      */
     final private function succeedRequest($execution_id, $execution_record , $close_cgi_only = FALSE)
     {
         $code = $this->getCode();
         if (TRUE === is_null($code)) {
-            if (TRUE === $close_cgi_only) { // NULL 1 => 3
+            if (TRUE === $close_cgi_only) { // code = NULL; close_cgi_only = 1 => 3
                 $this->setCode(3);
-            } else { // NULL 0 => error
+            } else { // code = NULL; close_cgi_only = 0 => error
                 $msg = 'Can not succeed the request before service is finished and code is NULL.';
                 throw new UserException($msg);
             }
-        } elseif (FALSE === Kit::in($code, [ 1, 2 ])) { // 0/3 0/1 => error
+        } elseif (FALSE === Kit::in($code, [ 1, 2 ])) { // code = 0/3; close_cgi_only = 0/1 => error
             throw new UserException('Invalid code.', $code);
-        } elseif (TRUE === $close_cgi_only) { // 1/2 1 => error
+        } elseif (TRUE === $close_cgi_only) { // code = 1/2; close_cgi_only = 1 => error
             throw new UserException('Can not only close cgi after service has finished.', $code);
-        } else { // 1/2 0 => 1/2
+        } else { // code = 1/2; close_cgi_only = 0 => 1/2
         }
         // Now code must be 1 or 2 or 3.
         $execution_record['success'] = TRUE;
-        $this->response($execution_id, $execution_record, 200, $close_cgi_only);
+        $this->respond($execution_id, $execution_record, 200, $close_cgi_only);
     }
 
     /**
+     * Set code from NULL/1/2 to 0.
+     * @param int       $execution_id
+     * @param array     $execution_record
      * @param Exception $exception
      */
-    final private function failRequest($execution_id, $execution_record, $exception)
+    final private function failRequest($execution_id, $execution_record, Exception $exception)
     {
         $code = $this->getCode();
         if (FALSE === is_null($code) AND FALSE === Kit::in($code, [ 1, 2 ])) {
@@ -307,28 +314,29 @@ abstract class BaseService extends BaseController
         if (FALSE === Debug::isProduction())
             $this->result['exception'] = Debug::extractException($exception);
         $execution_record['success'] = FALSE;
-        $this->response($execution_id, $execution_record, 200); // @TODO: change code
+        $this->respond($execution_id, $execution_record, 200); // @TODO: change code
     }
 
     /**
+     * @param int     $execution_id
+     * @param array   $execution_record
      * @param int     $status_code
      * @param boolean $close_cgi_only
      */
-    final private function response($execution_id, $execution_record
-        , $status_code, $close_cgi_only = FALSE)
+    final private function respond($execution_id, $execution_record, $status_code, $close_cgi_only = FALSE)
     {
         if (FALSE === $close_cgi_only) {
+            if (2 !== $this->getCode()) {
+                $this->result['rollback'] = MongoDBCollection::rollback();
+            } else $this->result['rollback'] = FALSE;
             Debug::updateExecutionRecord($execution_id, $execution_record);
             Debug::popExecutionId($execution_id);
         }
         header('Content-Type : application/json', TRUE, $status_code);
         if (FALSE === Debug::isProduction()) {
-            $this->result += [
-                'trace'  => Debug::getExecutionRecordStack(),
-                'memory' => Debug::getMemoryUsed(),
-                'time'   => Debug::getTimeUsed(),
-            ];
+            $this->result += Debug::getDebugInfo();
         }
+        unset($this->result['process']);
         Http::json($this->result);
         if (TRUE === $close_cgi_only) {
             fastcgi_finish_request();
