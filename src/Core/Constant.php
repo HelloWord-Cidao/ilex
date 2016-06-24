@@ -41,6 +41,7 @@ final class Constant
     public static function initialize()
     {
         require_once(Loader::APPPATH() . 'Config/Const.php');
+        require_once(Loader::APPPATH() . 'Config/Const-local.php');
         foreach (self::$constantList as $name => $value) {
             if (FALSE === defined($name)) define($name, $value);
         }
