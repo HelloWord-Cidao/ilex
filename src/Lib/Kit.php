@@ -728,7 +728,13 @@ final class Kit
     // public static function popDict(&$dict, &$key)
     // public static function popedDict(&$dict, &$key)
     // public static function popItem(&$dict)
-    // public static function update(&$dict1, &$dict2)
+    public static function update(&$dict1, &$dict2)
+    {
+        self::ensureDict($dict1);
+        self::ensureDict($dict2);
+        $dict1 = array_merge($dict1, $dict2);
+    }
+
     public static function updated(&$dict1, &$dict2)
     {
         self::ensureDict($dict1);
