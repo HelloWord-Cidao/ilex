@@ -5,6 +5,7 @@ namespace Ilex\Base\Model\Core\User;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Base\Model\Core\BaseCore;
+use \Firebase\JWT\JWT;
 
 /**
  * Class UserCore
@@ -29,12 +30,12 @@ class UserCore extends BaseCore
         return Loader::loadCollection('User/User')->getTheOnlyOneEntityById($user_info['userId']);
     }
 
-    private static function parseToken($token)
+    private static function parseToken($jwt)
     {
-        Kit::ensureString($token);
+        Kit::ensureString($jwt);
+        $token = JWT::decode($jwt, JWT_SEC_KEY, array('HS512'));
         return [
-            'userId'   => '57629149260eb5b6410041aa',
-            'password' => '456',
+            'userId' => $token->data->userId,
         ];
     }
 
