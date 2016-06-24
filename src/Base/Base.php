@@ -9,6 +9,7 @@ use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 use \Ilex\Base\Core\User\UserCore;
+use \Ilex\Base\Model\Entity\User\UserEntity;
 
 /**
  * Class Base
@@ -41,7 +42,7 @@ abstract class Base
 
     final protected function isLogin()
     {
-        return TRUE === isset($this->user);
+        return TRUE === isset($this->user) AND TRUE === ($this->user instanceof UserEntity);
     }
 
     final protected function ensureLogin()

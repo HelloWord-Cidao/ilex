@@ -3,6 +3,7 @@
 namespace Ilex\Base\Model\Collection;
 
 use \Exception;
+use \Iterator;
 use \MongoCursor;
 use \Ilex\Lib\UserException;
 
@@ -15,14 +16,16 @@ use \Ilex\Lib\UserException;
  * 
  * @method public         __construct(MongoCursor $mongo_cursor)
  * 
- * @method protected int     count()
- * @method protected array   getCurrent()
- * @method protected array   getInfo()
- * @method protected array   getNext()
- * @method protected boolean hasNext()
  * @method protected         rewind()
+ * @method protected array   current()
+ * @method protected int     key()
+ * @method protected array   next()
+ * @method protected boolean hasNext()
+ * @method protected boolean valid()
+ * @method protected int     count()
+ * @method protected array   info()
  */
-final class MongoDBCursor
+final class MongoDBCursor implements Iterator
 {
     // If you want to know whether a cursor returned any results
     // it is faster to use 'hasNext()' than 'count'
@@ -36,6 +39,78 @@ final class MongoDBCursor
     }
 
     /**
+     * Resets the cursor to the beginning of the result set
+     * @throws MongoConnectionException    if it cannot reach the database.
+     * @throws MongoCursorTimeoutException if the timeout is exceeded.
+     * @throws UserException
+     */
+    public function rewind()
+    {
+        try {
+            $this->cursor->rewind();
+        } catch (Exception $e) {
+            throw new UserException('MongoDB Cursor operation(rewind) failed.', $this->getInfo(), $e);
+        }
+    }
+
+    /**
+     * Returns the current element.
+     * @return array The current result document as an associative array.
+     * @throws UserException if there is no result.
+     */
+    public function current()
+    {
+        $result = $this->cursor->current();
+        if (TRUE === is_null($result))
+            throw new UserException(
+                'MongoDB Cursor operation(current) failed: there is no result.',
+                $this->getInfo()
+            );
+        return $result;
+    }
+
+    public function key() {
+        // The current result's _id as a string. If the result has no _id, its numeric index within the result set will be returned as an integer.
+        return $this->cursor->key();
+    }
+
+    /**
+     * Advances the cursor to the next result, and returns that result.
+     * @return array Returns the next document.
+     * @throws MongoConnectionException    if it cannot reach the database.
+     * @throws MongoCursorTimeoutException if the timeout is exceeded.
+     * @throws UserException
+     */
+    public function next()
+    {
+        try {
+            return $this->cursor->next();
+        } catch (Exception $e) {
+            throw new UserException('MongoDB Cursor operation(next) failed.', $this->getInfo(), $e);
+        }
+    }
+
+    /**
+     * Checks if there are any more elements in this cursor.
+     * @return boolean Returns if there is another element.
+     * @throws MongoConnectionException    if it cannot reach the database.
+     * @throws MongoCursorTimeoutException if the timeout is exceeded.
+     * @throws UserException
+     */
+    public function hasNext()
+    {
+        try {
+            return $this->cursor->hasNext();
+        } catch (Exception $e) {
+            throw new UserException('MongoDB Cursor operation(hasNext) failed.', $this->getInfo(), $e);
+        }
+    }
+
+    public function valid() {
+        return $this->cursor->valid();
+    }
+
+    /**
      * Gets information about the cursor's creation and iteration
      * This can be called before or after the cursor has started iterating.
      * If the cursor has started iterating, additional information
@@ -43,7 +118,7 @@ final class MongoDBCursor
      * @return array Returns the namespace, batch size, limit, skip, flags,
      *               query, and projected fields for this cursor.
      */
-    public function getInfo()
+    public function info()
     {
         return $this->cursor->info();
     }
@@ -65,69 +140,6 @@ final class MongoDBCursor
             return $this->cursor->count(TRUE);
         } catch (Exception $e) {
             throw new UserException('MongoDB Cursor operation(count) failed.', $this->getInfo(), $e);
-        }
-    }
-
-    /**
-     * Returns the current element.
-     * @return array The current result document as an associative array.
-     * @throws UserException if there is no result.
-     */
-    public function getCurrent()
-    {
-        $result = $this->cursor->current();
-        if (TRUE === is_null($result))
-            throw new UserException(
-                'MongoDB Cursor operation(current) failed: there is no result.',
-                $this->getInfo()
-            );
-        return $result;
-    }
-
-    /**
-     * Checks if there are any more elements in this cursor.
-     * @return boolean Returns if there is another element.
-     * @throws MongoConnectionException    if it cannot reach the database.
-     * @throws MongoCursorTimeoutException if the timeout is exceeded.
-     * @throws UserException
-     */
-    public function hasNext()
-    {
-        try {
-            return $this->cursor->hasNext();
-        } catch (Exception $e) {
-            throw new UserException('MongoDB Cursor operation(hasNext) failed.', $this->getInfo(), $e);
-        }
-    }
-
-    /**
-     * Advances the cursor to the next result, and returns that result.
-     * @return array Returns the next document.
-     * @throws MongoConnectionException    if it cannot reach the database.
-     * @throws MongoCursorTimeoutException if the timeout is exceeded.
-     * @throws UserException
-     */
-    public function getNext()
-    {
-        try {
-            return $this->cursor->next();
-        } catch (Exception $e) {
-            throw new UserException('MongoDB Cursor operation(next) failed.', $this->getInfo(), $e);
-        }
-    }
-
-    /**
-     * Resets the cursor to the beginning of the result set
-     * @throws MongoConnectionException    if it cannot reach the database.
-     * @throws MongoCursorTimeoutException if the timeout is exceeded.
-     * @throws UserException
-     */
-    public function rewind()
-    {
-        try {
-            $this->rewind();
-        } catch (Exception $e) {
-            throw new UserException('MongoDB Cursor operation(rewind) failed.', $this->getInfo(), $e);
         }
     }
 

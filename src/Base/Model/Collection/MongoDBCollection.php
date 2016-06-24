@@ -62,7 +62,7 @@ use \Ilex\Base\Model\Collection\MongoDBCursor;
  *                                                 , array $update
  *                                                 , boolean $multiple = FALSE)
  */
-abstract class MongoDBCollection// extends BaseModel
+class MongoDBCollection// extends BaseModel
 {
 // https://docs.mongodb.com/manual/core/document-validation/
 // http://blog.mongodb.org/post/87200945828/6-rules-of-thumb-for-mongodb-schema-design-part-1
@@ -461,7 +461,7 @@ abstract class MongoDBCollection// extends BaseModel
      * @return MongoId
      * @throws UserException if $string is not a string or can not be parsed as a MongoId.
      */
-    final public function convertStringToMongoId($string)
+    final public static function convertStringToMongoId($string)
     {
         Kit::ensureString($string);
         try {
@@ -471,18 +471,18 @@ abstract class MongoDBCollection// extends BaseModel
         }
     }
 
-    // /**
-    //  * Converts a MongoId to a string.
-    //  * @param MongoId $mongo_id
-    //  * @return string
-    //  * @throws UserException if $mongo_id is not a MongoId.
-    //  */
-    // final private function convertMongoIdToString($mongo_id)
-    // {
-    //     if (FALSE === ($mongo_id instanceof MongoId))
-    //         throw new UserException('$mongo_id is not a MongoId.', $mongo_id);
-    //     else return strval($mongo_id);
-    // }
+    /**
+     * Converts a MongoId to a string.
+     * @param MongoId $mongo_id
+     * @return string
+     * @throws UserException if $mongo_id is not a MongoId.
+     */
+    final public static function convertMongoIdToString($mongo_id)
+    {
+        if (FALSE === ($mongo_id instanceof MongoId))
+            throw new UserException('$mongo_id is not a MongoId.', $mongo_id);
+        else return strval($mongo_id);
+    }
 
     // /**
     //  * Recovers '.' from '_' in a MongoDB criterion keys.
@@ -603,7 +603,7 @@ abstract class MongoDBCollection// extends BaseModel
         if (FALSE === is_null($skip))    $cursor = $cursor->skip($skip);
         if (FALSE === is_null($limit))   $cursor = $cursor->limit($limit);
         if (TRUE === $to_array) return iterator_to_array($cursor, FALSE);
-        else new MongoDBCursor($cursor);
+        else return new MongoDBCursor($cursor);
     }
 
     /**

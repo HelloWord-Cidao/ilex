@@ -6,6 +6,7 @@ use \MongoId;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 // use \Ilex\Base\Model\BaseModel;
+use \Ilex\Base\Model\Collection\MongoDBCollection;
 use \Ilex\Base\Model\Wrapper\EntityWrapper;
 
 /**
@@ -189,6 +190,14 @@ abstract class BaseEntity// extends BaseModel
         return $this->document;
     }
 
+    final public function getIdAndInfo($id_to_string = FALSE)
+    {
+        return [
+            'Id'   => $this->getId($id_to_string),
+            'Info' => $this->getInfo(),
+        ];
+    }
+
     final private function setId($_id)
     {
         if (FALSE === $_id instanceof MongoId)
@@ -208,9 +217,12 @@ abstract class BaseEntity// extends BaseModel
         return $this->has('_id');
     }
 
-    final public function getId()
+    final public function getId($id_to_string = FALSE)
     {
-        return $this->get('_id');
+        $_id = $this->get('_id');
+        if (TRUE === $id_to_string)
+            $_id = MongoDBCollection::convertMongoIdToString($_id);
+        return $_id;
     }
 
     final public function setSignature($signature)

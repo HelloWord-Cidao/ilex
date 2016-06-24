@@ -2,11 +2,14 @@
 
 namespace Ilex\Base\Model\Collection;
 
+use \MongoId;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
+use \Ilex\Base\Model\BaseModel;
+use \Ilex\Base\Model\Collection\MongoDBCollection;
+use \Ilex\Base\Model\Entity\User\UserEntity;
 use \Ilex\Base\Model\Wrapper\CollectionWrapper;
 use \Ilex\Base\Model\Wrapper\EntityWrapper;
-use \Ilex\Base\Model\BaseModel;
 
 /**
  * Class BaseCollection
@@ -40,7 +43,7 @@ abstract class BaseCollection extends BaseModel
     // const COLLECTION_NAME = NULL; // should set in subclass
     // const ENTITY_PATH     = NULL; // should set in subclass
 
-    public function __construct($user = NULL)
+    public function __construct(UserEntity $user = NULL)
     {
         $collection_name = static::COLLECTION_NAME;
         $entity_path     = static::ENTITY_PATH;
@@ -72,7 +75,8 @@ abstract class BaseCollection extends BaseModel
 
     final public function checkExistsId($_id)
     {
-        $_id = $this->collectionWrapper->convertStringToMongoId($_id);
+        if (FALSE === ($_id instanceof MongoId))
+            $_id = MongoDBCollection::convertStringToMongoId($_id);
         $criterion = [ '_id' => $_id ];
         return $this->checkExistsOnlyOneEntity($criterion);
     }
@@ -87,6 +91,12 @@ abstract class BaseCollection extends BaseModel
     {
         return $this->countEntities();
     }
+
+    final public function getAllEntities()
+    {
+        $criterion = [ ];
+        return $this->getMultiEntities($criterion);
+    }
     
     final public function getTheOnlyOneEntityBySignature($signature)
     {
@@ -98,7 +108,8 @@ abstract class BaseCollection extends BaseModel
 
     final public function getTheOnlyOneEntityById($_id)
     {
-        $_id = $this->collectionWrapper->convertStringToMongoId($_id);
+        if (FALSE === ($_id instanceof MongoId))
+            $_id = MongoDBCollection::convertStringToMongoId($_id);
         $criterion = [ '_id' => $_id ];
         return $this->getTheOnlyOneEntity($criterion);
     }
