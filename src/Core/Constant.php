@@ -48,6 +48,5 @@ final class Constant
         foreach (self::$constantMapping as $name => $value) {
             if (FALSE === defined($name)) define($name, $value);
         }
-        var_dump(SVR_MONGO_DB);
     }
 }

@@ -16,29 +16,10 @@ use \Ilex\Base\Model\Wrapper\EntityWrapper;
  */
 abstract class BaseEntity// extends BaseModel
 {
-    // protected static $methodsVisibility = [
-    //     self::V_PUBLIC => [
-    //         'getName',
-    //         'isInCollection',
-    //         'document',
-    //         'getId',
-    //         'setSignature',
-    //         'setData',
-    //         'setInfo',
-    //         'buildReference',
-    //         'addToCollection',
-    //         'updateToCollection',
-    //     ],
-    //     self::V_PROTECTED => [
-    //         'isSameAsCollection',
-    //         'getDocument',
-    //         'getSignature',
-    //         'getData',
-    //         'getInfo',
-    //         'setMeta',
-    //         'getMeta',
-    //     ],
-    // ];
+
+    protected $name               = NULL;
+    protected $isInCollection     = FALSE;
+    protected $isSameAsCollection = FALSE; // @TODO private it
 
     private static $rootFieldNameList = [
         'Data',
@@ -47,13 +28,7 @@ abstract class BaseEntity// extends BaseModel
         'Reference',
         'Meta',
     ];
-
     private $entityWrapper = NULL;
-    protected $name          = NULL;
-
-    protected $isInCollection     = FALSE;
-    protected $isSameAsCollection = FALSE; // @TODO private it
-
     private $document = NULL;
 
     final public function __construct($entity_wrapper, $name, $is_in_collection, $document = NULL)
@@ -83,17 +58,9 @@ abstract class BaseEntity// extends BaseModel
         ];
     }
 
-    final public function getName()
+    final public function getEntityName()
     {
         return $this->name;
-    }
-
-    final public function ensureInitialized()
-    {
-        if (FALSE === isset($this->entityWrapper)
-            OR FALSE === $this->entityWrapper instanceof EntityWrapper)
-            throw new UserException('This entity has not been initialized.', $this);
-        return $this;
     }
 
     final public function checkIsInCollection()
@@ -101,93 +68,18 @@ abstract class BaseEntity// extends BaseModel
         return $this->isInCollection;
     }
 
-    final public function ensureInCollection()
-    {
-        if (FALSE === $this->isInCollection)
-            throw new UserException('This entity is not in collection.', $this);
-        return $this;
-    }
-
-    final public function checkIsSameAsCollection()
-    {
-        return $this->isSameAsCollection;
-    }
-
-    final private function inCollection()
-    {
-        $this->isInCollection     = TRUE;
-        $this->isSameAsCollection = TRUE;
-        return $this;
-    }
-
-    final private function notInCollection()
-    {
-        $this->isInCollection     = FALSE;
-        $this->isSameAsCollection = FALSE;
-        return $this;
-    }
-
-    final private function sameAsCollection()
-    {
-        $this->isSameAsCollection = TRUE;
-        return $this;
-    }
-
-    final private function notSameAsCollection()
-    {
-        $this->isSameAsCollection = FALSE;
-        return $this;
-    }
-
-    final public function buildReference(BaseEntity $entity, $check_duplicate = TRUE)
-    {
-        Kit::ensureBoolean($check_duplicate);
-        $field_name = $entity->getName() . 'IdList';
-        $entity_id  = $entity->getId();
-        $field_value = $this->getDocument('Reference', $field_name, FALSE, []);
-        if (TRUE === $check_duplicate) {
-            foreach ($field_value as $id) {
-                if (strval($id) === strval($entity_id))
-                    // return FALSE;
-                    return $this;
-            }
-        }
-        $field_value[] = $entity_id;
-        $this->setDocument('Reference', $field_name, $field_value);
-        // return TRUE;
-        return $this;
-    }
-
-    final public function addToCollection()
-    {
-        if (TRUE === $this->isInCollection) {
-            $msg = 'Can not add to collection, because the entity is already in the collection.';
-            throw new UserException($msg, $this);
-        }
-        $document = $this->entityWrapper->addOneEntity($this);
-        $this->setId($document['_id']);
-        $this->setMeta('CreationTime', $document['Meta']['CreationTime']);
-        $this->inCollection();
-        return $this;
-    }
-
-    final public function updateToCollection()
-    {
-        if (FALSE === $this->isInCollection) {
-            // var_dump([$this->isInCollection, $this->name, $this->document]);
-            $msg = 'Can not update to collection, because the entity is not in the collection.';
-            throw new UserException($msg, $this);
-        }
-        $document = $this->entityWrapper->updateTheOnlyOneEntity($this);
-        $this->setMeta('ModificationTime', $document['Meta']['ModificationTime']);
-        $this->sameAsCollection();
-        return $this;
-    }
-
     final public function document()
     {
         // Kit::ensureDict($this->document); // @CAUTION
         return $this->document;
+    }
+
+    final public function getIdAndData($id_to_string = FALSE)
+    {
+        return [
+            'Id'   => $this->getId($id_to_string),
+            'Data' => $this->getData(),
+        ];
     }
 
     final public function getIdAndInfo($id_to_string = FALSE)
@@ -198,23 +90,14 @@ abstract class BaseEntity// extends BaseModel
         ];
     }
 
-    final private function setId($_id)
+    final public function getName()
     {
-        if (FALSE === $_id instanceof MongoId)
-            throw new UserException('$_id is not a MongoId.', [ $_id, $this ]);
-        $this->set('_id', $_id, FALSE);
-        return $this;
+        return $this->getInfo('Name');
     }
 
-    final private function deleteId()
+    final public function getType()
     {
-        $this->delete('_id');
-        return $this;
-    }
-
-    final public function hasId()
-    {
-        return $this->has('_id');
+        return $this->getMeta('Type');
     }
 
     final public function getId($id_to_string = FALSE)
@@ -268,6 +151,124 @@ abstract class BaseEntity// extends BaseModel
     final public function getMeta($name = NULL, $ensure_existence = TRUE, $default = NULL)
     {
         return $this->handleGet('Meta', $name, $ensure_existence, $default);
+    }
+
+    final public function addToCollection()
+    {
+        if (TRUE === $this->isInCollection) {
+            $msg = 'Can not add to collection, because the entity is already in the collection.';
+            throw new UserException($msg, $this);
+        }
+        $document = $this->entityWrapper->addOneEntity($this);
+        $this->setId($document['_id']);
+        $this->setMeta('CreationTime', $document['Meta']['CreationTime']);
+        $this->inCollection();
+        return $this;
+    }
+
+    final public function updateToCollection()
+    {
+        if (FALSE === $this->isInCollection) {
+            // var_dump([$this->isInCollection, $this->name, $this->document]);
+            $msg = 'Can not update to collection, because the entity is not in the collection.';
+            throw new UserException($msg, $this);
+        }
+        $document = $this->entityWrapper->updateTheOnlyOneEntity($this);
+        $this->setMeta('ModificationTime', $document['Meta']['ModificationTime']);
+        $this->sameAsCollection();
+        return $this;
+    }
+
+    final public function buildReference(BaseEntity $entity, $check_duplicate = TRUE)
+    {
+        Kit::ensureBoolean($check_duplicate);
+        $field_name = $entity->getEntityName() . 'IdList';
+        $entity_id  = $entity->getId();
+        $field_value = $this->getDocument('Reference', $field_name, FALSE, []);
+        if (TRUE === $check_duplicate) {
+            foreach ($field_value as $id) {
+                if (strval($id) === strval($entity_id))
+                    // return FALSE;
+                    return $this;
+            }
+        }
+        $field_value[] = $entity_id;
+        $this->setDocument('Reference', $field_name, $field_value);
+        // return TRUE;
+        return $this;
+    }
+
+
+
+
+    // ====================================================================================
+
+
+
+
+    final private function ensureInitialized()
+    {
+        if (FALSE === isset($this->entityWrapper)
+            OR FALSE === $this->entityWrapper instanceof EntityWrapper)
+            throw new UserException('This entity has not been initialized.', $this);
+        return $this;
+    }
+
+    final private function ensureInCollection()
+    {
+        if (FALSE === $this->isInCollection)
+            throw new UserException('This entity is not in collection.', $this);
+        return $this;
+    }
+
+    final private function checkIsSameAsCollection()
+    {
+        return $this->isSameAsCollection;
+    }
+
+    final private function inCollection()
+    {
+        $this->isInCollection     = TRUE;
+        $this->isSameAsCollection = TRUE;
+        return $this;
+    }
+
+    final private function notInCollection()
+    {
+        $this->isInCollection     = FALSE;
+        $this->isSameAsCollection = FALSE;
+        return $this;
+    }
+
+    final private function sameAsCollection()
+    {
+        $this->isSameAsCollection = TRUE;
+        return $this;
+    }
+
+    final private function notSameAsCollection()
+    {
+        $this->isSameAsCollection = FALSE;
+        return $this;
+    }
+
+    final private function setId($_id)
+    {
+        if (FALSE === $_id instanceof MongoId)
+            throw new UserException('$_id is not a MongoId.', [ $_id, $this ]);
+        $this->set('_id', $_id, FALSE);
+        return $this;
+    }
+
+    final private function deleteId()
+    {
+        $this->delete('_id');
+        return $this;
+    }
+
+    final private function hasId()
+    {
+        return $this->has('_id');
     }
 
     final private function handleSet($root_field_name, $arg1, $arg2)

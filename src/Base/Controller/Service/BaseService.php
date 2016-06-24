@@ -37,6 +37,8 @@ abstract class BaseService extends BaseController
         'status' => [ ],
     ];
 
+    private $hasCalledCoreModel = FALSE;
+
     public function __construct()
     {
         $this->setCurrentUserEntity();
@@ -157,6 +159,8 @@ abstract class BaseService extends BaseController
 
     final protected function succeed()
     {
+        if (FALSE === $this->hasCalledCoreModel)
+            throw new UserException('Succeed before calling any core model.');
         $this->setCode(2);
     }
 
@@ -196,6 +200,7 @@ abstract class BaseService extends BaseController
     {
         if (FALSE === Kit::isVacancy($value) AND FALSE === Kit::isArray($value))
             throw new UserException('$value of process should be a dict.', [ $name, $value, $is_list ]);
+        $this->hasCalledCoreModel = TRUE;
         if (FALSE === Kit::isVacancy($value) AND 
             (FALSE === isset($value[BaseCore::S_OK]) OR TRUE !== $value[BaseCore::S_OK])) {
             $this->fail();
