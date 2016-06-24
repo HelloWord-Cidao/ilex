@@ -18,9 +18,9 @@ class UserCore extends BaseCore
         ],
     ];
 
-    public function __construct()
+    public function __construct($user)
     {
-        parent::__construct();
+        parent::__construct($user);
         $this->loadCollection('User/User');
     }
 
