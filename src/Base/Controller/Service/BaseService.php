@@ -44,6 +44,28 @@ abstract class BaseService extends BaseController
         $this->setCurrentUserEntity();
     }
 
+    final private function setCurrentUserEntity()
+    {
+        $this->loadInput();
+        $token = $this->Input->input('token');
+        if (TRUE === Kit::isString($token) AND '' !== $token) {
+            $class_name = Loader::includeCore('User/User');
+            $this->user = $class_name::getCurrentUserEntity($token);
+        }
+    }
+
+    final private function loadInput()
+    {
+        $handler_name = 'Input';
+        return ($this->$handler_name = Loader::loadInput());
+    }
+
+    final protected function loadCore($path)
+    {
+        $handler_name = Loader::getHandlerFromPath($path) . 'Core';
+        return ($this->$handler_name = Loader::loadCore($path, [ $this->user ]));
+    }
+
     /**
      * @param string $method_name
      * @param array  $arg_list
@@ -338,6 +360,9 @@ abstract class BaseService extends BaseController
             } else $this->result['rollback'] = FALSE;
             Debug::updateExecutionRecord($execution_id, $execution_record);
             Debug::popExecutionId($execution_id);
+        }
+        if (FALSE === is_null($error = error_get_last()) AND TRUE === Debug::isErrorCared($error)) {
+            Debug::handleFatalError($error);
         }
         header('Content-Type : application/json', TRUE, $status_code);
         if (FALSE === Debug::isProduction()) {

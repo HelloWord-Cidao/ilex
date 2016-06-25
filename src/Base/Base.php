@@ -30,16 +30,6 @@ abstract class Base
     protected $configModelName = NULL;
     protected $dataModelName   = NULL;
 
-    final protected function setCurrentUserEntity()
-    {
-        $this->loadInput();
-        $token = $this->Input->input('token');
-        if (TRUE === Kit::isString($token) AND '' !== $token) {
-            $class_name = Loader::includeCore('User/User');
-            $this->user = $class_name::getCurrentUserEntity($token);
-        }
-    }
-
     final protected function isLogin()
     {
         return TRUE === isset($this->user) AND TRUE === ($this->user instanceof UserEntity);
@@ -56,12 +46,6 @@ abstract class Base
     //     if (FALSE === isset($this->username))
     //         throw new UserException('Username is not set.');
     // }
-
-    final protected function loadInput()
-    {
-        $handler_name = 'Input';
-        return ($this->$handler_name = Loader::loadInput());
-    }
 
     final protected function loadConfig($path)
     {
@@ -97,18 +81,6 @@ abstract class Base
     {
         $handler_name = Loader::getHandlerFromPath($path) . 'Log';
         return ($this->$handler_name = Loader::loadLog($path));
-    }
-
-    final protected function loadCore($path)
-    {
-        $handler_name = Loader::getHandlerFromPath($path) . 'Core';
-        return ($this->$handler_name = Loader::loadCore($path, [ $this->user ]));
-    }
-
-    final protected function loadCollection($path)
-    {
-        $handler_name = Loader::getHandlerFromPath($path) . 'Collection';
-        return ($this->$handler_name = Loader::loadCollection($path, [ $this->user ]));
     }
 
     final protected function generateExecutionRecord($class_name, $method_name)

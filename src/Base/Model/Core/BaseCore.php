@@ -2,6 +2,7 @@
 
 namespace Ilex\Base\Model\Core;
 
+use \Ilex\Core\Loader;
 use \Ilex\Base\Model\BaseModel;
 use \Ilex\Base\Model\Entity\User\UserEntity;
 
@@ -18,5 +19,11 @@ abstract class BaseCore extends BaseModel
     public function __construct(UserEntity $user = NULL)
     {
         $this->user = $user;
+    }
+
+    final protected function loadCollection($path)
+    {
+        $handler_name = Loader::getHandlerFromPath($path) . 'Collection';
+        return ($this->$handler_name = Loader::loadCollection($path, [ $this->user ]));
     }
 }

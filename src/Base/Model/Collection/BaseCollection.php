@@ -97,6 +97,14 @@ abstract class BaseCollection extends BaseModel
         $criterion = [ ];
         return $this->getMultiEntities($criterion);
     }
+
+    final public function getAllEntitiesByType($type)
+    {
+        $criterion = [
+            'Meta.Type' => $type,
+        ];
+        return $this->getMultiEntities($criterion);
+    }
     
     final public function getTheOnlyOneEntityBySignature($signature)
     {

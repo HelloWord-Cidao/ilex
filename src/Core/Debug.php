@@ -134,11 +134,18 @@ final class Debug
         Http::json($result);
     }
 
-    public static function handleFatalError() {
-        $error = error_get_last();
+    public static function isErrorCared($error)
+    {
+        Kit::ensureDict($error, TRUE);
+        return (self::$errorTypes & $error['type']) === $error['type'];
+    }
+
+    public static function handleFatalError($error = NULL) {
+        Kit::ensureDict($error, TRUE);
+        if (TRUE === is_null($error)) $error = error_get_last();
         if (FALSE === self::$isErrorHandled
             AND FALSE === is_null($error)
-            AND (self::$errorTypes & $error['type']) === $error['type']) {
+            AND (TRUE === self::isErrorCared($error))) {
             $error['type'] = self::polishErrorType($error['type']);
             self::respondOnFail($error, TRUE);
         }
