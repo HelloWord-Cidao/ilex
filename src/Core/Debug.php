@@ -89,14 +89,21 @@ final class Debug
                 '@-1' => self::D_NONE,
             ],
         ];
-        $config = $Input->input('Debug', NULL);
-        Kit::ensureDict($config, TRUE);
-        if (TRUE === Kit::isDict($config)) {
-            if (TRUE === isset($config['trace']))
-                self::$config['trace'] = array_merge(self::$config['trace'], $config['trace']);
-            if (TRUE === isset($config['exception']))
-                self::$config['exception'] = array_merge(self::$config['exception'], $config['exception']);
+        $raw_config = $Input->input('Debug', NULL);
+        if (TRUE === is_null($raw_config)) $config = [ ];
+        elseif (TRUE === Kit::isString($raw_config, FALSE, TRUE)) {
+            if ('' === $raw_config) $config = [ ];
+            else {
+                $config = json_decode($raw_config, TRUE);
+                if (TRUE === is_null($config) AND Kit::len($raw_config) > 0)
+                    throw new UserException(json_last_error_msg(), $raw_config);
+            }
         }
+        Kit::ensureDict($config);
+        if (TRUE === isset($config['trace']))
+            Kit::update(self::$config['trace'], $config['trace']);
+        if (TRUE === isset($config['exception']))
+            Kit::update(self::$config['exception'], $config['exception']);
         $Input->deleteInput('Debug');
         self::$executionIdStack     = [];
         self::$executionRecordStack = [];
