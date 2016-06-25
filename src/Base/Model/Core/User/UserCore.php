@@ -28,17 +28,10 @@ abstract class UserCore extends BaseCore
 
     public static function getCurrentUserEntity($token)
     {
-        $user_info = self::parseToken($token);
+        $user_info = static::parseToken($token);
         return Loader::loadCollection('User/User')->getTheOnlyOneEntityById($user_info['userId']);
     }
-
-    private static function parseToken($jwt)
-    {
-        Kit::ensureString($jwt);
-        $token = JWT::decode($jwt, JWT_SEC_KEY, array('HS512'));
-        return [
-            'userId' => $token->data->userId,
-        ];
-    }
+    
+    abstract protected static function parseToken($jwt);
 
 }
