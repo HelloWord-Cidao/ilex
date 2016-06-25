@@ -171,7 +171,7 @@ final class Debug
 
     public static function getMemoryUsed($unit = self::M_MEGABYTE, $to_string = TRUE)
     {
-        $result = memory_get_peak_usage(true);
+        $result = memory_get_peak_usage(TRUE);
         $result *= [
             self::M_BYTE     => 1,
             self::M_KILOBYTE => 1.0 / 1024,
@@ -190,7 +190,7 @@ final class Debug
 
     public static function getTimeUsed($unit = self::T_MILLISECOND, $to_string = TRUE)
     {
-        $result = microtime(true) - self::$startTime;
+        $result = microtime(TRUE) - self::$startTime;
         $result *= [
             self::T_MICROSECOND => 1000 * 1000,
             self::T_MILLISECOND => 1000,

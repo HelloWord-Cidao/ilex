@@ -411,6 +411,12 @@ final class Kit
     //                       String                       //
     // ================================================== //
 
+    public static function toInt(&$string)
+    {
+        self::ensureMatchRegex($string, '^\d{1,9}$');
+        return intval($string);
+    }
+
     public static function join($delimiter, &$string_list)
     {
         self::ensureString($delimiter);

@@ -484,6 +484,12 @@ class MongoDBCollection
         else return strval($mongo_id);
     }
 
+    final public static function convertMongoDateToTimestamp(MongoDate $mongo_date)
+    {
+        $result = Kit::split(' ', $mongo_date->__toString());
+        return (int)$result[1] + (float)$result[0];
+    }
+
     // /**
     //  * Recovers '.' from '_' in a MongoDB criterion keys.
     //  * @param array $criterion

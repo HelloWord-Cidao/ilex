@@ -138,7 +138,7 @@ abstract class BaseEntity
 
     final public function getCreationTime()
     {
-        return (int)$this->getMeta('CreationTime');
+        return MongoDBCollection::convertMongoDateToTimestamp($this->getMeta('CreationTime'));
     }
 
     final public function getId($id_to_string = FALSE)
@@ -233,7 +233,8 @@ abstract class BaseEntity
         $field_value = $this->getDocument('Reference', $field_name, FALSE, []);
         if (TRUE === $check_duplicate) {
             foreach ($field_value as $id) {
-                if (strval($id) === strval($entity_id))
+                if (MongoDBCollection::convertMongoIdToString($id) 
+                    === MongoDBCollection::convertMongoIdToString($entity_id))
                     // return FALSE;
                     return $this;
             }
