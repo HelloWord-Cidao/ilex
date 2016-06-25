@@ -288,14 +288,34 @@ final class Kit
         self::ensureType($variable, self::TYPE_ARRAY, $can_be_null);
     }
 
-    public static function isString(&$variable, $can_be_null = FALSE)
+    public static function isString(&$variable, $can_be_null = FALSE, $can_be_empty = FALSE)
     {
-        return self::isType($variable, self::TYPE_STRING, $can_be_null);
+        self::ensureBoolean($can_be_empty);
+        return self::isType($variable, self::TYPE_STRING, $can_be_null)
+            AND (TRUE === $can_be_empty OR '' !== $variable);
     }
 
-    public static function ensureString(&$variable, $can_be_null = FALSE)
+    public static function ensureString(&$variable, $can_be_null = FALSE, $can_be_empty = FALSE)
     {
         self::ensureType($variable, self::TYPE_STRING, $can_be_null);
+    }
+
+    public static function isMatchRegex(&$variable, $regex, $can_be_null = FALSE)
+    {
+        self::ensureString($variable, $can_be_null);
+        if (TRUE === is_null($variable))
+            if (TRUE === $can_be_null) return TRUE;
+            else throw new UserException('$variable can not be NULL.');
+        $result = preg_match('/' . $regex . '/', $variable);
+        if (FALSE === $result)
+            throw new UserException('Regex match failed.', preg_last_error());
+        return (1 === $result);
+    }
+
+    public static function ensureMatchRegex(&$variable, $regex, $can_be_null = FALSE)
+    {
+        if (FALSE === self::isMatchRegex($variable, $regex, $can_be_null))
+            throw new UserException("\$variable($variable) macth \$regex($regex) failed.", $can_be_null);
     }
 
     public static function isInt(&$variable, $can_be_null = FALSE)
@@ -378,10 +398,13 @@ final class Kit
     public static function len(&$string_or_array)
     {
         self::ensureType($string_or_array, [ self::TYPE_STRING, self::TYPE_ARRAY ]);
-        if (TRUE === self::isString($string_or_array)) {
+        if (TRUE === self::isString($string_or_array, FALSE, TRUE)) {
             // strlen() returns the number of bytes rather than the number of characters in a string.
             return strlen($string_or_array);
-        } else return count($string_or_array);
+        } else {
+            self::ensureArray($string_or_array);
+            return count($string_or_array);
+        }
     }
 
     // ================================================== //

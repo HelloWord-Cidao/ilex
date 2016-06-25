@@ -95,6 +95,12 @@ abstract class BaseEntity// extends BaseModel
         return $this->getInfo('Name');
     }
 
+    final public function setName($name)
+    {
+        Kit::ensureString($name);
+        return $this->setInfo('Name', $name);
+    }
+
     final public function getType()
     {
         return $this->getMeta('Type');

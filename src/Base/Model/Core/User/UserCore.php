@@ -11,7 +11,7 @@ use \Firebase\JWT\JWT;
  * Class UserCore
  * @package Ilex\Base\Model\Core\User
  */
-class UserCore extends BaseCore
+abstract class UserCore extends BaseCore
 {
     protected static $methodsVisibility = [
         self::V_PUBLIC => [
@@ -23,6 +23,8 @@ class UserCore extends BaseCore
         parent::__construct($user);
         $this->loadCollection('User/User');
     }
+
+    abstract protected function generateJWT($username);
 
     public static function getCurrentUserEntity($token)
     {
