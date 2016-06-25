@@ -136,6 +136,11 @@ abstract class BaseEntity
         return $this->getMeta('Type');
     }
 
+    final public function getCreationTime()
+    {
+        return (int)$this->getMeta('CreationTime');
+    }
+
     final public function getId($id_to_string = FALSE)
     {
         $_id = $this->get('_id');
@@ -217,10 +222,13 @@ abstract class BaseEntity
         return $this;
     }
 
-    final public function buildMultiReference(BaseEntity $entity, $check_duplicate = TRUE)
+    final public function buildMultiReference(BaseEntity $entity, $reference_name = NULL, $check_duplicate = TRUE)
     {
+        Kit::ensureString($reference_name, TRUE);
         Kit::ensureBoolean($check_duplicate);
-        $field_name  = $entity->getEntityName() . 'IdList';
+        if (TRUE === is_null($reference_name))
+            $field_name  = $entity->getEntityName() . 'IdList';
+        else $field_name = $reference_name;
         $entity_id   = $entity->getId();
         $field_value = $this->getDocument('Reference', $field_name, FALSE, []);
         if (TRUE === $check_duplicate) {
@@ -235,9 +243,13 @@ abstract class BaseEntity
         return $this;
     }
 
-    final public function buildOneReference(BaseEntity $entity, $ensure_no_existence = FALSE)
+    final public function buildOneReference(BaseEntity $entity, $reference_name = NULL, $ensure_no_existence = FALSE)
     {
-        $field_name  = $entity->getEntityName() . 'Id';
+        Kit::ensureString($reference_name, TRUE);
+        Kit::ensureBoolean($ensure_no_existence);
+        if (TRUE === is_null($reference_name))
+            $field_name  = $entity->getEntityName() . 'Id';
+        else $field_name = $reference_name;
         $entity_id   = $entity->getId();
         $field_value = $this->getDocument('Reference', $field_name, FALSE);
         if (TRUE === $ensure_no_existence AND FALSE === is_null($field_value)) {
@@ -249,6 +261,15 @@ abstract class BaseEntity
         return $this;
     }
 
+    final public function hasReference($name)
+    {
+        return $this->handleHas('Reference', $name);
+    }
+
+    final public function getReference($name = NULL, $ensure_existence = TRUE, $default = NULL)
+    {
+        return $this->handleGet('Reference', $name, $ensure_existence, $default);
+    }
 
 
 
@@ -332,6 +353,11 @@ abstract class BaseEntity
         }
     }
 
+    final private function handleHas($root_field_name, $field_name)
+    {
+        return $this->hasDocument($root_field_name, $field_name);
+    }
+
     final private function handleGet($root_field_name, $field_name, $ensure_existence, $default)
     {
         if (TRUE === is_null($field_name))
@@ -357,6 +383,15 @@ abstract class BaseEntity
             $root_field_value[$field_name] = $field_value;
             return $this->set($root_field_name, $root_field_value);
         }
+    }
+
+    final private function hasDocument($root_field_name, $field_name)
+    {
+        if (FALSE === Kit::in($root_field_name, self::$rootFieldNameList))
+            throw new UserException('Invalid $root_field_name.', $root_field_name);
+        Kit::ensureString($field_name, TRUE);
+        $root_field_value = $this->get($root_field_name);
+        return TRUE === isset($root_field_name[$field_name]);
     }
 
     final private function getDocument($root_field_name, $field_name, $ensure_existence = TRUE, $default = NULL)
