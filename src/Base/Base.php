@@ -35,12 +35,6 @@ abstract class Base
         return TRUE === isset($this->user) AND TRUE === ($this->user instanceof UserEntity);
     }
 
-    final protected function ensureLogin()
-    {
-        if (FALSE === $this->isLogin())
-            throw new UserException('Check login failed, or please call Base::__construct() in __construct().');
-    }
-
     // final private function ensureSetUsername()
     // {
     //     if (FALSE === isset($this->username))

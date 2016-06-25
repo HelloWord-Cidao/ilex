@@ -41,20 +41,33 @@ abstract class BaseService extends BaseController
 
     public function __construct()
     {
-        $this->setCurrentUserEntity();
+        $this->trySetCurrentUserEntity();
     }
 
-    final private function setCurrentUserEntity()
+    final protected function ensureLogin()
+    {
+        if (FALSE === $this->isLogin()) {
+            $this->trySetCurrentUserEntity();
+            if (TRUE === is_null($this->user))
+                throw new UserException('Login failed.');
+        }
+    }
+
+    final private function trySetCurrentUserEntity()
     {
         $this->loadInput();
         $token = $this->Input->input('token');
         if (TRUE === Kit::isString($token) AND '' !== $token) {
             $class_name = Loader::includeCore('User/User');
-            $this->user = $class_name::getCurrentUserEntity($token);
+            try {
+                $this->user = $class_name::getCurrentUserEntity($token);
+            } catch (Exception $e) {
+                $this->user = NULL;
+            }
         }
     }
 
-    final private function loadInput()
+    final protected function loadInput()
     {
         $handler_name = 'Input';
         return ($this->$handler_name = Loader::loadInput());

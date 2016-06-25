@@ -483,8 +483,10 @@ final class Kit
 
     public static function ensureIn(&$value, $array)
     {
-        if (FALSE === self::in($value, $array))
-            throw new UserException('$value is not in $array.', [ $value, $array ]);
+        if (FALSE === self::in($value, $array)) {
+            $msg = "\$value(" . self::toString($value) . ") is not in \$array(" . self::toString($array) . ").";
+            throw new UserException($msg, [ $value, $array ]);
+        }
     }
 
     public static function hasKey()

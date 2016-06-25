@@ -2,10 +2,12 @@
 
 namespace Ilex\Base\Model\Core\User;
 
+use \Firebase\JWT\JWT;
+use \Exception;
+use \Ilex\Lib\UserException;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Base\Model\Core\BaseCore;
-use \Firebase\JWT\JWT;
 
 /**
  * Class UserCore
@@ -28,8 +30,16 @@ abstract class UserCore extends BaseCore
 
     public static function getCurrentUserEntity($token)
     {
-        $user_info = static::parseToken($token);
-        return Loader::loadCollection('User/User')->getTheOnlyOneEntityById($user_info['userId']);
+        try {
+            $user_info = static::parseToken($token);
+        } catch (Exception $e) {
+            throw new UserException('Invalid token.', $e);
+        }
+        try {
+            return Loader::loadCollection('User/User')->getTheOnlyOneEntityById($user_info['userId']);
+        } catch (Exception $e) {
+            throw new UserException('Token error or user not exist.', $e);
+        }
     }
     
     abstract protected static function parseToken($jwt);
