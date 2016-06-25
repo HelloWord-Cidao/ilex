@@ -120,6 +120,17 @@ abstract class BaseEntity
         return $this->setInfo('Name', $name);
     }
 
+    final public function getState()
+    {
+        return $this->getMeta('State');
+    }
+
+    final public function setState($state)
+    {
+        Kit::ensureType($state, [ Kit::TYPE_STRING, Kit::TYPE_INT ]);
+        return $this->setMeta('State', $state);
+    }
+
     final public function getType()
     {
         return $this->getMeta('Type');
@@ -234,7 +245,7 @@ abstract class BaseEntity
                 . ", old value is " . (string)$field_value . ".";
             throw new UserException($msg);
         }
-        $this->setDocument('Reference', $field_name, $$entity_id);
+        $this->setDocument('Reference', $field_name, $entity_id);
         return $this;
     }
 
