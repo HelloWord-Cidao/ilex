@@ -5,6 +5,7 @@ namespace Ilex\Base\Controller\Service;
 use \Exception;
 use \ReflectionClass;
 use \ReflectionMethod;
+use \Ilex\Core\Context as c;
 use \Ilex\Core\Debug;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Http;
@@ -41,30 +42,13 @@ abstract class BaseService extends BaseController
 
     public function __construct()
     {
-        $this->trySetCurrentUserEntity();
+        c::trySetCurrentUserEntity();
     }
 
     final protected function ensureLogin()
     {
-        if (FALSE === $this->isLogin()) {
-            $this->trySetCurrentUserEntity();
-            if (TRUE === is_null($this->user))
-                throw new UserException('Login failed.');
-        }
-    }
-
-    final private function trySetCurrentUserEntity()
-    {
-        $this->loadInput();
-        $token = $this->Input->input('token');
-        if (TRUE === Kit::isString($token) AND '' !== $token) {
-            $class_name = Loader::includeCore('User/User');
-            try {
-                $this->user = $class_name::getCurrentUserEntity($token);
-            } catch (Exception $e) {
-                $this->user = NULL;
-            }
-        }
+        if (FALSE === c::isLogin())
+            throw new UserException('Login failed.');
     }
 
     final protected function loadInput()
@@ -76,7 +60,7 @@ abstract class BaseService extends BaseController
     final protected function loadCore($path)
     {
         $handler_name = Loader::getHandlerFromPath($path) . 'Core';
-        return ($this->$handler_name = Loader::loadCore($path, [ $this->user ]));
+        return ($this->$handler_name = Loader::loadCore($path));
     }
 
     /**
@@ -181,8 +165,7 @@ abstract class BaseService extends BaseController
      */
     final private function prepareExecutionRecord($method_name)
     {
-        $this->loadInput();
-        $input      = $this->Input->input();
+        $input      = $this->loadInput()->input();
         $class_name = get_called_class();
         
         $execution_record = $this->generateExecutionRecord($class_name, $method_name);

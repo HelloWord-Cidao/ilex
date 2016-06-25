@@ -62,7 +62,7 @@ use \Ilex\Base\Model\Collection\MongoDBCursor;
  *                                                 , array $update
  *                                                 , boolean $multiple = FALSE)
  */
-class MongoDBCollection// extends BaseModel
+class MongoDBCollection
 {
 // https://docs.mongodb.com/manual/core/document-validation/
 // http://blog.mongodb.org/post/87200945828/6-rules-of-thumb-for-mongodb-schema-design-part-1

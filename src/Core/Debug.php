@@ -100,10 +100,10 @@ final class Debug
             }
         }
         Kit::ensureDict($config);
-        if (TRUE === isset($config['trace']))
-            Kit::update(self::$config['trace'], $config['trace']);
-        if (TRUE === isset($config['exception']))
-            Kit::update(self::$config['exception'], $config['exception']);
+        if (TRUE === isset($config['t']))
+            Kit::update(self::$config['trace'], $config['t']);
+        if (TRUE === isset($config['e']))
+            Kit::update(self::$config['exception'], $config['e']);
         $Input->deleteInput('Debug');
         self::$executionIdStack     = [];
         self::$executionRecordStack = [];
@@ -445,8 +445,9 @@ final class Debug
                     $result[$index]['line'],
                     $result[$index]['message']
                 ),
+                'context' => $result[$index]['trace'][0],
             ];
-            if (TRUE === self::checkExceptionDisplay($index, self::D_E_DETAIL)) {
+            // if (TRUE === self::checkExceptionDisplay($index, self::D_E_DETAIL)) {
                 if (TRUE === isset($result[$index]['detail'])) {
                     $tmp['detail'] = $result[$index]['detail'];
                     if (FALSE === self::checkExceptionDisplay($index, self::D_E_DETAIL_MORE)
@@ -472,8 +473,8 @@ final class Debug
                         unset($tmp['detail']['args_sanitization_result']);
                     }
                 }
-                else $tmp['detail'] = NULL;
-            }
+                // else $tmp['detail'] = NULL;
+            // }
             if (TRUE === self::checkExceptionDisplay($index, self::D_E_INITIATOR)) {
                 $tmp['initiator'] = sprintf('%s :: %s',
                     $result[$index]['initiator_class'], $result[$index]['initiator_function']);

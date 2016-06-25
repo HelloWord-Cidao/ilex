@@ -30,7 +30,7 @@ final class CollectionWrapper extends MongoDBCollection
     //     self::V_PROTECTED => [
     //     ],
     // ];
-
+    
     private static $collectionWrapperContainer = NULL;
 
     private $entityName        = NULL;

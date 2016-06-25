@@ -14,8 +14,10 @@ use \Ilex\Base\Model\Wrapper\EntityWrapper;
  * Base class of entity models of Ilex.
  * @package Ilex\Base\Model\Entity
  */
-abstract class BaseEntity// extends BaseModel
+abstract class BaseEntity
 {
+
+    private $isReadOnly = FALSE;
 
     protected $name               = NULL;
     protected $isInCollection     = FALSE;
@@ -56,6 +58,23 @@ abstract class BaseEntity// extends BaseModel
                 'Type' => $name,
             ],
         ];
+    }
+
+    final public function setReadOnly()
+    {
+        $this->isReadOnly = TRUE;
+        return $this;
+    }
+
+    final public function isReadOnly()
+    {
+        return $this->isReadOnly;
+    }
+
+    final public function ensureNotReadOnly()
+    {
+        if (TRUE === $this->isReadOnly())
+            throw new UserException("This entity({$this->name}) is read-only.");
     }
 
     final public function getEntityName()
@@ -161,6 +180,7 @@ abstract class BaseEntity// extends BaseModel
 
     final public function addToCollection()
     {
+        $this->ensureNotReadOnly();
         if (TRUE === $this->isInCollection) {
             $msg = 'Can not add to collection, because the entity is already in the collection.';
             throw new UserException($msg, $this);
@@ -174,6 +194,7 @@ abstract class BaseEntity// extends BaseModel
 
     final public function updateToCollection()
     {
+        $this->ensureNotReadOnly();
         if (FALSE === $this->isInCollection) {
             // var_dump([$this->isInCollection, $this->name, $this->document]);
             $msg = 'Can not update to collection, because the entity is not in the collection.';
@@ -185,11 +206,11 @@ abstract class BaseEntity// extends BaseModel
         return $this;
     }
 
-    final public function buildReference(BaseEntity $entity, $check_duplicate = TRUE)
+    final public function buildMultiReference(BaseEntity $entity, $check_duplicate = TRUE)
     {
         Kit::ensureBoolean($check_duplicate);
-        $field_name = $entity->getEntityName() . 'IdList';
-        $entity_id  = $entity->getId();
+        $field_name  = $entity->getEntityName() . 'IdList';
+        $entity_id   = $entity->getId();
         $field_value = $this->getDocument('Reference', $field_name, FALSE, []);
         if (TRUE === $check_duplicate) {
             foreach ($field_value as $id) {
@@ -200,7 +221,20 @@ abstract class BaseEntity// extends BaseModel
         }
         $field_value[] = $entity_id;
         $this->setDocument('Reference', $field_name, $field_value);
-        // return TRUE;
+        return $this;
+    }
+
+    final public function buildOneReference(BaseEntity $entity, $ensure_no_existence = FALSE)
+    {
+        $field_name  = $entity->getEntityName() . 'Id';
+        $entity_id   = $entity->getId();
+        $field_value = $this->getDocument('Reference', $field_name, FALSE);
+        if (TRUE === $ensure_no_existence AND FALSE === is_null($field_value)) {
+            $msg = "Can not build reference($field_name) as " . (string)$entity_id 
+                . ", old value is " . (string)$field_value . ".";
+            throw new UserException($msg);
+        }
+        $this->setDocument('Reference', $field_name, $$entity_id);
         return $this;
     }
 
@@ -331,6 +365,7 @@ abstract class BaseEntity// extends BaseModel
 
     final private function set($path, $value, $ensure_existence = NULL)
     {
+        $this->ensureNotReadOnly();
         // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_LIST ]); // @CAUTION
         // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_ARRAY ]);
         Kit::ensureString($path);
@@ -363,6 +398,7 @@ abstract class BaseEntity// extends BaseModel
 
     final private function delete($path, $ensure_existence = TRUE)
     {
+        $this->ensureNotReadOnly();
         // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_LIST ]); // @CAUTION
         // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_ARRAY ]);
         Kit::ensureString($path);

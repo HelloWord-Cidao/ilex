@@ -16,14 +16,9 @@ abstract class BaseCore extends BaseModel
     const S_OK = 'ok';
     protected $ok = [ self::S_OK => TRUE ];
 
-    public function __construct(UserEntity $user = NULL)
-    {
-        $this->user = $user;
-    }
-
     final protected function loadCollection($path)
     {
         $handler_name = Loader::getHandlerFromPath($path) . 'Collection';
-        return ($this->$handler_name = Loader::loadCollection($path, [ $this->user ]));
+        return ($this->$handler_name = Loader::loadCollection($path));
     }
 }

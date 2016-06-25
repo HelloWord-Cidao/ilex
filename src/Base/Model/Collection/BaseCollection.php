@@ -43,7 +43,7 @@ abstract class BaseCollection extends BaseModel
     // const COLLECTION_NAME = NULL; // should set in subclass
     // const ENTITY_PATH     = NULL; // should set in subclass
 
-    public function __construct(UserEntity $user = NULL)
+    public function __construct()
     {
         $collection_name = static::COLLECTION_NAME;
         $entity_path     = static::ENTITY_PATH;
@@ -53,7 +53,6 @@ abstract class BaseCollection extends BaseModel
         } else {
             $this->collectionWrapper = CollectionWrapper::getInstance($collection_name, $entity_path);
         }
-        $this->user = $user;
     }
 
     final private function ensureInitialized()

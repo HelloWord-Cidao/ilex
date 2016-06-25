@@ -8,8 +8,6 @@ use \ReflectionMethod;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
-use \Ilex\Base\Core\User\UserCore;
-use \Ilex\Base\Model\Entity\User\UserEntity;
 
 /**
  * Class Base
@@ -25,21 +23,8 @@ abstract class Base
     const T_DESCENDANT = 'T_DESCENDANT';
     const T_OTHER      = 'T_OTHER';
 
-    protected $user = NULL; // @CAUTION: should not be modified in subclass
-
     protected $configModelName = NULL;
     protected $dataModelName   = NULL;
-
-    final protected function isLogin()
-    {
-        return TRUE === isset($this->user) AND TRUE === ($this->user instanceof UserEntity);
-    }
-
-    // final private function ensureSetUsername()
-    // {
-    //     if (FALSE === isset($this->username))
-    //         throw new UserException('Username is not set.');
-    // }
 
     final protected function loadConfig($path)
     {

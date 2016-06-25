@@ -20,9 +20,8 @@ abstract class UserCore extends BaseCore
         ],
     ];
 
-    public function __construct($user)
+    public function __construct()
     {
-        parent::__construct($user);
         $this->loadCollection('User/User');
     }
 
@@ -30,13 +29,15 @@ abstract class UserCore extends BaseCore
 
     public static function getCurrentUserEntity($token)
     {
+
         try {
             $user_info = static::parseToken($token);
         } catch (Exception $e) {
             throw new UserException('Invalid token.', $e);
         }
         try {
-            return Loader::loadCollection('User/User')->getTheOnlyOneEntityById($user_info['userId']);
+            $user = Loader::loadCollection('User/User')->getTheOnlyOneEntityById($user_info['userId'])->setReadOnly();
+            return $user;
         } catch (Exception $e) {
             throw new UserException('Token error or user not exist.', $e);
         }
