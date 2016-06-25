@@ -392,7 +392,7 @@ abstract class BaseEntity
             throw new UserException('Invalid $root_field_name.', $root_field_name);
         Kit::ensureString($field_name, TRUE);
         $root_field_value = $this->get($root_field_name);
-        return TRUE === isset($root_field_name[$field_name]);
+        return TRUE === isset($root_field_value[$field_name]);
     }
 
     final private function getDocument($root_field_name, $field_name, $ensure_existence = TRUE, $default = NULL)
