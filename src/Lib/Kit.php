@@ -658,12 +658,29 @@ final class Kit
         return self::slice($list, - $offset)[0];
     }
 
-    public static function map()
+    public static function mapped($function, &$list)
     {
+        self::ensureArray($list);
         $arg_list = func_get_args();
-        if (count($arg_list > 2))
-            self::ensureAllSame(array_map('count', self::slice($arg_list, 1)));
-        return call_user_func_array('array_map', $arg_list);
+        if (count($arg_list) > 2)
+            $arg_list = self::slice($arg_list, 2);
+        else $arg_list = [];
+        $result = [];
+        foreach ($list as $item) {
+            $result[] = call_user_func_array($function, array_merge([ $item ], $arg_list));
+        }
+        return $result;
+    }
+
+    public static function map($function, &$list)
+    {
+        self::ensureArray($list);
+        $arg_list = func_get_args();
+        if (count($arg_list) > 2)
+            $arg_list = self::slice($arg_list, 2);
+        else $arg_list = [];
+        $list = call_user_func_array([ 'self', 'mapped' ], array_merge([ $function, $list ], $arg_list));
+        return $list;
     }
 
     // public static function sort(&$list)
@@ -994,7 +1011,7 @@ final class Kit
     {
         self::ensureListOfDict($list_of_dict);
         $weight_list = self::columns($list_of_dict, 'weight', TRUE, NULL, TRUE);
-        self::ensureAllSame(self::map([ self, 'sign' ], $weight_list), 1);
+        self::ensureAllSame(self::mapped([ self, 'sign' ], $weight_list), 1);
         $sum = self::sum($weight_list);
         if (0 === $sum) throw new UserException('The sum of weights is 0.', $list_of_dict);
         throw new UserException('randomByWeight TODO');
