@@ -479,11 +479,11 @@ final class Debug
                 $tmp['initiator'] = sprintf('%s :: %s',
                     $result[$index]['initiator_class'], $result[$index]['initiator_function']);
             }
-            if (TRUE === self::checkExceptionDisplay($index, self::D_E_TRACE)) {
-                if (TRUE === self::checkExceptionDisplay($index, self::D_E_TRACE_ARGS))
+            // if (TRUE === self::checkExceptionDisplay($index, self::D_E_TRACE)) {
+                // if (TRUE === self::checkExceptionDisplay($index, self::D_E_TRACE_ARGS))
                     $tmp['trace'] = $result[$index]['trace'];
-                else $tmp['trace'] = Kit::columnsExclude($result[$index]['trace'], [ 'params', 'args' ]);
-            }
+                // else $tmp['trace'] = Kit::columnsExclude($result[$index]['trace'], [ 'params', 'args' ]);
+            // }
             if (TRUE === self::checkExceptionDisplay($index, self::D_E_FILE)) {
                 $tmp['file'] = $result[$index]['file'];
             }
