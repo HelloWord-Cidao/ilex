@@ -13,14 +13,14 @@ use \Ilex\Lib\UserTypeException;
  * @package Ilex\Lib
  *
  * @method public static array      columns(array $list_of_array, array|mixed $column_name_list
- *                                      , boolean $set_default = FALSE, mixed $default = NULL
+ *                                      , boolean $ensure_existence = TRUE, mixed $default = NULL
  *                                      , boolean $return_only_values = FALSE)
  * @mehtod public static array      columnsExclude(array $list_of_array, array $column_name_list
  *                                      , boolean $check_existence = FALSE)
  * @method public static array      exclude(array $array, array $key_list
  *                                      , boolean $check_existence = FALSE)
  * @method public static array      extract(array $array, array $key_list
- *                                      , boolean $set_default = FALSE, mixed $default = NULL)
+ *                                      , boolean $ensure_existence = TRUE, mixed $default = NULL)
  * @method public static string     getRealPath(string $path)
  * @method public static string     j(mixed $data)
  * @method public static mixed|NULL last(array $array, int $offset = 1)
@@ -563,7 +563,7 @@ final class Kit
      * @return array
      * @throws UserException if field($field_name) is empty
      */
-    public static function extract(&$array, $key_list, $set_default = FALSE, $default = NULL)
+    public static function extract(&$array, $key_list, $ensure_existence = TRUE, $default = NULL)
     {
         self::ensureArray($array);
         if (FALSE === is_array($key_list))
@@ -573,7 +573,7 @@ final class Kit
         foreach ($key_list as $key) {
             if (TRUE === isset($array[$key])) {
                 $result[$key] = $array[$key];
-            } elseif (TRUE === $set_default) {
+            } elseif (FALSE === $ensure_existence) {
                 $result[$key] = $default;
             } else {
                 $msg = "Field($key) is empty, thus can not be included.";
@@ -782,7 +782,7 @@ final class Kit
      * Extracts columns in a list_of_array.
      * @param array       $list_of_array
      * @param array|mixed $column_name_list   a list of column names or a column name
-     * @param boolean     $set_default        whether it needs to set default value for empty fields
+     * @param boolean     $ensure_existence   whether the field needs to exist
      * @param mixed       $default            default value to be set for empty fields
      * @param boolean     $return_only_values whether it should return only values
      *                                        when there is only one column to return
@@ -790,17 +790,17 @@ final class Kit
      * @throws UserException if field($column_name) is empty, or attempting return only values
      *                       when the length of $column_name_list is not 1.
      */
-    public static function columns(&$list_of_array, $column_name_list, $set_default = FALSE
+    public static function columns(&$list_of_array, $column_name_list, $ensure_existence = TRUE
         , $default = NULL, $return_only_values = FALSE)
     {
         self::ensureListOfArray($list_of_array);
-        self::ensureBoolean($set_default);
+        self::ensureBoolean($ensure_existence);
         self::ensureBoolean($return_only_values);
         if (FALSE === is_array($column_name_list))
             $column_name_list = [ $column_name_list ];
         $result = [];
         foreach ($list_of_array as $raw_array) {
-            $array = self::extract($raw_array, $column_name_list, $set_default, $default);
+            $array = self::extract($raw_array, $column_name_list, $ensure_existence, $default);
             if (TRUE === $return_only_values) {
                 if (1 === count($column_name_list)) {
                     $array = $array[$column_name_list[0]];
@@ -981,7 +981,7 @@ final class Kit
     public static function randomByWeight(&$list_of_dict)
     {
         self::ensureListOfDict($list_of_dict);
-        $weight_list = self::columns($list_of_dict, 'weight', FALSE, NULL, TRUE);
+        $weight_list = self::columns($list_of_dict, 'weight', TRUE, NULL, TRUE);
         self::ensureAllSame(self::map([ self, 'sign' ], $weight_list), 1);
         $sum = self::sum($weight_list);
         if (0 === $sum) throw new UserException('The sum of weights is 0.', $list_of_dict);

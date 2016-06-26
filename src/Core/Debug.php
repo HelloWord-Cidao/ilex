@@ -459,7 +459,7 @@ final class Debug
                             'args',
                             'args_sanitization_result',
                             'declaring_class',
-                        ], TRUE);
+                        ], FALSE);
                         if (FALSE === is_null($tmp['detail']['class'])
                             AND FALSE === is_null($tmp['detail']['method'])) {
                             $tmp['detail']['handler'] = sprintf('        %s :: %s',

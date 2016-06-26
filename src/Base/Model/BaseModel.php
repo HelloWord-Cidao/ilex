@@ -117,7 +117,7 @@ abstract class BaseModel extends Base
         if (TRUE === $call_parent) {
             // @TODO: check it!
             // $backtrace          = Kit::columns(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10),
-            //     [ 'class' ], TRUE);
+            //     [ 'class' ], FALSE);
             $current_class_name = get_class();
             foreach ($backtrace as $record) {
                 if (TRUE === is_null($record['class']) OR $current_class_name === $record['class'])

@@ -115,7 +115,7 @@ abstract class Base
     final private function getInitiatorNameAndType($method_name, $declaring_class)
     {
         $backtrace = Kit::columns(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 20),
-            [ 'class', 'function' ], TRUE);
+            [ 'class', 'function' ], FALSE);
         $initiator_name = NULL;
         foreach ($backtrace as $record) {
             if (TRUE === is_null($record['class']) 
