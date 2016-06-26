@@ -158,7 +158,7 @@ final class CollectionWrapper extends MongoDBCollection
     {
         $cursor = $this->getMulti($criterion, [], $sort_by, $skip, $limit);
         $bulk_class_name = $this->getBulkClassName();
-        return new $bulk_class_name($this, $cursor);
+        return new $bulk_class_name($cursor, $this);
     }
 
     final public function getTheOnlyOneEntity($criterion)

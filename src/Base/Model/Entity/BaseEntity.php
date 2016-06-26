@@ -3,9 +3,9 @@
 namespace Ilex\Base\Model\Entity;
 
 use \MongoId;
+use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
-// use \Ilex\Base\Model\BaseModel;
 use \Ilex\Base\Model\Collection\MongoDBCollection;
 use \Ilex\Base\Model\Wrapper\EntityWrapper;
 
@@ -32,6 +32,12 @@ abstract class BaseEntity
     ];
     private $entityWrapper = NULL;
     private $document = NULL;
+
+    final protected function loadCollection($path)
+    {
+        $handler_name = Loader::getHandlerFromPath($path) . 'Collection';
+        return ($this->$handler_name = Loader::loadCollection($path));
+    }
 
     final public function __construct($entity_wrapper, $name, $is_in_collection, $document = NULL)
     {
@@ -270,6 +276,19 @@ abstract class BaseEntity
     final public function getReference($name = NULL, $ensure_existence = TRUE, $default = NULL)
     {
         return $this->handleGet('Reference', $name, $ensure_existence, $default);
+    }
+
+    final public function getBulkByMultiReference($name, $collection)
+    {
+        $id_list = $this->getReference($name);
+        return $this->getBulkByIdList($id_list, $collection);
+    }
+
+    final public function getBulkByIdList($id_list, $collection)
+    {
+        Kit::ensureArray($id_list);
+        $bulk_class_name = $collection->getBulkClassName();
+        return new $bulk_class_name($id_list, $collection);
     }
 
 

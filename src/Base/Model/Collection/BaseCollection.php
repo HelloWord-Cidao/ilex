@@ -72,6 +72,11 @@ abstract class BaseCollection extends BaseModel
         return new $entity_class_name($entity_wrapper, $entity_name, FALSE);
     }
 
+    final public function getBulkClassName()
+    {
+        return $this->collectionWrapper->getBulkClassName();
+    }
+
     final public function checkExistsId($_id)
     {
         if (FALSE === ($_id instanceof MongoId))

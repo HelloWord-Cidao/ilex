@@ -6,6 +6,7 @@ use \Closure;
 use \Iterator;
 use \Ilex\Lib\Kit;
 use \Ilex\Base\Model\Collection\MongoDBCursor;
+use \Ilex\Base\Model\Collection\BaseCollection;
 use \Ilex\Base\Model\Wrapper\CollectionWrapper;
 use \Ilex\Base\Model\Wrapper\EntityWrapper;
 
@@ -41,13 +42,25 @@ class BaseBulk implements Iterator
 
     private $entityList = [];
 
-    final public function __construct(CollectionWrapper $collection_wrapper, MongoDBCursor $cursor)
+    final public function __construct($cursor_or_id_list, $collection_or_wrapper)
     {
-        $this->position = 0;
-        $this->collectionWrapper = $collection_wrapper;
-        foreach ($cursor as $document) {
-            $this->entityList[] = $this->createEntityWithDocument($document);
-        }
+        if (TRUE === $cursor_or_id_list instanceof MongoDBCursor
+            AND TRUE === $collection_or_wrapper instanceof CollectionWrapper) {
+            $this->position = 0;
+            $this->collectionWrapper = $collection_or_wrapper;
+            foreach ($cursor_or_id_list as $document) {
+                $this->entityList[] = $this->createEntityWithDocument($document);
+            }
+        } elseif (TRUE === Kit::isArray($cursor_or_id_list)
+            AND TRUE === $collection_or_wrapper instanceof BaseCollection) {
+            $this->position = 0;
+            foreach ($cursor_or_id_list as $_id) {
+                $this->entityList[] = $collection_or_wrapper->getTheOnlyOneEntityById($_id);
+            }
+        } else throw new UserException('Invalid args.',
+            [ $cursor_or_id_list, $collection_or_wrapper ]);
+        
+        
     }
 
     final private function ensureInitialized()
