@@ -90,7 +90,8 @@ final class Debug
             ],
         ];
         $raw_config = $Input->input('Debug', NULL);
-        if (TRUE === is_null($raw_config)) $config = [ ];
+        if (TRUE === Kit::isDict($raw_config)) $config = $raw_config;
+        elseif (TRUE === is_null($raw_config)) $config = [ ];
         elseif (TRUE === Kit::isString($raw_config, FALSE, TRUE)) {
             if ('' === $raw_config) $config = [ ];
             else {
@@ -98,7 +99,7 @@ final class Debug
                 if (TRUE === is_null($config) AND Kit::len($raw_config) > 0)
                     throw new UserException(json_last_error_msg(), $raw_config);
             }
-        }
+        } else throw new UserException('Invalid $raw_config.', $raw_config);
         Kit::ensureDict($config);
         if (TRUE === isset($config['t']))
             Kit::update(self::$config['trace'], $config['t']);
