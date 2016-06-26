@@ -15,10 +15,10 @@ use \Ilex\Base\Model\Core\BaseCore;
  */
 abstract class UserCore extends BaseCore
 {
-    protected static $methodsVisibility = [
-        self::V_PUBLIC => [
-        ],
-    ];
+    // protected static $methodsVisibility = [
+    //     self::V_PUBLIC => [
+    //     ],
+    // ];
 
     public function __construct()
     {

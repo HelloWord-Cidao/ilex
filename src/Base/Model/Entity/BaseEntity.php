@@ -278,16 +278,17 @@ abstract class BaseEntity
         return $this->handleGet('Reference', $name, $ensure_existence, $default);
     }
 
-    final public function getBulkByMultiReference($name, $collection)
+    final public function getBulkByMultiReference($name, $collection, $limit = NULL)
     {
         $id_list = $this->getReference($name);
-        return $this->getBulkByIdList($id_list, $collection);
+        return $this->getBulkByIdList($id_list, $collection, $limit);
     }
 
-    final public function getBulkByIdList($id_list, $collection)
+    final public function getBulkByIdList($id_list, $collection, $limit = NULL)
     {
         Kit::ensureArray($id_list);
         $bulk_class_name = $collection->getBulkClassName();
+        // if (FALSE === is_null($limit)) $id_list = Kit::slice($id_list, 0, $limit);
         return new $bulk_class_name($id_list, $collection);
     }
 

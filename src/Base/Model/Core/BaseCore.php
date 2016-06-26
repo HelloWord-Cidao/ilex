@@ -11,7 +11,7 @@ use \Ilex\Base\Model\Entity\User\UserEntity;
  * Base class of core models of Ilex.
  * @package Ilex\Base\Model\Core
  */
-abstract class BaseCore extends BaseModel
+abstract class BaseCore //extends BaseModel
 {
     const S_OK = 'ok';
     protected $ok = [ self::S_OK => TRUE ];

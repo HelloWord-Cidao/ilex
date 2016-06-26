@@ -16,27 +16,27 @@ use \Ilex\Base\Model\Wrapper\EntityWrapper;
  * Base class of collection models of Ilex.
  * @package Ilex\Base\Model\Collection
  */
-abstract class BaseCollection extends BaseModel
+abstract class BaseCollection// extends BaseModel
 {
-    protected static $methodsVisibility = [
-        self::V_PUBLIC => [
-            // 'createEntity',
-            // 'checkExistEntities',
-            // 'checkExistsId',
-            // 'checkExistsSignature',
-            // 'countAll',
-            // 'getTheOnlyOneEntityBySignature',
-        ],
-        self::V_PROTECTED => [
-            // 'ensureExistEntities',
-            // 'checkExistsOnlyOneEntity',
-            // 'ensureExistsOnlyOneEntity',
-            // 'countEntities',
-            // 'getMultiEntities',
-            // 'getTheOnlyOneEntity',
-            // 'getOneEntity',
-        ],
-    ];
+    // protected static $methodsVisibility = [
+    //     self::V_PUBLIC => [
+    //         // 'createEntity',
+    //         // 'checkExistEntities',
+    //         // 'checkExistsId',
+    //         // 'checkExistsSignature',
+    //         // 'countAll',
+    //         // 'getTheOnlyOneEntityBySignature',
+    //     ],
+    //     self::V_PROTECTED => [
+    //         // 'ensureExistEntities',
+    //         // 'checkExistsOnlyOneEntity',
+    //         // 'ensureExistsOnlyOneEntity',
+    //         // 'countEntities',
+    //         // 'getMultiEntities',
+    //         // 'getTheOnlyOneEntity',
+    //         // 'getOneEntity',
+    //     ],
+    // ];
 
     private $collectionWrapper = NULL;
 

@@ -318,14 +318,15 @@ final class Kit
             throw new UserException("\$variable($variable) macth \$regex($regex) failed.", $can_be_null);
     }
 
-    public static function isInt(&$variable, $can_be_null = FALSE)
+    public static function isInt(&$variable, $can_be_null = FALSE, $should_be_positive = TRUE)
     {
-        return self::isType($variable, self::TYPE_INT, $can_be_null);
+        return self::isType($variable, self::TYPE_INT, $can_be_null)
+            AND (FALSE === $should_be_positive OR $variable > 0);
     }
 
-    public static function ensureInt(&$variable, $can_be_null = FALSE)
+    public static function ensureInt(&$variable, $can_be_null = FALSE, $should_be_positive = TRUE)
     {
-        self::ensureType($variable, self::TYPE_INT, $can_be_null);
+        self::ensureType($variable, self::TYPE_INT, $can_be_null, $should_be_positive);
     }
 
     public static function isFloat(&$variable, $can_be_null = FALSE)
@@ -959,6 +960,17 @@ final class Kit
         return $min + 1.0 * mt_rand() / mt_getrandmax() * ($max - $min);
     }
 
+    public static function randomSelect($list, $num)
+    {
+        self::ensureArray($list);
+        self::ensureInt($num);
+        if ($num > self::len($list)) $num = self::len($list);
+        $result = array_rand($list, $num);
+        if (1 === $num) $result = [ $result ];
+        $result = array_values(Kit::extract($list, $result));
+        return $result;
+    }
+
     /**
      * Utility function for getting random values with weighting.
      * Pass in an associative array, such as
@@ -978,7 +990,7 @@ final class Kit
      * @return array
      * @throws UserException if the sum of weights is 0.
      */
-    public static function randomByWeight(&$list_of_dict)
+    public static function randomSelectByWeight(&$list_of_dict)
     {
         self::ensureListOfDict($list_of_dict);
         $weight_list = self::columns($list_of_dict, 'weight', TRUE, NULL, TRUE);
