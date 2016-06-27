@@ -6,7 +6,7 @@ use \MongoId;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
-use \Ilex\Base\Model\Collection\MongoDBCollection;
+use \Ilex\Base\Model\Collection\MongoDBCollection as MDBC;
 use \Ilex\Base\Model\Wrapper\EntityWrapper;
 
 /**
@@ -144,14 +144,14 @@ abstract class BaseEntity
 
     final public function getCreationTime()
     {
-        return MongoDBCollection::mongoDateToTimestamp($this->getMeta('CreationTime'));
+        return MDBC::mongoDateToTimestamp($this->getMeta('CreationTime'));
     }
 
     final public function getId($id_to_string = FALSE)
     {
         $_id = $this->get('_id');
         if (TRUE === $id_to_string)
-            $_id = MongoDBCollection::mongoIdToString($_id);
+            $_id = MDBC::mongoIdToString($_id);
         return $_id;
     }
 
@@ -239,8 +239,8 @@ abstract class BaseEntity
         $field_value = $this->getDocument('Reference', $field_name, FALSE, []);
         if (TRUE === $check_duplicate) {
             foreach ($field_value as $id) {
-                if (MongoDBCollection::mongoIdToString($id) 
-                    === MongoDBCollection::mongoIdToString($entity_id))
+                if (MDBC::mongoIdToString($id) 
+                    === MDBC::mongoIdToString($entity_id))
                     // return FALSE;
                     return $this;
             }
@@ -276,6 +276,11 @@ abstract class BaseEntity
     final public function getReference($name = NULL, $ensure_existence = TRUE, $default = NULL)
     {
         return $this->handleGet('Reference', $name, $ensure_existence, $default);
+    }
+
+    final protected function setReference($name, $value)
+    {
+        return $this->handleSet('Reference', $name, $value);
     }
 
     final public function getBulkByMultiReference($name, $collection, $limit = NULL)
