@@ -449,7 +449,7 @@ final class Debug
                 'context' => $result[$index]['trace'][0],
             ];
             // if (TRUE === self::checkExceptionDisplay($index, self::D_E_DETAIL)) {
-                if (TRUE === isset($result[$index]['detail'])) {
+                if (FALSE === Kit::isVacancy($result[$index]['detail'])) {
                     $tmp['detail'] = $result[$index]['detail'];
                     if (FALSE === self::checkExceptionDisplay($index, self::D_E_DETAIL_MORE)
                         AND TRUE === Kit::isArray($tmp['detail'])) {

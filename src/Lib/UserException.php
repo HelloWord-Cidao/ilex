@@ -42,7 +42,7 @@ class UserException extends Exception
      * @param Exception $previous
      * @param int       $code
      */
-    public function __construct($message, $detail = NULL, $previous = NULL, $code = 0)
+    public function __construct($message, $detail = Kit::TYPE_VACANCY, $previous = NULL, $code = 0)
     {
         parent::__construct($message, $code, $previous);
         $this->detail = $detail;

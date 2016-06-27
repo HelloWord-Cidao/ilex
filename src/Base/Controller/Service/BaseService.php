@@ -39,6 +39,7 @@ abstract class BaseService extends BaseController
     ];
 
     private $hasCalledCoreModel = FALSE;
+    private $isProcessed = FALSE;
 
     public function __construct()
     {
@@ -115,6 +116,8 @@ abstract class BaseService extends BaseController
             $service_result
                 = $execution_record['service_result']
                 = Kit::extract($this->result, [ 'data', 'status' ]);
+            $code = $this->getCode();
+            if (TRUE === is_null($code)) $this->fail();
             $code = $this->getCode();
             if (FALSE === Kit::in($code, [ 1, 2 ]))
                 throw new UserException('Invalid code after service has finished.', $code);
@@ -209,7 +212,7 @@ abstract class BaseService extends BaseController
         } else throw new UserException("Can not set code($current_code) to $code.");
     }
 
-    final private function getCode()
+    final protected function getCode()
     {
         return $this->result['code'];
     }
@@ -223,6 +226,7 @@ abstract class BaseService extends BaseController
             (FALSE === isset($value[BaseCore::S_OK]) OR TRUE !== $value[BaseCore::S_OK])) {
             $this->fail();
         }
+        $isProcessed = TRUE;
         return $this->handleResult('process', $name, $value, $is_list);
     }
     
@@ -307,10 +311,11 @@ abstract class BaseService extends BaseController
         if (TRUE === is_null($code)) {
             if (TRUE === $close_cgi_only) { // code = NULL; close_cgi_only = 1 => 3
                 $this->setCode(3);
-            } else { // code = NULL; close_cgi_only = 0 => error
+            } elseif (FALSE === $this->isProcessed) { // code = NULL; close_cgi_only = 0 => error
                 $msg = 'Can not succeed the request before service is finished and code is NULL.';
                 throw new UserException($msg);
-            }
+            } else throw new UserException('Processed, but code is NULL.');
+            
         } elseif (FALSE === Kit::in($code, [ 1, 2 ])) { // code = 0/3; close_cgi_only = 0/1 => error
             throw new UserException('Invalid code.', $code);
         } elseif (TRUE === $close_cgi_only) { // code = 1/2; close_cgi_only = 1 => error
