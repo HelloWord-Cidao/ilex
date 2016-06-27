@@ -288,7 +288,7 @@ abstract class BaseEntity
     {
         Kit::ensureArray($id_list);
         $bulk_class_name = $collection->getBulkClassName();
-        // if (FALSE === is_null($limit)) $id_list = Kit::slice($id_list, 0, $limit);
+        if (FALSE === is_null($limit)) $id_list = Kit::slice($id_list, 0, $limit);
         return new $bulk_class_name($id_list, $collection);
     }
 
