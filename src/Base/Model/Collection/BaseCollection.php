@@ -80,7 +80,7 @@ abstract class BaseCollection// extends BaseModel
     final public function checkExistsId($_id)
     {
         if (FALSE === ($_id instanceof MongoId))
-            $_id = MongoDBCollection::convertStringToMongoId($_id);
+            $_id = MongoDBCollection::stringToMongoId($_id);
         $criterion = [ '_id' => $_id ];
         return $this->checkExistsOnlyOneEntity($criterion);
     }
@@ -110,6 +110,14 @@ abstract class BaseCollection// extends BaseModel
         return $this->getMultiEntities($criterion);
     }
     
+    final public function getAllEntitiesByReference($entity, $name)
+    {
+        $criterion = [
+            "Reference.$name" => $entity->getId(),
+        ];
+        return $this->getMultiEntities($criterion);
+    }
+
     final public function getTheOnlyOneEntityBySignature($signature)
     {
         $criterion = [
@@ -121,7 +129,7 @@ abstract class BaseCollection// extends BaseModel
     final public function getTheOnlyOneEntityById($_id)
     {
         if (FALSE === ($_id instanceof MongoId))
-            $_id = MongoDBCollection::convertStringToMongoId($_id);
+            $_id = MongoDBCollection::stringToMongoId($_id);
         $criterion = [ '_id' => $_id ];
         return $this->getTheOnlyOneEntity($criterion);
     }

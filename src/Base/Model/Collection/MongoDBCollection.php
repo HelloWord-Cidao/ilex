@@ -24,8 +24,8 @@ use \Ilex\Base\Model\Collection\MongoDBCursor;
  * @method       protected        MongoId             addOne(array $document)
  * @method final protected        boolean             checkExistence(array $criterion)
  * @method final protected        boolean             checkExistsOnlyOnce(array $criterion)
- * @method final protected        string              convertMongoIdToString(MongoId $id)
- * @method final protected        MongoId             convertStringToMongoId(string $id)
+ * @method final protected        string              mongoIdToString(MongoId $id)
+ * @method final protected        MongoId             stringToMongoId(string $id)
  * @method final protected        int                 count(array $criterion = []
  *                                                        , int $skip = NULL
  *                                                        , int $limit = NULL)
@@ -86,8 +86,8 @@ class MongoDBCollection
     //         'ensureExistence',
     //         'checkExistsOnlyOnce',
     //         'ensureExistsOnlyOnce',
-    //         // 'convertMongoIdToString',
-    //         // 'convertStringToMongoId',
+    //         // 'mongoIdToString',
+    //         // 'stringToMongoId',
     //         'count',
     //         'getMulti',
     //         'getOne',
@@ -446,7 +446,7 @@ class MongoDBCollection
     //     if (TRUE === isset($criterion['_id'])) {
     //         if (FALSE === Kit::isString($criterion['_id'])) return $criterion;
     //         try {
-    //             $_id = $this->convertStringToMongoId($criterion['_id']);
+    //             $_id = $this->stringToMongoId($criterion['_id']);
     //         } catch (Exception $e) {
     //             return $criterion;
     //         }
@@ -461,7 +461,7 @@ class MongoDBCollection
      * @return MongoId
      * @throws UserException if $string is not a string or can not be parsed as a MongoId.
      */
-    final public static function convertStringToMongoId($string)
+    final public static function stringToMongoId($string)
     {
         Kit::ensureString($string);
         try {
@@ -477,14 +477,14 @@ class MongoDBCollection
      * @return string
      * @throws UserException if $mongo_id is not a MongoId.
      */
-    final public static function convertMongoIdToString($mongo_id)
+    final public static function mongoIdToString($mongo_id)
     {
         if (FALSE === ($mongo_id instanceof MongoId))
             throw new UserException('$mongo_id is not a MongoId.', $mongo_id);
         else return strval($mongo_id);
     }
 
-    final public static function convertMongoDateToTimestamp(MongoDate $mongo_date)
+    final public static function mongoDateToTimestamp(MongoDate $mongo_date)
     {
         $result = Kit::split(' ', $mongo_date->__toString());
         return (int)$result[1] + (float)$result[0];

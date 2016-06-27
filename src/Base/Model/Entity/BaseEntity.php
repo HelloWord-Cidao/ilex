@@ -144,14 +144,14 @@ abstract class BaseEntity
 
     final public function getCreationTime()
     {
-        return MongoDBCollection::convertMongoDateToTimestamp($this->getMeta('CreationTime'));
+        return MongoDBCollection::mongoDateToTimestamp($this->getMeta('CreationTime'));
     }
 
     final public function getId($id_to_string = FALSE)
     {
         $_id = $this->get('_id');
         if (TRUE === $id_to_string)
-            $_id = MongoDBCollection::convertMongoIdToString($_id);
+            $_id = MongoDBCollection::mongoIdToString($_id);
         return $_id;
     }
 
@@ -239,8 +239,8 @@ abstract class BaseEntity
         $field_value = $this->getDocument('Reference', $field_name, FALSE, []);
         if (TRUE === $check_duplicate) {
             foreach ($field_value as $id) {
-                if (MongoDBCollection::convertMongoIdToString($id) 
-                    === MongoDBCollection::convertMongoIdToString($entity_id))
+                if (MongoDBCollection::mongoIdToString($id) 
+                    === MongoDBCollection::mongoIdToString($entity_id))
                     // return FALSE;
                     return $this;
             }
