@@ -5,24 +5,26 @@ namespace Ilex\Base\Controller\Service;
 use \Exception;
 use \ReflectionClass;
 use \ReflectionMethod;
+use \Ilex\Core\Context as c;
 use \Ilex\Core\Debug;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Http;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 use \Ilex\Base\Controller\BaseController;
+use \Ilex\Base\Model\Core\BaseCore;
+use \Ilex\Base\Model\Collection\MongoDBCollection;
 
 /**
  * Class BaseService
  * Base class of service controllers.
  * @package Ilex\Base\Controller\Service
  *
- * @method final public __construct()
  * @method final public __call(string $method_name, array $arg_list)
  * 
  * @method final private       fail(Exception $exception)
  * @method final private array prepareExecutionRecord(string $method_name)
- * @method final private       response(array $result, int $status_code
+ * @method final private       respond(array $result, int $status_code
  *                                 , boolean $close_cgi_only = FALSE)
  * @method final private       succeed(mixed $computation_data, mixed $operation_status
  *                                 , boolean $close_cgi_only = FALSE)
@@ -35,7 +37,32 @@ abstract class BaseService extends BaseController
         'data'   => [ ],
         'status' => [ ],
     ];
-    private $isFinish = FALSE;
+
+    private $hasCalledCoreModel = FALSE;
+    private $isProcessed = FALSE;
+
+    public function __construct()
+    {
+        c::trySetCurrentUserEntity();
+    }
+
+    final protected function ensureLogin()
+    {
+        if (FALSE === c::isLogin())
+            throw new UserException('Login failed.');
+    }
+
+    final protected function loadInput()
+    {
+        $handler_name = 'Input';
+        return ($this->$handler_name = Loader::loadInput());
+    }
+
+    final protected function loadCore($path)
+    {
+        $handler_name = Loader::getHandlerFromPath($path) . 'Core';
+        return ($this->$handler_name = Loader::loadCore($path));
+    }
 
     /**
      * @param string $method_name
@@ -59,15 +86,15 @@ abstract class BaseService extends BaseController
                 throw new UserException(
                     "Handler($class_name :: $method_name) is not accessible.", $execution_record);
 
-            $config_model_name = $handler_prefix . 'Config';
-            if (TRUE === is_null($this->$config_model_name))
+            $config_model_name = $this->configModelName;
+            if (TRUE === is_null($config_model_name) OR TRUE === is_null($this->$config_model_name))
                 throw new UserException("Config model($config_model_name) not loaded in $class_name.");
-            // Method validateFeaturePrivilege should throw exception if the validation fails.
-            $execution_record['validateFeaturePrivilege']
-                = $this->$config_model_name->validateFeaturePrivilege($handler_suffix, $method_name);
+            // Method validateModelPrivilege should throw exception if the validation fails.
+            $execution_record['validateModelPrivilege']
+                = $this->$config_model_name->validateModelPrivilege($handler_suffix, $method_name);
 
-            $data_model_name = $handler_prefix . 'Data';
-            if (TRUE === is_null($this->$data_model_name))
+            $data_model_name = $this->dataModelName;
+            if (TRUE === is_null($data_model_name) OR TRUE === is_null($this->$data_model_name))
                 throw new UserException("Data model($data_model_name) not loaded in $class_name.");
             // Method validateInput should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
@@ -88,10 +115,20 @@ abstract class BaseService extends BaseController
             $this->$method_name($input_sanitization_result);
             $service_result
                 = $execution_record['service_result']
-                = $this->result;
+                = Kit::extract($this->result, [ 'data', 'status' ]);
+            $code = $this->getCode();
+            if (TRUE === is_null($code)) $this->fail();
+            $code = $this->getCode();
+            if (FALSE === Kit::in($code, [ 1, 2 ]))
+                throw new UserException('Invalid code after service has finished.', $code);
+            if (1 === $code)
+                $this->succeedRequest($execution_id, $execution_record); // END NOW
             
+            // Now code must be 2.
+
             // Method validateServiceResult should throw exception if the validation fails,
             // and it should load the config model and fetch the config info itself.
+            // @CAUTION 
             $service_result_validation_result
                 = $execution_record['validateServiceResult']
                 = $this->$data_model_name->validateServiceResult($method_name, $service_result);
@@ -105,35 +142,24 @@ abstract class BaseService extends BaseController
                     $method_name, $service_result, $service_result_validation_result);
             // $service_result_validation_result should contains
             // and only contains three fields: code, data, status.
-            $code             = $service_result_sanitization_result['code'];
-            $computation_data = $service_result_sanitization_result['data'];
-            $operation_status = $service_result_sanitization_result['status'];
+            $this->result['data'] = $computation_data = $service_result_sanitization_result['data'];
+            $this->result['status'] = $operation_status = $service_result_sanitization_result['status'];
             
-            $this->loadModel('Feature/Log/RequestLog');
-            $this->RequestLog->addRequestLog(
-                $execution_record['class'],
-                $execution_record['method'],
-                $input,
-                $code,
-                $operation_status
-            );
+            // $this->loadLog('Request');
+            // $this->RequestLog->addRequestLog(
+            //     $execution_record['class'],
+            //     $execution_record['method'],
+            //     $input,
+            //     $code,
+            //     $operation_status
+            // );
             $this->succeedRequest($execution_id, $execution_record);
         } catch (Exception $e) {
             $this->failRequest(
                 $execution_id, $execution_record,
-                new UserException(
-                    'Service execution failed.', $execution_record, $e
-                )
+                new UserException('Service execution failed.', $execution_record, $e)
             );
         }
-    }
-
-    final protected function call($method_name) {
-        // @TODO: implement this method
-        $arg_list = func_get_args();
-        $method_name = $arg_list[0];
-        $arg_list = array_slice($arg_list, 1);
-        return call_user_func_array([$this, $method_name], $arg_list);
     }
 
     /**
@@ -142,8 +168,7 @@ abstract class BaseService extends BaseController
      */
     final private function prepareExecutionRecord($method_name)
     {
-        $this->loadModel('System/Input');
-        $input      = $this->Input->input();
+        $input      = $this->loadInput()->input();
         $class_name = get_called_class();
         
         $execution_record = $this->generateExecutionRecord($class_name, $method_name);
@@ -155,90 +180,116 @@ abstract class BaseService extends BaseController
 
     final protected function succeed()
     {
+        if (FALSE === $this->hasCalledCoreModel)
+            throw new UserException('Succeed before calling any core model.');
         $this->setCode(2);
     }
 
-    final protected function fail()
+    final private function fail() // @CAUTION can not be invoked from XService
     {
         $this->setCode(1);
     }
 
     final private function setCode($code)
     {
-        if (FALSE === in_array($code, [ 0, 1, 2, 3 ]))
+        $current_code = $this->result['code'];
+        if (FALSE === Kit::in($code, [ 0, 1, 2, 3 ]))
             throw new UserException('Invalid $code.', $code);
-        if (FALSE === is_null($this->result['code']))
-            throw new UserException("code is not NULL before set to $code");
-        if (TRUE === $this->checkFinish()) {
-            if (0 !== $code) {
-                $msg = "Can not change code to $code after service has finished.";
-                throw new UserException($msg);
-            }
-        }
-        $this->finish();
-        $this->result['code'] = $code;
-        return $code;
+        if (FALSE === is_null($current_code) 
+            AND FALSE === Kit::in($current_code, [ 0, 1, 2, 3 ]))
+            throw new UserException('Invalid $current_code.', $current_code);
+        if (TRUE === Kit::in($current_code, [ 0, 3 ]))
+            throw new UserException("Can not change code(${current_code}) to $code after the request has finished.", $current_code);
+        // current_code = NULL/1/2; code = 0/1/2/3
+        if ((TRUE === is_null($current_code) AND TRUE === Kit::in($code, [ 0, 1, 2, 3 ]))
+            OR (1 === $current_code AND TRUE === Kit::in($code, [ 0, 1 ]))
+            OR (2 === $current_code AND TRUE === Kit::in($code, [ 0, 1, 2 ]))
+            ) {
+            $this->result['code'] = $code;
+            return $code;
+        } elseif (1 === $current_code AND 2 === $code) {
+            // ignore in case
+        } else throw new UserException("Can not set code($current_code) to $code.");
     }
 
-    final private function getCode()
+    final protected function getCode()
     {
         return $this->result['code'];
     }
 
-    final protected function data($name = NULL, $value = '@[EMPTY]#')
+    final protected function process($name = NULL, $value = Kit::TYPE_VACANCY, $is_list = FALSE)
     {
-        return $this->handleResult('computation_data', $name, $value);
+        if (FALSE === Kit::isVacancy($value) AND FALSE === Kit::isArray($value))
+            throw new UserException('$value of process should be a dict.', [ $name, $value, $is_list ]);
+        $this->hasCalledCoreModel = TRUE;
+        if (FALSE === Kit::isVacancy($value) AND 
+            (FALSE === isset($value[BaseCore::S_OK]) OR TRUE !== $value[BaseCore::S_OK])) {
+            $this->fail();
+        }
+        $isProcessed = TRUE;
+        return $this->handleResult('process', $name, $value, $is_list);
+    }
+    
+    final protected function data($name = NULL, $value = Kit::TYPE_VACANCY, $is_list = FALSE)
+    {
+        return $this->handleResult('data', $name, $value, $is_list);
     }
 
-    final protected function status($name = NULL, $value = '@[EMPTY]#')
+    final protected function status($name = NULL, $value = Kit::TYPE_VACANCY, $is_list = FALSE)
     {
-        return $this->handleResult('operation_status', $name, $value);
+        return $this->handleResult('status', $name, $value, $is_list);
     }
 
-    final private function handleResult($type, $name = NULL, $value = '@[EMPTY]#')
+    final private function handleResult($type, $name, $value, $is_list)
     {
-        if (TRUE === $this->checkFinish())
-            throw new UserException('Can not handle result after service has finished.');
-        if (FALSE === in_array($type, [ 'computation_data', 'operation_status' ]))
-            throw new UserException('Invalid $type.', $type);
-        if (TRUE === is_string($name)) {
-            if ('@[EMPTY]#' === $value) // (valid)
+        Kit::ensureString($name, TRUE);
+        if (TRUE === Kit::isString($name)) {
+            if (TRUE === Kit::isVacancy($value)) // (valid)
                 return $this->getResult($type, $name);
             // (valid, valid/NULL)
-            return $this->setResult($type, $name, $value);
+            return $this->setResult($type, $name, $value, $is_list);
         } elseif (TRUE === is_null($name)) {
-            if ('@[EMPTY]#' === $value) // (NULL) / ()
-                return $this->getResult($type);
+            if (TRUE === Kit::isVacancy($value)) // (NULL) / ()
+                return $this->getResult($type, NULL);
             // (NULL, valid/NULL)
-            throw new UserException('Invalid $value(NULL) when $name is NULL.');
+            throw new UserException('Invalid $value when $name is NULL.', $value);
         } else {
             // (invalid, valid/NULL/empty)
             throw new UserException('Invalid $name.', $name);
         }
     }
 
-    final private function setResult($type, $name, $value)
+    final private function setResult($type, $name, $value, $is_list)
     {
-        if (FALSE === in_array($type, [ 'computation_data', 'operation_status' ]))
+        if (FALSE === Kit::in($type, [ 'data', 'status', 'process' ]))
             throw new UserException('Invalid $type.', $type);
-        $type = 'computation_data' === $type ? 'data' : 'status';
-        if (FALSE === is_string($name))
-            throw new UserException('$name is not a string.', $name);
+        Kit::ensureString($name);
         if ('' === $name)
             throw new UserException('$name is an empty string.', $type);
-        $this->result[$type][$name] = $value;
+        if (TRUE === isset($this->result[$type][$name])) {
+            if (TRUE === $is_list) {
+                if (TRUE === Kit::isList($this->result[$type][$name])) {
+                    $this->result[$type][$name][] = $value;
+                } else {
+                    $msg = "\$this->result[$type][$name] is a non-empty non-list variable.";
+                    throw new UserException($msg, $this->result[$type][$name]);
+                }
+            } else $this->result[$type][$name] = $value;
+        } else {
+            if (TRUE === $is_list)
+                $this->result[$type][$name] = [ $value ];
+            else $this->result[$type][$name] = $value;
+        }
         return $value;
     }
 
-    final private function getResult($type, $name = NULL)
+    final private function getResult($type, $name)
     {
-        if (FALSE === in_array($type, [ 'computation_data', 'operation_status' ]))
+        if (FALSE === Kit::in($type, [ 'data', 'status', 'process' ]))
             throw new UserException('Invalid $type.', $type);
-        $type = 'computation_data' === $type ? 'data' : 'status';
+        Kit::ensureString($name, TRUE);
         if (TRUE === is_null($name))
             return $this->result[$type];
-        if (FALSE === is_string($name))
-            throw new UserException('$name is not a string.', $name);
         if (FALSE === isset($this->result[$type][$name])) {
             $msg = "Field($name) does not exist in $type.";
             throw new UserException($msg, $this->result[$type]);
@@ -246,69 +297,80 @@ abstract class BaseService extends BaseController
         return $this->result[$type][$name];
     }
 
-    final private function finish()
-    {
-        $this->isFinish = TRUE;
-    }
-
-    final private function checkFinish()
-    {
-        return $this->isFinish;
-    }
-
     /**
+     * Only the following cases are valid:
+     * code = 1/2 => 1/2; close_cgi_only = FALSE
+     * code = NULL => 3;  close_cgi_only = TRUE
+     * @param int     $execution_id
+     * @param array   $execution_record
      * @param boolean $close_cgi_only
      */
     final private function succeedRequest($execution_id, $execution_record , $close_cgi_only = FALSE)
     {
         $code = $this->getCode();
         if (TRUE === is_null($code)) {
-            if (TRUE === $close_cgi_only) { // NULL 1 => 3
+            if (TRUE === $close_cgi_only) { // code = NULL; close_cgi_only = 1 => 3
                 $this->setCode(3);
-            } else { // NULL 0 => error
+            } elseif (FALSE === $this->isProcessed) { // code = NULL; close_cgi_only = 0 => error
                 $msg = 'Can not succeed the request before service is finished and code is NULL.';
                 throw new UserException($msg);
-            }
-        } elseif (FALSE === in_array($code, [ 1, 2 ])) { // 0/3 0/1 => error
+            } else throw new UserException('Processed, but code is NULL.');
+            
+        } elseif (FALSE === Kit::in($code, [ 1, 2 ])) { // code = 0/3; close_cgi_only = 0/1 => error
             throw new UserException('Invalid code.', $code);
-        } elseif (TRUE === $close_cgi_only) { // 1/2 1 => error
+        } elseif (TRUE === $close_cgi_only) { // code = 1/2; close_cgi_only = 1 => error
             throw new UserException('Can not only close cgi after service has finished.', $code);
-        } else { // 1/2 0 => 1/2
+        } else { // code = 1/2; close_cgi_only = 0 => 1/2
         }
         // Now code must be 1 or 2 or 3.
-        $this->response($execution_id, $execution_record, 200, $close_cgi_only);
+        $execution_record['success'] = TRUE;
+        $this->respond($execution_id, $execution_record, 200, $close_cgi_only);
     }
 
     /**
+     * Set code from NULL/1/2 to 0.
+     * @param int       $execution_id
+     * @param array     $execution_record
      * @param Exception $exception
      */
-    final private function failRequest($execution_id, $execution_record, $exception)
+    final private function failRequest($execution_id, $execution_record, Exception $exception)
     {
         $code = $this->getCode();
-        if (FALSE === is_null($code) AND FALSE === in_array($code, [ 1, 2 ])) {
-            throw new UserException('Can not fail the request because of invalid code.', $code);
+        if (FALSE === is_null($code) AND FALSE === Kit::in($code, [ 1, 2 ])) {
+            throw new UserException('Can not fail the request because of invalid code.', $code, $exception);
         }
         // Now code must be NULL or 1 or 2.
         $this->setCode(0);
         if (FALSE === Debug::isProduction())
             $this->result['exception'] = Debug::extractException($exception);
-        $this->response($execution_id, $execution_record, 200); // @TODO: change code
+        $execution_record['success'] = FALSE;
+        $this->respond($execution_id, $execution_record, 200); // @TODO: change code
     }
 
     /**
+     * @param int     $execution_id
+     * @param array   $execution_record
      * @param int     $status_code
      * @param boolean $close_cgi_only
      */
-    final private function response($execution_id, $execution_record
-        , $status_code, $close_cgi_only = FALSE)
+    final private function respond($execution_id, $execution_record, $status_code, $close_cgi_only = FALSE)
     {
         if (FALSE === $close_cgi_only) {
+            if (2 !== $this->getCode()) {
+                $this->result['rollback'] = MongoDBCollection::rollback();
+            } else $this->result['rollback'] = FALSE;
             Debug::updateExecutionRecord($execution_id, $execution_record);
             Debug::popExecutionId($execution_id);
         }
+        if (FALSE === is_null($error = error_get_last()) AND TRUE === Debug::isErrorCared($error)) {
+            Debug::handleFatalError($error);
+        }
         header('Content-Type : application/json', TRUE, $status_code);
-        if (FALSE === Debug::isProduction())
-            $this->result['trace'] = Debug::getExecutionRecordStack();
+        if (FALSE === Debug::isProduction()) {
+            $this->result += Debug::getDebugInfo();
+        } else {
+            unset($this->result['process']);
+        }
         Http::json($this->result);
         if (TRUE === $close_cgi_only) {
             fastcgi_finish_request();

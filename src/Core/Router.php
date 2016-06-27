@@ -152,7 +152,7 @@ final class Router
      */
     private function resolveRestURI($description)
     {
-        $length = strlen($description);
+        $length = Kit::len($description);
         if (substr($this->uri, 0, $length) !== $description) {
         // $description IS NOT a prefix of $this->uri.
             return FALSE;
@@ -251,9 +251,9 @@ final class Router
             foreach ($m as $value) {
                 $mapping[$value[1]] = $value[2]; // 'id' => 'num'
             }
-            $Input = Loader::model('System/Input');
+            $Input = Loader::loadInput();
             foreach ($match_list as $key => $value) { // [0 => 12, 'id' => 12]
-                if (TRUE === is_int($key)) {
+                if (TRUE === Kit::isInt($key)) {
                     unset($match_list[$key]);
                 } elseif ('num' === $mapping[$key]) {
                     $Input->setInput($key, intval($value));
@@ -261,21 +261,20 @@ final class Router
                     $Input->setInput($key, $value);
                 }
             }
-            if (TRUE === is_string($handler) OR FALSE === ($handler instanceof \Closure)) {
+            if (TRUE === Kit::isString($handler) OR FALSE === ($handler instanceof \Closure)) {
             // $handler is a string or IS NOT an anonymous function, i.e., an instance.
                 Kit::log([__METHOD__, '$handler is a string or IS NOT an anonymous function, i.e.
                     , an instance.'], FALSE);
                 Kit::log([__METHOD__, 'call end', [
                     'function' => $function,
-                    'handler'  => TRUE === is_string($handler) ? Loader::controller($handler) : $handler,
+                    'handler'  => TRUE === Kit::isString($handler) ? Loader::loadService($handler) : $handler,
                     'arg_list' => [ $is_time_consuming ],
                 ]]);
-                if (FALSE === is_string($function))
-                    throw new UserException('$function is not a string.', $function);
+                Kit::ensureString($function);
                 $this->end(
                     call_user_func_array([
-                        // The controller is loaded HERE!
-                        TRUE === is_string($handler) ? Loader::controller($handler) : $handler,
+                        // The service controller is loaded HERE!
+                        TRUE === Kit::isString($handler) ? Loader::loadService($handler) : $handler,
                         $function
                     ], [ $is_time_consuming ])
                 );
@@ -343,7 +342,8 @@ final class Router
 
         $function = $this->getFunction($this->uri);
         Kit::log([__METHOD__, ['function' => $function]]);
-        if (TRUE === is_array($function)) {
+        // if (TRUE === Kit::isList($function)) {
+        if (TRUE === Kit::isArray($function)) { // @CAUTION
             // CAN NOT change order!
             $arg_list = $function[1];
             $function = $function[0];
@@ -360,7 +360,7 @@ final class Router
         ]]);
         
         // The controller is loaded HERE!
-        $controller  = Loader::controller($handler); // eg. \AboutController
+        $controller  = Loader::loadController($handler); // eg. \AboutController
         $combination = strtolower($this->method) . ucfirst($function); // eg. 'postJoin'
         Kit::log([__METHOD__, ['controller' => $controller, 'combination' => $combination]]);
         // @todo: possibly conflict!? Test cases concerned with the default method: 'get'!
@@ -428,20 +428,20 @@ final class Router
                 $arg_list = []; // eg. '/user/' => 'user/' with no arg_list
             } else {
                 // At least one arg.
-                $arg_list = explode('/', substr($uri, $index + 1)); // eg. ['page', '12']
+                $arg_list = Kit::split('/', substr($uri, $index + 1)); // eg. ['page', '12']
             }
         }
         if ('' === $function) {
             $function = 'index'; // $uri was '/' at the beginning.
         }
         Kit::log([__METHOD__, ['function' => $function, 'arg_list' => $arg_list]]);
-        return count($arg_list) > 0 ? [$function, $arg_list] : $function;
+        return Kit::len($arg_list) > 0 ? [ $function, $arg_list ] : $function;
     }
 
     private function popUriList()
     {
         // The last of three places where $this->uri is assigned.
         // The last of two places where $this->uriList is updated.
-        $this->uri = array_pop($this->uriList);
+        $this->uri = Kit::popList($this->uriList);
     }
 }

@@ -1,32 +1,26 @@
 <?php
 
-namespace Ilex\Base\Model\Feature\Database;
+namespace Ilex\Base\Model\Collection;
 
-use \Ilex\Base\Model\Feature\Database\BaseCollection;
+use \Ilex\Base\Model\Collection\BaseCollection;
 
 /**
  * Class LogCollection
- * @package Ilex\Base\Model\Feature\Database
+ * @package Ilex\Base\Model\Collection
  */
 class LogCollection extends BaseCollection
 {
-    protected static $methodsVisibility = [
-        self::V_PUBLIC => [
-            'addRequestLog',
-        ],
-        self::V_PROTECTED => [
-            'addLog',
-        ]
-    ];
+    // protected static $methodsVisibility = [
+    //     self::V_PUBLIC => [
+    //         'addRequestLog',
+    //     ],
+    //     self::V_PROTECTED => [
+    //         'addLog',
+    //     ]
+    // ];
 
     const COLLECTION_NAME = 'Log';
-
-    final public function __construct()
-    {
-        parent::__construct();
-        $this->loadModel('Config/LogConfig');
-        $this->loadModel('Data/LogData');
-    }
+    const ENTITY_PATH     = 'Log';
 
     final protected function addRequestLog($content)
     {

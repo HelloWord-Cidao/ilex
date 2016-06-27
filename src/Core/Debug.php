@@ -6,8 +6,10 @@ use \Exception;
 use \ReflectionFunction;
 use \ReflectionMethod;
 use \Ilex\Core\Loader;
+use \Ilex\Lib\Http;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
+use \Ilex\Base\Model\Collection\MongoDBCollection;
 
 /**
  * @todo: method arg type validate
@@ -52,35 +54,158 @@ final class Debug
     const E_PRODUCTION  = 'PRODUCTION';
     const E_TEST        = 'TEST';
 
+    const M_BYTE     = 'BYTE';
+    const M_KILOBYTE = 'KILOBYTE';
+    const M_MEGABYTE = 'MEGABYTE';
+    const M_GIGABYTE = 'GIGABYTE';
+
+    const T_MICROSECOND = 'MICROSECOND';
+    const T_MILLISECOND = 'MILLISECOND';
+    const T_SECOND      = 'SECOND';
+    const T_MINUTE      = 'MINUTE';
+
+    private static $errorTypes     = E_ALL;
+    private static $isErrorHandled = FALSE;
+
     private static $config               = NULL;
     private static $environment          = self::E_PRODUCTION;
-    public static $executionIdStack     = [ ];
-    private static $executionRecordStack = [ ];
+    private static $executionIdStack     = [ ];
+    private static $executionRecordStack = [ ]; // @TODO: disable it in production mode to save memory
+    private static $startTime            = NULL;
 
-    /**
-     * Clears the execution record stack.
-     */
+    public static function setErrorTypes($error_types)
+    {
+        self::$errorTypes = $error_types;
+    }
+
     public static function initialize()
     {
-        $Input = Loader::model('System/Input');
+        $Input = Loader::loadInput();
         self::$config = [
             'trace' => [
-                '@-1'  => self::D_NONE,
+                '@-1' => self::D_NONE,
             ],
             'exception' => [
-                '@-1'  => self::D_NONE,
+                '@-1' => self::D_NONE,
             ],
         ];
-        $config = $Input->input('Debug', NULL);
-        if (TRUE === is_array($config)) {
-            if (TRUE === isset($config['trace']))
-                self::$config['trace'] = array_merge(self::$config['trace'], $config['trace']);
-            if (TRUE === isset($config['exception']))
-                self::$config['exception'] = array_merge(self::$config['exception'], $config['exception']);
-        }
+        $raw_config = $Input->input('Debug', NULL);
+        if (TRUE === Kit::isDict($raw_config)) $config = $raw_config;
+        elseif (TRUE === is_null($raw_config)) $config = [ ];
+        elseif (TRUE === Kit::isString($raw_config, FALSE, TRUE)) {
+            if ('' === $raw_config) $config = [ ];
+            else {
+                $config = json_decode($raw_config, TRUE);
+                if (TRUE === is_null($config) AND Kit::len($raw_config) > 0)
+                    throw new UserException(json_last_error_msg(), $raw_config);
+            }
+        } else throw new UserException('Invalid $raw_config.', $raw_config);
+        Kit::ensureDict($config);
+        if (TRUE === isset($config['t']))
+            Kit::update(self::$config['trace'], $config['t']);
+        if (TRUE === isset($config['e']))
+            Kit::update(self::$config['exception'], $config['e']);
         $Input->deleteInput('Debug');
         self::$executionIdStack     = [];
         self::$executionRecordStack = [];
+        self::$startTime            = $_SERVER['REQUEST_TIME_FLOAT'];
+    }
+
+    private static function respondOnFail($exception_or_error, $is_error = FALSE)
+    {
+        Kit::ensureBoolean($is_error);
+        $result = [
+            'rollback' => MongoDBCollection::rollback(),
+            'code'     => 0,
+        ];
+        if (FALSE === self::isProduction()) {
+            if (FALSE === $is_error) {
+                try {
+                    $exception = self::extractException($exception_or_error);
+                } catch (Exception $e) {
+                    $exception = self::extractException($e);
+                    $result['last_exception'] = $exception_or_error;
+                }
+                $result['exception'] = $exception;
+            } else {
+                $result['error'] = $exception_or_error;
+            }
+            $result += self::getDebugInfo();
+        }
+        Http::json($result);
+    }
+
+    public static function isErrorCared($error)
+    {
+        Kit::ensureDict($error, TRUE);
+        return (self::$errorTypes & $error['type']) === $error['type'];
+    }
+
+    public static function handleFatalError($error = NULL) {
+        Kit::ensureDict($error, TRUE);
+        if (TRUE === is_null($error)) $error = error_get_last();
+        if (FALSE === self::$isErrorHandled
+            AND FALSE === is_null($error)
+            AND (TRUE === self::isErrorCared($error))) {
+            $error['type'] = self::polishErrorType($error['type']);
+            self::respondOnFail($error, TRUE);
+        }
+        self::$isErrorHandled = TRUE;
+        exit();
+    }
+
+    public static function handleUncaughtException(Exception $e)
+    {
+        self::respondOnFail($e);
+        self::$isErrorHandled = TRUE;
+        exit();
+    }
+
+    public static function getDebugInfo()
+    {
+        return [
+            'trace'  => self::getExecutionRecordStack(),
+            'memory' => self::getMemoryUsed(),
+            'time'   => self::getTimeUsed(),
+        ];
+    }
+
+    public static function getMemoryUsed($unit = self::M_MEGABYTE, $to_string = TRUE)
+    {
+        $result = memory_get_peak_usage(TRUE);
+        $result *= [
+            self::M_BYTE     => 1,
+            self::M_KILOBYTE => 1.0 / 1024,
+            self::M_MEGABYTE => 1.0 / (1024 * 1024),
+            self::M_GIGABYTE => 1.0 / (1024 * 1024 * 1024),
+        ][$unit];
+        if (TRUE === $to_string)
+            $result = sprintf([
+                self::M_BYTE     => '%dB',
+                self::M_KILOBYTE => '%.1fKB',
+                self::M_MEGABYTE => '%.1fMB',
+                self::M_GIGABYTE => '%.1fGB',
+            ][$unit], $result);
+        return $result;
+    }
+
+    public static function getTimeUsed($unit = self::T_MILLISECOND, $to_string = TRUE)
+    {
+        $result = microtime(TRUE) - self::$startTime;
+        $result *= [
+            self::T_MICROSECOND => 1000 * 1000,
+            self::T_MILLISECOND => 1000,
+            self::T_SECOND      => 1,
+            self::T_MINUTE      => 1.0 / 60,
+        ][$unit];
+        if (TRUE === $to_string)
+            $result = sprintf([
+                self::T_MICROSECOND => '%dmms',
+                self::T_MILLISECOND => '%.1fms',
+                self::T_SECOND      => '%.1fs',
+                self::T_MINUTE      => '%.1fm',
+            ][$unit], $result);
+        return $result;
     }
 
     public static function setEnvironmentToDevelopment()
@@ -141,13 +266,13 @@ final class Debug
      */
     public static function popExecutionId($execution_id)
     {
-        if (0 === count(self::$executionIdStack))
+        if (0 === Kit::len(self::$executionIdStack))
             throw new UserException('$executionIdStack is empty.', 1);
         if (Kit::last(self::$executionIdStack) !== $execution_id) {
             $msg = "\$execution_id($execution_id) does not match the top of \$executionIdStack.";
             throw new UserException($msg, self::$executionIdStack);
         }
-        array_pop(self::$executionIdStack);
+        Kit::popList(self::$executionIdStack);
     }
 
     /**
@@ -156,7 +281,7 @@ final class Debug
      */
     private static function peekExecutionId()
     {
-        if (0 === count(self::$executionIdStack)) {
+        if (0 === Kit::len(self::$executionIdStack)) {
             // throw new UserException('$executionIdStack is empty.', 1);
             return NULL;
         }
@@ -194,6 +319,8 @@ final class Debug
             $execution_record['parent_execution_id'] = $parent_execution_id;
             $execution_record['indent']              = $indent . ' ';
         }
+        $execution_record['time_used']   = self::getTimeUsed(self::T_MILLISECOND, FALSE);
+        $execution_record['memory_used'] = self::getMemoryUsed(self::M_KILOBYTE, FALSE);
         // $execution_record = self::simplifyExecutionRecord($execution_record);
         self::$executionRecordStack[] = $execution_record;
         return self::countExecutionRecord() - 1;
@@ -206,7 +333,7 @@ final class Debug
      */
     public static function updateExecutionRecord($execution_id, $execution_record)
     {
-        if ($execution_id >= count(self::$executionRecordStack))
+        if ($execution_id >= Kit::len(self::$executionRecordStack))
             throw new UserException("\$execution_id($execution_id) overflows \$executionRecordStack.");
         // $execution_record = self::simplifyExecutionRecord($execution_record);
         self::$executionRecordStack[$execution_id] = array_merge(
@@ -231,7 +358,7 @@ final class Debug
      */
     public static function countExecutionRecord()
     {
-       return count(self::$executionRecordStack);
+       return Kit::len(self::$executionRecordStack);
     }
 
     /**
@@ -242,8 +369,10 @@ final class Debug
     {
         $result = self::$executionRecordStack;
         $index = 0;
-        while ($index < count($result)) {
-            $result[$index] = sprintf('%s%02d.(%02d) (%s) %10s %10s :: %s',
+        while ($index < Kit::len($result)) {
+            $result[$index] = sprintf('%5.1fms %.0fKB %s%02d.(%02d) (%s) %10s %10s :: %s',
+                $result[$index]['time_used'],
+                $result[$index]['memory_used'],
                 $result[$index]['indent'],
                 $index,
                 $result[$index]['parent_execution_id'],
@@ -255,7 +384,7 @@ final class Debug
             );
             $index++;
         }
-        // $result = array_slice($result, 0, 10);
+        // $result = Kit::slice($result, 0, 10);
             // 'parent_execution_id'
             // 'indent'
             // 'success'
@@ -269,7 +398,7 @@ final class Debug
         // 'validateArgs'
         // 'sanitizeArgs'
 
-        // 'validateFeaturePrivilege'
+        // 'validateModelPrivilege'
         // 'method_accessibility'
         // 'method_visibility'
         // 'declaring_class'
@@ -294,18 +423,16 @@ final class Debug
      * @param Exception $exception
      * @return array
      */
-    public static function extractException($exception)
+    public static function extractException(Exception $exception)
     {
         $result = [ self::extractExceptionIteratively($exception) ];
         $index = 0;
-        while ($index < count($result)) {
+        while ($index < Kit::len($result)) {
             if (TRUE === isset($result[$index]['previous']))
                 $result[] = $result[$index]['previous'];
             try {
-                $handler_prefix = Loader::getHandlerPrefixFromPath(
-                    $result[$index]['class'], ['Service', 'Feature', 'Core', 'Collection', 'Log']);
-                $handler_suffix = Loader::getHandlerSuffixFromPath(
-                    $result[$index]['class'], ['Service', 'Feature', 'Core', 'Collection', 'Log']);
+                $handler_prefix = Loader::getHandlerPrefixFromPath($result[$index]['class']);
+                $handler_suffix = Loader::getHandlerSuffixFromPath($result[$index]['class']);
                 $handler = sprintf('%10s %10s', $handler_prefix, $handler_suffix);
             } catch (Exception $e) {
                 $handler = $result[$index]['class'];
@@ -319,18 +446,20 @@ final class Debug
                     $result[$index]['line'],
                     $result[$index]['message']
                 ),
+                'context' => $result[$index]['trace'][0],
             ];
-            if (TRUE === self::checkExceptionDisplay($index, self::D_E_DETAIL)) {
-                if (TRUE === isset($result[$index]['detail'])) {
+            // if (TRUE === self::checkExceptionDisplay($index, self::D_E_DETAIL)) {
+                if (FALSE === Kit::isVacancy($result[$index]['detail'])) {
                     $tmp['detail'] = $result[$index]['detail'];
-                    if (FALSE === self::checkExceptionDisplay($index, self::D_E_DETAIL_MORE)) {
+                    if (FALSE === self::checkExceptionDisplay($index, self::D_E_DETAIL_MORE)
+                        AND TRUE === Kit::isArray($tmp['detail'])) {
                         $tmp['detail'] = Kit::extract($tmp['detail'], [
                             'class',
                             'method',
                             'args',
                             'args_sanitization_result',
                             'declaring_class',
-                        ], TRUE);
+                        ], FALSE);
                         if (FALSE === is_null($tmp['detail']['class'])
                             AND FALSE === is_null($tmp['detail']['method'])) {
                             $tmp['detail']['handler'] = sprintf('        %s :: %s',
@@ -339,26 +468,27 @@ final class Debug
                             unset($tmp['detail']['method']);
                         }
                     }
-                    if (FALSE === self::checkExceptionDisplay($index, self::D_E_DETAIL_ARGS)) {
+                    if (FALSE === self::checkExceptionDisplay($index, self::D_E_DETAIL_ARGS)
+                        AND TRUE === Kit::isArray($tmp['detail'])) {
                         unset($tmp['detail']['args']);
                         unset($tmp['detail']['args_sanitization_result']);
                     }
                 }
-                else $tmp['detail'] = NULL;
-            }
+                // else $tmp['detail'] = NULL;
+            // }
             if (TRUE === self::checkExceptionDisplay($index, self::D_E_INITIATOR)) {
                 $tmp['initiator'] = sprintf('%s :: %s',
                     $result[$index]['initiator_class'], $result[$index]['initiator_function']);
             }
-            if (TRUE === self::checkExceptionDisplay($index, self::D_E_TRACE)) {
-                if (TRUE === self::checkExceptionDisplay($index, self::D_E_TRACE_ARGS))
+            // if (TRUE === self::checkExceptionDisplay($index, self::D_E_TRACE)) {
+                // if (TRUE === self::checkExceptionDisplay($index, self::D_E_TRACE_ARGS))
                     $tmp['trace'] = $result[$index]['trace'];
-                else $tmp['trace'] = Kit::columnsExclude($result[$index]['trace'], [ 'params', 'args' ]);
-            }
+                // else $tmp['trace'] = Kit::columnsExclude($result[$index]['trace'], [ 'params', 'args' ]);
+            // }
             if (TRUE === self::checkExceptionDisplay($index, self::D_E_FILE)) {
                 $tmp['file'] = $result[$index]['file'];
             }
-            if (1 === count($tmp))
+            if (1 === Kit::len($tmp))
                 $result[$index] = $tmp['msg'];
             else $result[$index] = $tmp;
             $index++;
@@ -373,7 +503,7 @@ final class Debug
         // initiator_function
             // trace
             // detail
-        return $result;
+        return Kit::reversed($result);
     }
 
     /**
@@ -381,7 +511,7 @@ final class Debug
      * @param Exception $exception
      * @return array
      */
-    private static function extractExceptionIteratively($exception)
+    private static function extractExceptionIteratively(Exception $exception)
     {
         $result = [
             'message' => $exception->getMessage(),
@@ -476,7 +606,7 @@ final class Debug
             //          // ? $param->getDefaultValue() : 'no default value', 
             //     'arg'                         => $arg_list[$position],
             // ]);
-            if ($position + 1 > count($arg_list)) {
+            if ($position + 1 > Kit::len($arg_list)) {
                 try {
                     // @TODO: check if it will fail
                     $param_mapping[$param_name] = $param->getDefaultValue();
@@ -498,24 +628,24 @@ final class Debug
      */
     private static function extractInitiator($trace)
     {
-        if (count($trace) <= 1) $index = NULL;
+        if (Kit::len($trace) <= 1) $index = NULL;
         else {
             // @todo: add comment to this
-            if (TRUE === in_array($trace[0]['function'], [
+            if (TRUE === Kit::in($trace[0]['function'], [
                 '__call', 'call', 'callParent', 'execute'
             ])) {
                 if ($trace[0]['args'][0] !== $trace[1]['function']) $index = 1;
                 else {
-                    if (count($trace) <= 2) $index = NULL;
+                    if (Kit::len($trace) <= 2) $index = NULL;
                     else $index = 2;
                 }
-            } elseif (TRUE === in_array($trace[1]['function'], [
+            } elseif (TRUE === Kit::in($trace[1]['function'], [
                 'call_user_func_array',
                 'call_user_method_array',
                 'call_user_func',
                 'call_user_method'
             ])) {
-                if (count($trace) <= 2) $index = NULL;
+                if (Kit::len($trace) <= 2) $index = NULL;
                 else $index = 2;
             } else $index = 1;
         }
@@ -534,7 +664,7 @@ final class Debug
     {
         $result = [];
         foreach ($trace as $index => $record) {
-            $record['index'] = count($trace) - $index - 1;
+            $record['index'] = Kit::len($trace) - $index - 1;
             if (TRUE === isset($record['file'])) {
                 $record['initiator'] = sprintf('%s (%d)', $record['file'], $record['line']);
                 $record = Kit::exclude($record, [ 'file', 'line' ]);
@@ -543,11 +673,40 @@ final class Debug
                 $record['handler'] = sprintf('%s %s ', $record['class'], $record['type']);
                 $record = Kit::exclude($record, [ 'class', 'type' ]);
             } else $record['handler'] = '';
+            if (TRUE === Kit::in($record['function'], [
+                    'call_user_func_array',
+                    'execute',
+                    'call',
+                    '__call',
+
+                ])) continue;
             $record['handler'] .= $record['function'];
             unset($record['function']);
             $result[] = $record;
         }
         return $result;
     }
+
+    private static function polishErrorType($error_type) 
+    {
+        Kit::ensureInt($error_type);
+        return [
+            E_ERROR             => 'E_ERROR', 
+            E_WARNING           => 'E_WARNING', 
+            E_PARSE             => 'E_PARSE', 
+            E_NOTICE            => 'E_NOTICE', 
+            E_CORE_ERROR        => 'E_CORE_ERROR', 
+            E_CORE_WARNING      => 'E_CORE_WARNING', 
+            E_COMPILE_ERROR     => 'E_COMPILE_ERROR', 
+            E_COMPILE_WARNING   => 'E_COMPILE_WARNING', 
+            E_USER_ERROR        => 'E_USER_ERROR', 
+            E_USER_WARNING      => 'E_USER_WARNING', 
+            E_USER_NOTICE       => 'E_USER_NOTICE', 
+            E_STRICT            => 'E_STRICT', 
+            E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR', 
+            E_DEPRECATED        => 'E_DEPRECATED', 
+            E_USER_DEPRECATED   => 'E_USER_DEPRECATED', 
+        ][$error_type];
+    } 
 
 }

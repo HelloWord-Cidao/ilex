@@ -29,7 +29,7 @@ final class Autoloader
     {
         self::initialize($APPPATH, $RUNTIMEPATH, $APPNAME);
         // @todo: how to handle the return value? check other project.
-        // If a service controller is called, then it will response the HTTP request and exit before return anything. Other cases unknown.
+        // If a service controller is called, then it will respond the HTTP request and exit before return anything. Other cases unknown.
         return self::resolve(
             $_SERVER['REQUEST_METHOD'], // i.e.  'GET' | 'POST' | 'PUT' | 'DELETE'
             (TRUE === isset($_GET['_url'])) ? $_GET['_url'] : '/'

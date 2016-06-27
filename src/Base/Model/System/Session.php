@@ -2,7 +2,6 @@
 
 namespace Ilex\Base\Model\System;
 
-use \Ilex\Base\Model\BaseModel;
 use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
 
@@ -32,7 +31,7 @@ use \Ilex\Lib\Kit;
  *
  * @method private static start()
  */
-final class Session extends BaseModel
+final class Session
 {
     const LOGIN    = 'login';
     const SID      = 'sid';

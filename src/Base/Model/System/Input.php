@@ -5,7 +5,6 @@ namespace Ilex\Base\Model\System;
 use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
-use \Ilex\Base\Model\BaseModel;
 
 /**
  * @todo: method arg type validate
@@ -32,7 +31,7 @@ use \Ilex\Base\Model\BaseModel;
  * @method public static mixed   setInput(mixed $key, mixed $value)
  * @method public static boolean deleteInput(mixed $key)
  */
-final class Input extends BaseModel
+final class Input
 {
     private static $getData;
     private static $postData;
@@ -48,13 +47,15 @@ final class Input extends BaseModel
         self::$inputData = new Container();
         self::merge('get', $_GET);
         self::merge('post', $_POST);
-        $input = file_get_contents('php://input');
+        $opts = [ 'http' => [ 'timeout' => 60 ] ];
+        $context = stream_context_create($opts);
+        $input = file_get_contents('php://input', FALSE, $context);
         $data  = json_decode($input, TRUE);
-        if (TRUE === is_null($data) AND strlen($input) > 0)
+        if (TRUE === is_null($data) AND Kit::len($input) > 0)
             throw new UserException(json_last_error_msg(), $input);
         if (FALSE === is_null($data)) self::merge('post', $data);
         $limit = 100000;
-        if (strlen(json_encode(self::input())) > $limit) 
+        if (Kit::len(json_encode(self::input())) > $limit) 
             throw new UserException("Input size exceeds limit($limit).");
         self::deleteInput('_url');
     }
@@ -66,8 +67,9 @@ final class Input extends BaseModel
      */
     public static function clear($name = NULL)
     {
+        Kit::ensureString($name, TRUE);
         if (FALSE === is_null($name)) {
-            if (TRUE === in_array($name, ['get', 'post', 'input'])) {
+            if (TRUE === Kit::in($name, ['get', 'post', 'input'])) {
                 $name .= 'Data';
                 self::$$name->clear();
                 return TRUE;
@@ -164,7 +166,7 @@ final class Input extends BaseModel
      */
     public static function merge($name, $data)
     {
-        if (TRUE === in_array($name, ['get', 'post', 'input'])) {
+        if (TRUE === Kit::in($name, ['get', 'post', 'input'])) {
             $name .= 'Data';
             self::$$name->merge($data);
             /* 

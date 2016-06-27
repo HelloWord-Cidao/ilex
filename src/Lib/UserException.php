@@ -16,7 +16,7 @@ use \Exception;
  *                          , Exception $previous = NULL, int $code = 0)
  * @method public mixed getDetail()
  */
-final class UserException extends Exception
+class UserException extends Exception
 {
     // http://php.net/manual/en/language.exceptions.php
     // Using a return statement inside a finally block will override any other return statement 
@@ -42,7 +42,7 @@ final class UserException extends Exception
      * @param Exception $previous
      * @param int       $code
      */
-    public function __construct($message, $detail = NULL, $previous = NULL, $code = 0)
+    public function __construct($message, $detail = Kit::TYPE_VACANCY, $previous = NULL, $code = 0)
     {
         parent::__construct($message, $code, $previous);
         $this->detail = $detail;

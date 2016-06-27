@@ -36,7 +36,7 @@ final class Tester
      */
     public static function run($url = '/', $method = 'GET', $postData = [], $getData = [])
     {
-        $Input = Loader::model('System/Input');
+        $Input = Loader::loadInput();
         $Input->clear();
         $Input->merge('post', $postData);
         $Input->merge('get', $getData);

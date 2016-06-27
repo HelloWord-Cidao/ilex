@@ -3,6 +3,7 @@
 namespace Ilex\Core;
 
 use \Ilex\Core\Loader;
+use \Ilex\Lib\Kit;
 
 /**
  * Class Constant
@@ -13,7 +14,7 @@ use \Ilex\Core\Loader;
  */
 final class Constant
 {
-    private static $constantList = [
+    private static $constantMapping = [
         /*
          * -----------------------
          * System
@@ -40,8 +41,11 @@ final class Constant
 
     public static function initialize()
     {
-        require_once(Loader::APPPATH() . 'Config/Const.php');
-        foreach (self::$constantList as $name => $value) {
+        $constantMapping = require_once(Loader::APPPATH() . 'Config/Const.php');
+        Kit::update(self::$constantMapping, $constantMapping);
+        $constantMapping = require_once(Loader::APPPATH() . 'Config/Const-local.php');
+        Kit::update(self::$constantMapping, $constantMapping);
+        foreach (self::$constantMapping as $name => $value) {
             if (FALSE === defined($name)) define($name, $value);
         }
     }

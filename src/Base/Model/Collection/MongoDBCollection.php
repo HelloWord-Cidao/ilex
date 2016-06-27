@@ -1,21 +1,22 @@
 <?php
 
-namespace Ilex\Base\Model\Feature\Database;
+namespace Ilex\Base\Model\Collection;
 
 use \Exception;
 use \MongoId;
 use \MongoDate;
 use \MongoCollection;
 use \Ilex\Core\Loader;
+use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
-use \Ilex\Base\Model\Feature\BaseFeature;
-use \Ilex\Base\Model\Feature\Database\MongoDBCursor;
+// use \Ilex\Base\Model\BaseModel;
+use \Ilex\Base\Model\Collection\MongoDBCursor;
 
 /**
  * Class MongoDBCollection
  * Encapsulation of basic operations of MongoCollection class.
- * @package Ilex\Base\Model\Feature\Database
+ * @package Ilex\Base\Model\Collection
  *
  * @property private MongoCollection $collection
  *
@@ -23,8 +24,8 @@ use \Ilex\Base\Model\Feature\Database\MongoDBCursor;
  * @method       protected        MongoId             addOne(array $document)
  * @method final protected        boolean             checkExistence(array $criterion)
  * @method final protected        boolean             checkExistsOnlyOnce(array $criterion)
- * @method final protected        string              convertMongoIdToString(MongoId $id)
- * @method final protected        MongoId             convertStringToMongoId(string $id)
+ * @method final protected        string              mongoIdToString(MongoId $id)
+ * @method final protected        MongoId             stringToMongoId(string $id)
  * @method final protected        int                 count(array $criterion = []
  *                                                        , int $skip = NULL
  *                                                        , int $limit = NULL)
@@ -61,7 +62,7 @@ use \Ilex\Base\Model\Feature\Database\MongoDBCursor;
  *                                                 , array $update
  *                                                 , boolean $multiple = FALSE)
  */
-abstract class MongoDBCollection extends BaseFeature
+class MongoDBCollection
 {
 // https://docs.mongodb.com/manual/core/document-validation/
 // http://blog.mongodb.org/post/87200945828/6-rules-of-thumb-for-mongodb-schema-design-part-1
@@ -74,37 +75,76 @@ abstract class MongoDBCollection extends BaseFeature
 // https://www.idontplaydarts.com/2011/02/mongodb-null-byte-injection-attacks/
 // https://www.idontplaydarts.com/2010/07/mongodb-is-vulnerable-to-sql-injection-in-php-at-least/
 
-    protected static $methodsVisibility = [
-        self::V_PROTECTED => [
-            'addMulti',
-            'addOne',
-            'checkExistence',
-            'checkExistsOnlyOnce',
-            // 'convertMongoIdToString',
-            // 'convertStringToMongoId',
-            'count',
-            'getMulti',
-            'getOne',
-            'getTheOnlyOne',
-            // 'recoverCriterion',
-            // 'sanitizeCriterion',
-            'updateMulti',
-            'updateOne',
-            'updateTheOnlyOne',
-        ],
-    ];
+    // protected static $methodsVisibility = [
+    //     self::V_PUBLIC => [
+    //         'getCollectionName',
+    //     ],
+    //     self::V_PROTECTED => [
+    //         // 'addMulti',
+    //         'addOne',
+    //         'checkExistence',
+    //         'ensureExistence',
+    //         'checkExistsOnlyOnce',
+    //         'ensureExistsOnlyOnce',
+    //         // 'mongoIdToString',
+    //         // 'stringToMongoId',
+    //         'count',
+    //         'getMulti',
+    //         'getOne',
+    //         'getTheOnlyOne',
+    //         // 'recoverCriterion',
+    //         // 'sanitizeCriterion',
+    //         'updateMulti',
+    //         // 'updateOne',
+    //         'updateTheOnlyOne',
+    //     ],
+    // ];
 
-    private $collection;
+    protected $collectionName = NULL;
+    private $collection     = NULL;
 
-    public function __construct()
+    final public static function rollback()
     {
+        return FALSE;
+    }
+
+    protected function __construct($collection_name)
+    {
+        Kit::ensureString($collection_name);
+        if ('' === $collection_name) throw new UserException('$collection_name is an empty string.');
         try {
-            $this->collection = Loader::db()->selectCollection(static::COLLECTION_NAME);
+            $this->collectionName = $collection_name;
+            $this->collection = Loader::loadMongoDB()->selectCollection($collection_name);
         } catch (Exception $e) {
-            throw new UserException('Initializing collection failed.', static::COLLECTION_NAME, $e);
+            throw new UserException('Initializing collection failed.', $collection_name, $e);
         }
-        $this->loadModel('Config/MongoDBConfig');
-        $this->loadModel('Data/MongoDBData');
+    }
+
+    final public function getCollectionName()
+    {
+        return $this->collectionName;
+    }
+
+    final private function ensureInitialized()
+    {
+        $collection_name = $this->collectionName;
+        if (FALSE === isset($this->collection)
+            OR FALSE === $this->collection instanceof MongoCollection)
+            throw new UserException("This collection($collection_name) has not been initialized.");
+    }
+
+    final private function ensureDocumentHasNoId($document)
+    {
+        Kit::ensureArray($document);
+        if (TRUE === isset($document['_id']))
+            throw new UserException('$document should have no _id field.', $document);
+    }
+
+    final private function ensureCriterionHasProperId($criterion)
+    {
+        Kit::ensureArray($criterion);
+        if (TRUE === isset($criterion['_id']) AND FALSE === $criterion['_id'] instanceof MongoId)
+            throw new UserException('$criterion has improper _id.', $criterion);
     }
 
     /**
@@ -127,25 +167,26 @@ abstract class MongoDBCollection extends BaseFeature
      *                                     The operation in MongoCollection::$wtimeout
      *                                     is milliseconds.
      */
-    final protected function addOne($content, $meta)
+    final protected function addOne($document)
     {
-        $meta['CreationTime'] = new MongoDate();
-        $document = [
-            'Content' => $content,
-            'Meta'    => $meta,
-        ];
+        // Kit::ensureDict($document); // @CAUTION
+        Kit::ensureArray($document);
+        $this->ensureDocumentHasNoId($document);
+        if (FALSE === isset($document['Meta']))
+            $document['Meta'] = [];
+        $document['Meta']['CreationTime'] = new MongoDate();
         
-        $result = $this->call('mongoInsert', $document);
-        
+        $result = $this->mongoInsert($document);
+        if (FALSE === (bool)$result['status']['ok'] OR TRUE === isset($result['status']['err']))
+            throw new UserException('MongoDBCollection insert operation failed.', [ $result, $document ]);
         if (FLASE === isset($result['document']['_id'])
             OR FALSE === ($result['document']['_id'] instanceof MongoId)
         ) {
             throw new UserException('No _id has been generated in the inserted document.', $result);
         }
-
         return [
-            '_id'    => $result['document']['_id'],
-            'status' => $result['status'],
+            'document' => $result['document'],
+            'status'   => $result['status'],
         ];
     }
 
@@ -159,7 +200,17 @@ abstract class MongoDBCollection extends BaseFeature
      */
     final protected function checkExistence($criterion)
     {
-        return ($this->call('count', $criterion, NULL, 1) > 0);
+        // Kit::ensureDict($criterion); // @CAUTION
+        Kit::ensureArray($criterion);
+        // $criterion = $this->sanitizeCriterion($criterion);
+        $this->ensureCriterionHasProperId($criterion);
+        return ($this->count($criterion, NULL, 1) > 0);
+    }
+
+    final protected function ensureExistence($criterion)
+    {
+        if (FALSE === $this->checkExistence($criterion))
+            throw new UserException('$criterion does not exist.', $criterion);
     }
 
     /**
@@ -172,7 +223,17 @@ abstract class MongoDBCollection extends BaseFeature
      */
     final protected function checkExistsOnlyOnce($criterion)
     {
-        return (1 === $this->call('count', $criterion, NULL, 2));
+        // Kit::ensureDict($criterion); // @CAUTION
+        Kit::ensureArray($criterion);
+        // $criterion = $this->sanitizeCriterion($criterion);
+        $this->ensureCriterionHasProperId($criterion);
+        return (1 === $this->count($criterion, NULL, 2));
+    }
+
+    final protected function ensureExistsOnlyOnce($criterion)
+    {
+        if (FALSE === $this->checkExistsOnlyOnce($criterion))
+            throw new UserException('$criterion does not exist only once.', $criterion);
     }
 
     /**
@@ -186,8 +247,13 @@ abstract class MongoDBCollection extends BaseFeature
      */
     final protected function count($criterion = [], $skip = NULL, $limit = NULL)
     {
-        $criterion = $this->call('sanitizeCriterion', $criterion);
-        return $this->call('mongoCount', $criterion, $skip, $limit);
+        // Kit::ensureDict($criterion); // @CAUTION
+        Kit::ensureArray($criterion);
+        Kit::ensureInt($skip, TRUE);
+        Kit::ensureInt($limit, TRUE);
+        // $criterion = $this->sanitizeCriterion($criterion);
+        $this->ensureCriterionHasProperId($criterion);
+        return $this->mongoCount($criterion, $skip, $limit);
     }
 
     /**
@@ -210,8 +276,18 @@ abstract class MongoDBCollection extends BaseFeature
     final protected function getMulti($criterion = [], $projection = [], $sort_by = NULL
         , $skip = NULL, $limit = NULL, $to_array = FALSE)
     {
-        $criterion = $this->call('sanitizeCriterion', $criterion);
-        return $this->call('mongoFind', $criterion, $projection, $sort_by, $skip, $limit, $to_array);
+        // Kit::ensureDict($criterion); // @CAUTION
+        Kit::ensureArray($criterion);
+        // Kit::ensureDict($projection); // @CAUTION
+        Kit::ensureArray($projection);
+        // Kit::ensureDict($sort_by, TRUE); // @CAUTION
+        Kit::ensureArray($sort_by, TRUE);
+        Kit::ensureInt($skip, TRUE);
+        Kit::ensureInt($limit, TRUE);
+        Kit::ensureBoolean($to_array);
+        // $criterion = $this->sanitizeCriterion($criterion);
+        $this->ensureCriterionHasProperId($criterion);
+        return $this->mongoFind($criterion, $projection, $sort_by, $skip, $limit, $to_array);
     }
 
     /**
@@ -225,11 +301,14 @@ abstract class MongoDBCollection extends BaseFeature
      */
     final protected function getTheOnlyOne($criterion = [], $projection = [])
     {
-        $criterion    = $this->call('sanitizeCriterion', $criterion);
-        $check_result = $this->call('checkExistsOnlyOnce', $criterion);
-        if (FALSE === $check_result)
-            throw new UserException('No or more than one documents found.', $criterion);
-        return $this->call('getOne', $criterion, $projection);
+        // Kit::ensureDict($criterion); // @CAUTION
+        Kit::ensureArray($criterion);
+        // Kit::ensureDict($projection); // @CAUTION
+        Kit::ensureArray($projection);
+        // $criterion = $this->sanitizeCriterion($criterion);
+        $this->ensureCriterionHasProperId($criterion);
+        $this->ensureExistsOnlyOnce($criterion);
+        return $this->getOne($criterion, $projection);
     }
 
     /**
@@ -251,30 +330,30 @@ abstract class MongoDBCollection extends BaseFeature
      */
     final protected function getOne($criterion = [], $projection = [], $sort_by = NULL, $skip = NULL)
     {
-        $criterion    = $this->call('sanitizeCriterion', $criterion);
-        $check_result = $this->call('checkExistence', $criterion);
-        if (FALSE === $check_result)
-            throw new UserException('No document found.', $criterion);
+        // Kit::ensureDict($criterion); // @CAUTION
+        Kit::ensureArray($criterion);
+        // Kit::ensureDict($projection); // @CAUTION
+        Kit::ensureArray($projection);
+        // Kit::ensureDict($sort_by, TRUE); // @CAUTION
+        Kit::ensureArray($sort_by, TRUE);
+        Kit::ensureInt($skip, TRUE);
+        // $criterion = $this->sanitizeCriterion($criterion);
+        $this->ensureCriterionHasProperId($criterion);
+        $this->ensureExistence($criterion);
         // Now there must be at least one document matching the criterion.
         if (TRUE === is_null($sort_by) AND TRUE === is_null($skip))
-            return $this->call('mongoFindOne', $criterion, $projection);
-        else return $this->call('mongoFind', $criterion, $projection, $sort_by, $skip, 1, TRUE)[0];
+            return $this->mongoFindOne($criterion, $projection);
+        else return $this->mongoFind($criterion, $projection, $sort_by, $skip, 1, TRUE)[0];
     }
 
     /**
      * @TODO: support upsert
-     * Update documents based on a given criterion.
-     * @param array   $criterion Associative array with fields to match.
-     * @param array   $update    The object used to update the matched documents.
-     *                           This may either contain update operators
-     *                           (for modifying specific fields) or be a replacement document.
-     * @param boolean $upsert    If no document matches $criteria, a new document will be inserted.
-     *                           If a new document would be inserted and
-     *                           $new_object contains atomic modifiers (i.e. $ operators),
-     *                           those operations will be applied to the $criterion parameter
-     *                           to create the new document.
-     *                           If $new_object does not contain atomic modifiers,
-     *                           it will be used as-is for the inserted document.
+     * Update the only one document based on a given criterion.
+     * @param array   $criterion   Associative array with fields to match.
+     * @param array   $update      The object used to update the matched documents.
+     *                             This may either contain update operators
+     *                             (for modifying specific fields) or be a replacement document.
+     * @param boolean $is_document Whether the $update is a document to replace the old one.
      * @return array Returns an array containing the status of the update.
      * @throws MongoCursorException        if the "w" option is set and the write fails.
      * @throws MongoCursorTimeoutException if the "w" option is set to a value greater than one
@@ -285,38 +364,96 @@ abstract class MongoDBCollection extends BaseFeature
      *                                     The operation in MongoCollection::$wtimeout
      *                                     is milliseconds.
      */
-    final protected function updateOne($criterion, $update)
+    final protected function updateTheOnlyOne($criterion, $update/*, $is_document*/)
     {
-        $criterion = $this->call('sanitizeCriterion', $criterion);
-        // if (FALSE === $multiple) {
-            $check_result = $this->call('checkExistsOnlyOnce', $criterion);
-            if (FALSE === $check_result)
-                throw new UserException('No document or more than one documents found.', $criterion);
+        $new_document = $update; // @CAUTION
+        // Kit::ensureDict($criterion); // @CAUTION
+        Kit::ensureArray($criterion);
+        // Kit::ensureDict($update); // @CAUTION
+        Kit::ensureArray($new_document);
+        // Kit::ensureBoolean($is_document);
+        // $criterion = $this->sanitizeCriterion($criterion);
+        $this->ensureCriterionHasProperId($criterion);
+        $this->ensureExistsOnlyOnce($criterion);
+        // if (TRUE === $is_document) {
+            $this->ensureDocumentHasNoId($new_document);
+            if (FALSE === isset($new_document['Meta']) 
+                OR FALSE === isset($new_document['Meta']['CreationTime'])){
+                $msg = '$new_document has no Meta or Meta.CreationTime field as a document.';
+                throw new UserException($msg, $new_document);
+            }
+            $new_document['Meta']['ModificationTime'] = new MongoDate();
+        // } else {
+            // if (FALSE === isset($update['$set'])) $update['$set'] = [];
+            // $update['$set']['Meta.ModificationTime'] = new MongoDate();
+            // if (TRUE === isset($update['$set']['_id']))
+                // throw new UserException('$update should not set the _id field.', $update);
         // }
-        if (FALSE === isset($update['$set'])) $update['$set'] = [];
-        $update['$set']['Meta.ModificationTime'] = new MongoDate();
-        return $this->call('mongoUpdate', $criterion, $update, FALSE);
+        $status = $this->mongoUpdate($criterion, $new_document, FALSE);
+        if (FALSE === $this->validateOperationStatus($status)) {
+            $msg = 'MongoDBCollection update operation failed.';
+            throw new UserException($msg, [ $status, $criterion, $new_document ]);
+        }
+        // return $status;
+        return $new_document; // @CAUTION
     }
 
     /**
-     * Sanitize _id in $criterion.
-     * This method will not throw any exception.
-     * @param array $criterion
-     * @return array
+     * Remove the only one document from this collection based on a given criterion.
+     * @param array   $criterion Associative array with fields to match.
+     * @return array Returns an array containing the status of the removal.
+     * @throws MongoCursorException        if the "w" option is set and the write fails.
+     * @throws MongoCursorTimeoutException if the "w" option is set to a value greater than one
+     *                                     and the operation takes longer than MongoCursor::$timeout
+     *                                     milliseconds to complete.
+     *                                     This does not kill the operation on the server,
+     *                                     it is a client-side timeout.
+     *                                     The operation in MongoCollection::$wtimeout
+     *                                     is milliseconds.
      */
-    final protected function sanitizeCriterion($criterion)
+    final protected function deleteTheOnlyOne($criterion)
     {
-        if (TRUE === is_array($criterion) AND TRUE === isset($criterion['_id'])) {
-            if (FALSE === is_string($criterion['_id'])) return $criterion;
-            try {
-                $_id = $this->convertStringToMongoId($criterion['_id']);
-            } catch (Exception $e) {
-                return $criterion;
-            }
-            $criterion['_id'] = $_id;
-        }
-        return $criterion;
+        $this->ensureInitialized();
+        // Kit::ensureDict($criterion); // @CAUTION
+        Kit::ensureArray($criterion);
+        $this->ensureCriterionHasProperId($criterion);
+        $this->ensureExistsOnlyOnce($criterion);
+        $status = $this->mongoRemove($criterion, FALSE);
+        if (FALSE === $this->validateOperationStatus($status))
+            throw new UserException('MongoDBCollection remove operation failed.', [ $status, $criterion ]);
+        return $status;
     }
+
+    final private function validateOperationStatus($status)
+    {
+        return FALSE === (
+            FALSE === (bool)$status['ok'] 
+            OR TRUE === isset($status['err']) 
+            OR 1 !== $status['n']
+        );
+    }
+
+    // /**
+    //  * Sanitize _id in $criterion.
+    //  * This method will not throw any exception.
+    //  * @param array $criterion
+    //  * @return array
+    //  */
+    // final private function sanitizeCriterion($criterion)
+    // {
+    //     // Kit::ensureDict($criterion); // @CAUTION
+    //     Kit::ensureArray($criterion);
+    //     if (TRUE === isset($criterion['_id'])) {
+    //         if (FALSE === Kit::isString($criterion['_id'])) return $criterion;
+    //         try {
+    //             $_id = $this->stringToMongoId($criterion['_id']);
+    //         } catch (Exception $e) {
+    //             return $criterion;
+    //         }
+    //         $criterion['_id'] = $_id;
+    //     }
+    //     return $criterion;
+    // }
 
     /**
      * Converts a string to a MongoId.
@@ -324,15 +461,14 @@ abstract class MongoDBCollection extends BaseFeature
      * @return MongoId
      * @throws UserException if $string is not a string or can not be parsed as a MongoId.
      */
-    final protected function convertStringToMongoId($string)
+    final public static function stringToMongoId($string)
     {
-        if (TRUE === is_string($string)) {
-            try {
-                return new MongoId($string);
-            } catch (Exception $e) {
-                throw new UserException('Can not be parsed as a MongoId.', $string);
-            }
-        } else throw new UserException('$string is not a string.', $string);
+        Kit::ensureString($string);
+        try {
+            return new MongoId($string);
+        } catch (Exception $e) {
+            throw new UserException('Can not be parsed as a MongoId.', $string);
+        }
     }
 
     /**
@@ -341,26 +477,34 @@ abstract class MongoDBCollection extends BaseFeature
      * @return string
      * @throws UserException if $mongo_id is not a MongoId.
      */
-    final protected function convertMongoIdToString($mongo_id)
+    final public static function mongoIdToString($mongo_id)
     {
         if (FALSE === ($mongo_id instanceof MongoId))
             throw new UserException('$mongo_id is not a MongoId.', $mongo_id);
         else return strval($mongo_id);
     }
 
-    /**
-     * Recovers '.' from '_' in a MongoDB criterion keys.
-     * @param array $criterion
-     * @return array
-     */
-    final protected function recoverCriterion($criterion)
+    final public static function mongoDateToTimestamp(MongoDate $mongo_date)
     {
-        foreach ($criterion as $key => $value) {
-            unset($criterion[$key]);
-            $criterion[str_replace('_', '.', $key)] = $value;
-        }
-        return $criterion;
+        $result = Kit::split(' ', $mongo_date->__toString());
+        return (int)$result[1] + (float)$result[0];
     }
+
+    // /**
+    //  * Recovers '.' from '_' in a MongoDB criterion keys.
+    //  * @param array $criterion
+    //  * @return array
+    //  */
+    // final private function recoverCriterion($criterion)
+    // {
+    //     // Kit::ensureDict($criterion); // @CAUTION
+    //     Kit::ensureArray($criterion);
+    //     foreach ($criterion as $key => $value) {
+    //         unset($criterion[$key]);
+    //         $criterion[str_replace('_', '.', $key)] = $value;
+    //     }
+    //     return $criterion;
+    // }
 
     // ================================================================================
     // Below are private methods that interact directly with MongoCollection methods.
@@ -386,8 +530,11 @@ abstract class MongoDBCollection extends BaseFeature
      *                                     is milliseconds.
      * @throws UserException               if no _id has been generated in the inserted document.
      */
-    final protected function mongoInsert($document)
+    final private function mongoInsert($document)
     {
+        $this->ensureInitialized();
+        // Kit::ensureDict($document); // @CAUTION
+        Kit::ensureArray($document);
         // @TODO: check what if a conflict occurs due to duplicate _id
         // @TODO: check what if a conflict occurs due to duplicate unique index
         // @TODO: check fields in $result: ok, err, code, errmsg
@@ -413,8 +560,13 @@ abstract class MongoDBCollection extends BaseFeature
      *                                        due to an error.
      * @throws MongoExecutionTimeoutException if command execution was terminated due to maxTimeMS.
      */
-    final protected function mongoCount($criterion = [], $skip = NULL, $limit = NULL)
+    final private function mongoCount($criterion = [], $skip = NULL, $limit = NULL)
     {
+        $this->ensureInitialized();
+        // Kit::ensureDict($criterion); // @CAUTION
+        Kit::ensureArray($criterion);
+        Kit::ensureInt($skip, TRUE);
+        Kit::ensureInt($limit, TRUE);
         $options = [];
         if (FALSE === is_null($skip))  $options['skip']  = $skip;
         if (FALSE === is_null($limit)) $options['limit'] = $limit;
@@ -439,15 +591,25 @@ abstract class MongoDBCollection extends BaseFeature
      * @return array|MongoDBCursor Returns an array or a cursor for the results
      *                             matching the criterion.
      */
-    final protected function mongoFind($criterion = [], $projection = [], $sort_by = NULL
+    final private function mongoFind($criterion = [], $projection = [], $sort_by = NULL
         , $skip = NULL, $limit = NULL, $to_array = FALSE)
     {
+        $this->ensureInitialized();
+        // Kit::ensureDict($criterion); // @CAUTION
+        Kit::ensureArray($criterion);
+        // Kit::ensureDict($projection); // @CAUTION
+        Kit::ensureArray($projection);
+        // Kit::ensureDict($sort_by, TRUE); // @CAUTION
+        Kit::ensureArray($sort_by, TRUE);
+        Kit::ensureInt($skip, TRUE);
+        Kit::ensureInt($limit, TRUE);
+        Kit::ensureBoolean($to_array);
         $cursor = $this->collection->find($criterion, $projection);
         if (FALSE === is_null($sort_by)) $cursor = $cursor->sort($sort_by);
         if (FALSE === is_null($skip))    $cursor = $cursor->skip($skip);
         if (FALSE === is_null($limit))   $cursor = $cursor->limit($limit);
         if (TRUE === $to_array) return iterator_to_array($cursor, FALSE);
-        else new MongoDBCursor($cursor);
+        else return new MongoDBCursor($cursor);
     }
 
     /**
@@ -458,8 +620,13 @@ abstract class MongoDBCollection extends BaseFeature
      * @return array|NULL Returns the first single document matching the criterion or NULL.
      * @throws MongoConnectionException if it cannot reach the database.
      */
-    final protected function mongoFindOne($criterion = [], $projection = [])
+    final private function mongoFindOne($criterion = [], $projection = [])
     {
+        $this->ensureInitialized();
+        // Kit::ensureDict($criterion); // @CAUTION
+        Kit::ensureArray($criterion);
+        // Kit::ensureDict($projection); // @CAUTION
+        Kit::ensureArray($projection);
         return $this->collection->findOne($criterion, $projection);
     }
 
@@ -477,7 +644,7 @@ abstract class MongoDBCollection extends BaseFeature
      *                           to create the new document.
      *                           If $new_object does not contain atomic modifiers,
      *                           it will be used as-is for the inserted document.
-     * @param boolean $multiple  All documents matching $criterion will be updated.
+     * @param boolean $multiple  If set to TRUE, all documents matching $criterion will be updated.
      *                           MongoCollection::update() has exactly the opposite behavior of
      *                           MongoCollection::remove(): it updates one document by default,
      *                           not all matching documents. It is recommended that you always
@@ -494,27 +661,59 @@ abstract class MongoDBCollection extends BaseFeature
      *                                     The operation in MongoCollection::$wtimeout
      *                                     is milliseconds.
      */
-    final protected function mongoUpdate($criterion, $update, $multiple = FALSE)
+    final private function mongoUpdate($criterion, $update, $multiple = FALSE)
     {
+        $this->ensureInitialized();
+        // Kit::ensureDict($criterion); // @CAUTION
+        Kit::ensureArray($criterion);
+        // Kit::ensureDict($update); // @CAUTION
+        Kit::ensureArray($update);
+        Kit::ensureBoolean($multiple);
         $options = [
             'w'        => 1,
             'upsert'   => FALSE,
             'multiple' => $multiple,
         ];
         // @TODO: check returns n, upserted, updatedExisting
-        // @TODO: include updated documents?
         return $this->collection->update($criterion, $update, $options);
+    }
+
+    /**
+     * Remove documents from this collection.
+     * @param array   $criterion Associative array with fields to match.
+     * @param boolean $multiple  If set to TRUE, all documents matching $criterion will be removed.
+     * @return array Returns an array containing the status of the removal.
+     * @throws MongoCursorException        if the "w" option is set and the write fails.
+     * @throws MongoCursorTimeoutException if the "w" option is set to a value greater than one
+     *                                     and the operation takes longer than MongoCursor::$timeout
+     *                                     milliseconds to complete.
+     *                                     This does not kill the operation on the server,
+     *                                     it is a client-side timeout.
+     *                                     The operation in MongoCollection::$wtimeout
+     *                                     is milliseconds.
+     */
+    final private function mongoRemove($criterion, $multiple = TRUE)
+    {
+        $this->ensureInitialized();
+        // Kit::ensureDict($criterion); // @CAUTION
+        Kit::ensureArray($criterion);
+        Kit::ensureBoolean($multiple);
+        $options = [
+            'w'       => 1,
+            'justOne' => (FALSE === $multiple),
+        ];
+        return $this->collection->remove($criterion, $options);
     }
 }
 
 // aggregate
     // aggregateCursor
-    // batchInsert
+// batchInsert
     // createDBRef
     // createIndex
     // deleteIndex
     // deleteIndexes
-    // distinct
+// distinct
     // drop
     // ensureIndex
 // findAndModify

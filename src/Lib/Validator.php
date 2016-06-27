@@ -106,7 +106,7 @@ final class Validator
         if (TRUE === is_null(self::$patternTagValueList))
             self::$patternTagValueList = array_values((new ReflectionClass(get_class()))->getConstants());
         $tag_list = array_merge(self::$patternTagNameList, self::$patternTagValueList);
-        if (count($unknown_tag_list = array_diff(array_keys($pattern), $tag_list)) > 0)
+        if (Kit::len($unknown_tag_list = array_diff(array_keys($pattern), $tag_list)) > 0)
             throw new UserException('Unknown pattern tag found.', $unknown_tag_list);
         return TRUE;
     }
@@ -150,21 +150,21 @@ final class Validator
     {
         switch ($rule['type']) {
             case 'int':
-                if (TRUE === self::is_int($value)) {
+                if (TRUE === self::isInt($value)) {
                     $value = intval($value); // Convert to int!
                     return TRUE;
                 } else {
                     return FALSE;
                 }
             case 'float':
-                if (TRUE === self::is_float($value)) {
+                if (TRUE === self::isFloat($value)) {
                     $value = floatval($value); // Convert to float!
                     return TRUE;
                 } else {
                     return FALSE;
                 }
             case 'array':
-                return is_array($value);
+                return Kit::isArray($value);
             default:
                 throw new \Exception('Unrecognizable type "' . $rule['type'] . '" for Validation.');
         }
@@ -203,10 +203,10 @@ final class Validator
     public static function     float_ge($value, $rule) { return  floatval($value) >=  $rule['value']; }
     public static function     float_le($value, $rule) { return  floatval($value) <=  $rule['value']; }
 
-    public static function     count_gt($value, $rule) { return     count($value) >   $rule['value']; }
-    public static function     count_lt($value, $rule) { return     count($value) <   $rule['value']; }
-    public static function     count_ge($value, $rule) { return     count($value) >=  $rule['value']; }
-    public static function     count_le($value, $rule) { return     count($value) <=  $rule['value']; }
+    public static function     count_gt($value, $rule) { return  Kit::len($value) >   $rule['value']; }
+    public static function     count_lt($value, $rule) { return  Kit::len($value) <   $rule['value']; }
+    public static function     count_ge($value, $rule) { return  Kit::len($value) >=  $rule['value']; }
+    public static function     count_le($value, $rule) { return  Kit::len($value) <=  $rule['value']; }
 
     public static function    length_gt($value, $rule) { return    strlen($value) >   $rule['value']; }
     public static function    length_lt($value, $rule) { return    strlen($value) <   $rule['value']; }
@@ -232,7 +232,7 @@ final class Validator
      */
     public static function isInt($value)
     {
-        if (TRUE === is_int($value)) {
+        if (TRUE === Kit::isInt($value)) {
             return TRUE;
         } elseif (1 === preg_match('@^\d+$@', $value)) {
             return TRUE;
@@ -247,36 +247,12 @@ final class Validator
      */
     public static function isFloat($value)
     {
-        if (TRUE === is_float($value) OR TRUE === is_int($value)) {
+        if (TRUE === Kit::isFloat($value) OR TRUE === Kit::isInt($value)) {
             return TRUE;
         } elseif (1 === preg_match('@^(\d+(\.\d*)?|\.\d+)$@', $value)) {
             return TRUE;
         } else {
             return FALSE;
         }
-    }
-
-    /**
-     * Checks whether a value is a dict.
-     * @param mixed $value
-     * @return boolean
-     */
-    public static function isDict($value)
-    {
-        if (FALSE === is_array($value)) return FALSE;
-        if (0 === count($value)) return TRUE;
-        return FALSE === self::isList($value);
-    }
-
-    /**
-     * Checks whether a value is a list.
-     * @param mixed $value
-     * @return boolean
-     */
-    public static function isList($value)
-    {
-        if (FALSE === is_array($value)) return FALSE;
-        if (0 === count($value)) return TRUE;
-        return array_keys($value) === range(0, count($value) - 1);
     }
 }
