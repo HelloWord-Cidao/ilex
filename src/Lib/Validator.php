@@ -2,29 +2,129 @@
 
 namespace Ilex\Lib;
 
+use \ReflectionClass;
+use \Ilex\Lib\UserException;
+
 /**
+ * @todo: method arg type validate
  * Class Validator
  * A tool used to validate data efficiently.
  * @package Ilex\Lib
  * 
- * @property public static array $patterns
+ * @property public array $patternList
  *
- * @method public static array|boolean  batch(array &$values, array $rule_packages)
- * @method public static array|boolean  package(mixed &$value, array $rule_package)
- * @method public static boolean|string rule(mixed &$value, string $rule_name, array $rule, string|boolean $message = FALSE)
- * 
- * @method public static boolean        type(mixed &$value, array $rule)
- * @method public static boolean        re(mixed $value, array $rule)
+ * @method public static boolean type(mixed &$value, array $rule)
+ * @method public static boolean re(mixed $value, array $rule)
  * More methods ignored.
  * 
- * @method public static boolean        isInt(mixed $value)
- * @method public static boolean        isFloat(mixed $value)
- * @method public static boolean        isDict(mixed $value)
- * @method public static boolean        isList(mixed $value)
+ * @method public static boolean isInt(mixed $value)
+ * @method public static boolean isFloat(mixed $value)
+ * @method public static boolean isDict(mixed $value)
+ * @method public static boolean isList(mixed $value)
  */
-class Validator
+final class Validator
 {
-    public static $patterns = [
+    // @todo: use public static variables or constants?
+    const 
+        V_EXISTENCE = 'EXISTENCE',
+        V_EXISTENCE_REQUIRE = 'EXISTENCE_REQUIRE',
+        V_EXISTENCE_NOT_REQUIRE = 'EXISTENCE_NOT_REQUIRE',
+        V_EXISTENCE_OPTIONAL = 'EXISTENCE_OPTIONAL',
+
+        V_TYPE = 'TYPE',
+        V_TYPE_NUMERIC = 'TYPE_NUMERIC',
+        V_TYPE_INT = 'TYPE_INT',
+        V_TYPE_FLOAT = 'TYPE_FLOAT',
+        V_TYPE_STRING = 'TYPE_STRING',
+        V_TYPE_BOOLEAN = 'TYPE_BOOLEAN',
+        V_TYPE_ARRAY = 'TYPE_ARRAY',
+        V_TYPE_LIST = 'TYPE_LIST',
+        V_TYPE_DICT = 'TYPE_DICT',
+        V_TYPE_OBJECTID = 'TYPE_OBJECTID',
+        V_TYPE_DATETIME = 'TYPE_DATETIME',
+
+        V_VALUE = 'VALUE',
+        V_VALUE_AND = 'VALUE_AND',
+        V_VALUE_OR = 'VALUE_OR',
+        V_VALUE_NOT = 'VALUE_NOT',
+        V_VALUE_E = 'VALUE_E',
+        V_VALUE_NE = 'VALUE_NE',
+        V_VALUE_LTE = 'VALUE_LTE',
+        V_VALUE_GTE = 'VALUE_GTE',
+        V_VALUE_LT = 'VALUE_LT',
+        V_VALUE_GT = 'VALUE_GT',
+        V_VALUE_LENGTH = 'VALUE_LENGTH',
+        V_VALUE_REGEX = 'VALUE_REGEX',
+        V_VALUE_ANY = 'VALUE_ANY',
+
+        V_CAST = 'CAST',
+        V_CAST_INT = 'CAST_TO_INT',
+        V_CAST_FLOAT = 'CAST_TO_FLOAT',
+        V_CAST_STRING = 'CAST_TO_STRING',
+        V_CAST_BOOLEAN = 'CAST_TO_BOOLEAN',
+        V_CAST_OBJECTID = 'CAST_TO_OBJECTID',
+        V_CAST_DATETIME = 'CAST_TO_DATETIME',
+        V_CAST_OPTIONAL_DROP = 'CAST_OPTIONAL_DROP',
+
+        V_DEFAULT_VALUE = 'DEFAULT_VALUE',
+    
+        V_CHILDREN = 'CHILDREN',
+
+        V_REST = 'REST',
+        V_REST_REQUIRE = 'REST_REQUIRE',
+        V_REST_NOT_REQUIRE = 'REST_NOT_REQUIRE',
+
+        V_VERSION = 'VERSION',
+        V_VERSION_DEFAULT = 'VERSION_DEFAULT';
+
+    private static $patternTagNameList;
+    private static $patternTagValueList;
+
+    // private static $constantList = [
+    //     V_EXISTENCE, V_EXISTENCE_REQUIRE, V_EXISTENCE_NOT_REQUIRE, V_EXISTENCE_OPTIONAL, 
+    //     V_TYPE, V_TYPE_NUMERIC, V_TYPE_INT, V_TYPE_FLOAT, V_TYPE_STRING, V_TYPE_BOOLEAN, V_TYPE_ARRAY, V_TYPE_LIST, V_TYPE_DICT, V_TYPE_OBJECTID, V_TYPE_DATETIME, 
+    //     V_VALUE, V_VALUE_AND, V_VALUE_OR, V_VALUE_NOT, V_VALUE_E, V_VALUE_NE, V_VALUE_LTE, V_VALUE_GTE, V_VALUE_LT, V_VALUE_GT, V_VALUE_LENGTH, V_VALUE_REGEX, V_VALUE_ANY, 
+    //     V_CAST, V_CAST_INT, V_CAST_FLOAT, V_CAST_STRING, V_CAST_BOOLEAN, V_CAST_OBJECTID, V_CAST_DATETIME, V_CAST_OPTIONAL_DROP, 
+    //     V_DEFAULT_VALUE, 
+    //     V_CHILDREN, 
+    //     V_REST, V_REST_REQUIRE, V_REST_NOT_REQUIRE, 
+    //     V_VERSION, V_VERSION_DEFAULT,
+    // ];
+
+    /**
+     * 
+     * check all array keys and values in $pattern being consts in this class
+     * check all array values in $pattern using several 'if'. DO NOT use 'else'
+     * @param 
+     * @return boolean
+     * @throws UserException if there is unknown pattern tag found.
+     */
+    public static function validate($pattern, $data)
+    {
+        if (TRUE === is_null(self::$patternTagNameList))
+            self::$patternTagNameList = array_keys((new ReflectionClass(get_class()))->getConstants());
+        if (TRUE === is_null(self::$patternTagValueList))
+            self::$patternTagValueList = array_values((new ReflectionClass(get_class()))->getConstants());
+        $tag_list = array_merge(self::$patternTagNameList, self::$patternTagValueList);
+        if (Kit::len($unknown_tag_list = array_diff(array_keys($pattern), $tag_list)) > 0)
+            throw new UserException('Unknown pattern tag found.', $unknown_tag_list);
+        return TRUE;
+    }
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+    private static $patternList = [
         'aA'        => '/^[a-z]+$/i',
         'aA0'       => '/^[a-z0-9]+$/i',
         'alpha'     => '/^[\pL\pM]+$/u',
@@ -34,79 +134,6 @@ class Validator
         'email'     => '/([a-z0-9]*[-_\.]?[a-z0-9]+)*@([a-z0-9]*[-_]?[a-z0-9]+)+[\.][a-z]{2,3}([\.][a-z]{2})?/i',
         'mobile'    => '/^1[3-9][0-9]{9}$/',
     ];
-
-    /**
-     * @param array $value
-     * @param array $rule_packages
-     * @return array|boolean
-     */
-    public static function batch(&$values, $rule_packages)
-    {
-        $errors = [];
-        foreach ($rule_packages as $i => $rule_package) {
-            $name = isset($rule_package['name']) ? $rule_package['name'] : $i;
-
-            /**
-             * @todo: what?
-             */
-            if (isset($values[$name]) === FALSE) {
-                if (isset($rule_package['default'])) {
-                    $values[$name] = $rule_package['default'];
-                } else {
-                    if (isset($rule_package['require'])) {
-                        $errors[$name] = [$rule_package['require']['message']];
-                    }
-                }
-                continue;
-            }
-
-            $results = self::package($values[$name], $rule_package);
-            if ($results !== TRUE) {
-                $errors[$name] = $results;
-            }
-        }
-        return count($errors) ? $errors : TRUE;
-    }
-
-    /**
-     * @param mixed $value
-     * @param array $rule_package
-     * @return array|boolean
-     */
-    public static function package(&$value, $rule_packages)
-    {
-        $errors = [];
-        foreach ($rule_package as $rule_name => $rule) {
-            if (in_array($rule_name, ['name', 'require', 'default'])) { // ignore some reserved names
-                continue;
-            } elseif ($rule_name === 'all') {
-                foreach ($value as $valueItem) {
-                    $result = self::package($valueItem, $rule);
-                    if ($result !== TRUE) {
-                        $errors += $result;
-                    }
-                }
-            } else {
-                $result = self::rule($value, $rule_name, $rule, $rule['message']);
-                if ($result !== TRUE) {
-                    $errors[] = $result;
-                }
-            }
-        }
-        return count($errors) ? $errors : TRUE;
-    }
-
-    /**
-     * @param mixed          $value
-     * @param string         $rule_name
-     * @param array          $rule
-     * @param string|boolean $message
-     * @return boolean|string
-     */
-    public static function rule(&$value, $rule_name, $rule, $message = FALSE)
-    {
-        return self::$rule_name($value, $rule) ? TRUE : $message;
-    }
 
     /*
      * ----------------------- -----------------------
@@ -123,21 +150,21 @@ class Validator
     {
         switch ($rule['type']) {
             case 'int':
-                if (self::is_int($value)) {
+                if (TRUE === self::isInt($value)) {
                     $value = intval($value); // Convert to int!
                     return TRUE;
                 } else {
                     return FALSE;
                 }
             case 'float':
-                if (self::is_float($value)) {
+                if (TRUE === self::isFloat($value)) {
                     $value = floatval($value); // Convert to float!
                     return TRUE;
                 } else {
                     return FALSE;
                 }
             case 'array':
-                return is_array($value);
+                return Kit::isArray($value);
             default:
                 throw new \Exception('Unrecognizable type "' . $rule['type'] . '" for Validation.');
         }
@@ -150,47 +177,47 @@ class Validator
      */
     public static function re($value, $rule)
     {
-        return preg_match(
-            isset($rule['pattern']) ? $rule['pattern'] : self::$patterns[$rule['type']],
+        return 1 === preg_match(
+            TRUE === isset($rule['pattern']) ? $rule['pattern'] : self::$patternList[$rule['type']],
             $value
-        ) === 1;
+        );
     }
 
-    public static function eq($value, $rule)   { return $value ==  $rule['value']; }
-    public static function ne($value, $rule)   { return $value !=  $rule['value']; }
-    public static function same($value, $rule) { return $value === $rule['value']; }
-    public static function diff($value, $rule) { return $value !== $rule['value']; }
+    public static function           eq($value, $rule) { return           $value  ==  $rule['value']; }
+    public static function           ne($value, $rule) { return           $value  !=  $rule['value']; }
+    public static function         same($value, $rule) { return           $value  === $rule['value']; }
+    public static function         diff($value, $rule) { return           $value  !== $rule['value']; }
 
-    public static function        gt($value, $rule) { return          $value  >  $rule['value']; }
-    public static function        lt($value, $rule) { return          $value  <  $rule['value']; }
-    public static function        ge($value, $rule) { return          $value  >= $rule['value']; }
-    public static function        le($value, $rule) { return          $value  <= $rule['value']; }
+    public static function           gt($value, $rule) { return           $value  >   $rule['value']; }
+    public static function           lt($value, $rule) { return           $value  <   $rule['value']; }
+    public static function           ge($value, $rule) { return           $value  >=  $rule['value']; }
+    public static function           le($value, $rule) { return           $value  <=  $rule['value']; }
 
-    public static function    int_gt($value, $rule) { return   intval($value) >  $rule['value']; }
-    public static function    int_lt($value, $rule) { return   intval($value) <  $rule['value']; }
-    public static function    int_ge($value, $rule) { return   intval($value) >= $rule['value']; }
-    public static function    int_le($value, $rule) { return   intval($value) <= $rule['value']; }
+    public static function       int_gt($value, $rule) { return    intval($value) >   $rule['value']; }
+    public static function       int_lt($value, $rule) { return    intval($value) <   $rule['value']; }
+    public static function       int_ge($value, $rule) { return    intval($value) >=  $rule['value']; }
+    public static function       int_le($value, $rule) { return    intval($value) <=  $rule['value']; }
 
-    public static function  float_gt($value, $rule) { return floatval($value) >  $rule['value']; }
-    public static function  float_lt($value, $rule) { return floatval($value) <  $rule['value']; }
-    public static function  float_ge($value, $rule) { return floatval($value) >= $rule['value']; }
-    public static function  float_le($value, $rule) { return floatval($value) <= $rule['value']; }
+    public static function     float_gt($value, $rule) { return  floatval($value) >   $rule['value']; }
+    public static function     float_lt($value, $rule) { return  floatval($value) <   $rule['value']; }
+    public static function     float_ge($value, $rule) { return  floatval($value) >=  $rule['value']; }
+    public static function     float_le($value, $rule) { return  floatval($value) <=  $rule['value']; }
 
-    public static function  count_gt($value, $rule) { return    count($value) >  $rule['value']; }
-    public static function  count_lt($value, $rule) { return    count($value) <  $rule['value']; }
-    public static function  count_ge($value, $rule) { return    count($value) >= $rule['value']; }
-    public static function  count_le($value, $rule) { return    count($value) <= $rule['value']; }
+    public static function     count_gt($value, $rule) { return  Kit::len($value) >   $rule['value']; }
+    public static function     count_lt($value, $rule) { return  Kit::len($value) <   $rule['value']; }
+    public static function     count_ge($value, $rule) { return  Kit::len($value) >=  $rule['value']; }
+    public static function     count_le($value, $rule) { return  Kit::len($value) <=  $rule['value']; }
 
-    public static function length_gt($value, $rule) { return   strlen($value) >  $rule['value']; }
-    public static function length_lt($value, $rule) { return   strlen($value) <  $rule['value']; }
-    public static function length_ge($value, $rule) { return   strlen($value) >= $rule['value']; }
-    public static function length_le($value, $rule) { return   strlen($value) <= $rule['value']; }
-    public static function length_eq($value, $rule) { return   strlen($value) === $rule['value']; }
+    public static function    length_gt($value, $rule) { return    strlen($value) >   $rule['value']; }
+    public static function    length_lt($value, $rule) { return    strlen($value) <   $rule['value']; }
+    public static function    length_ge($value, $rule) { return    strlen($value) >=  $rule['value']; }
+    public static function    length_le($value, $rule) { return    strlen($value) <=  $rule['value']; }
+    public static function    length_eq($value, $rule) { return    strlen($value) === $rule['value']; }
 
-    public static function mb_length_gt($value, $rule) { return mb_strlen($value) >  $rule['value']; }
-    public static function mb_length_lt($value, $rule) { return mb_strlen($value) <  $rule['value']; }
-    public static function mb_length_ge($value, $rule) { return mb_strlen($value) >= $rule['value']; }
-    public static function mb_length_le($value, $rule) { return mb_strlen($value) <= $rule['value']; }
+    public static function mb_length_gt($value, $rule) { return mb_strlen($value) >   $rule['value']; }
+    public static function mb_length_lt($value, $rule) { return mb_strlen($value) <   $rule['value']; }
+    public static function mb_length_ge($value, $rule) { return mb_strlen($value) >=  $rule['value']; }
+    public static function mb_length_le($value, $rule) { return mb_strlen($value) <=  $rule['value']; }
     public static function mb_length_eq($value, $rule) { return mb_strlen($value) === $rule['value']; }
 
     /*
@@ -205,9 +232,9 @@ class Validator
      */
     public static function isInt($value)
     {
-        if (is_int($value)) {
+        if (TRUE === Kit::isInt($value)) {
             return TRUE;
-        } elseif (preg_match('@^\d+$@', $value) === 1) {
+        } elseif (1 === preg_match('@^\d+$@', $value)) {
             return TRUE;
         } else {
             return FALSE;
@@ -220,36 +247,12 @@ class Validator
      */
     public static function isFloat($value)
     {
-        if (is_float($value) OR is_int($value)) {
+        if (TRUE === Kit::isFloat($value) OR TRUE === Kit::isInt($value)) {
             return TRUE;
-        } elseif (preg_match('@^(\d+(\.\d*)?|\.\d+)$@', $value) === 1) {
+        } elseif (1 === preg_match('@^(\d+(\.\d*)?|\.\d+)$@', $value)) {
             return TRUE;
         } else {
             return FALSE;
         }
-    }
-
-    /**
-     * Checks whether a value is a dict.
-     * @param mixed $value
-     * @return boolean
-     */
-    public static function isDict($value)
-    {
-        if (is_array($value) === FALSE) return FALSE;
-        if (count($value) === 0) return TRUE;
-        return !self::isList($value);
-    }
-
-    /**
-     * Checks whether a value is a list.
-     * @param mixed $value
-     * @return boolean
-     */
-    public static function isList($value)
-    {
-        if (is_array($value) === FALSE) return FALSE;
-        if (count($value) === 0) return TRUE;
-        return array_keys($value) === range(0, count($value) - 1);
     }
 }

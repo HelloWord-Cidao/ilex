@@ -1,22 +1,19 @@
 <?php
 
 namespace app\Controller;
+use \Ilex\Base\Controller\BaseController;
 
 /**
  * Class AboutController
  * @package app\Controller
  *
- * @property protected \Ilex\Base\Model\System\Input $Input
- * 
- * @method public index()
- * @method public join(string $group = 'tech')
- * @method public postJoin(string $group = 'tech')
+ * @method final public index()
+ * @method final public join(string $group = 'tech')
+ * @method final public postJoin(string $group = 'tech')
  */
-class AboutController extends \Ilex\Base\Controller\Base
+final class AboutController extends BaseController
 {
-    protected $Input = NULL;
-
-    public function index()
+    final public function index()
     {
         return ('about');
     }
@@ -24,7 +21,7 @@ class AboutController extends \Ilex\Base\Controller\Base
     /**
      * @param string $group
      */
-    public function join($group = 'tech')
+    final public function join($group = 'tech')
     {
         return ('Join ' . $group . '!');
     }
@@ -32,10 +29,10 @@ class AboutController extends \Ilex\Base\Controller\Base
     /**
      * @param string $group
      */
-    public function postJoin($group = 'tech')
+    final public function postJoin($group = 'tech')
     {
-        // This will assign the instance of the loaded model to $this->Input.
-        $this->loadModel('System/Input');
-        return ('Welcome to ' . $group . ', ' . $this->Input->post('name', 'Jack') . '!');
+        // This will assign the instance of the loaded model to self::Input.
+        self::loadModel('System/Input');
+        return ('Welcome to ' . $group . ', ' . self::$Input->post('name', 'Jack') . '!');
     }
 }

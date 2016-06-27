@@ -6,30 +6,15 @@ use \Ilex\Base\Controller\Service\BaseService;
 
 /**
  * Class AdminService
- * @package HelloWord\Controller\Service
+ * @package Ilex\Base\Controller\Service
  */
-class AdminService extends BaseService
+final class AdminService extends BaseService
 {
-    protected $Admin;
-
     public function __construct()
     {
-        parent::__construct();
-        $this->loadModel('System/Admin');
+        $path = 'Admin';
+        $this->loadConfig($path);
+        $this->loadData($path);
+        $this->loadCore($path);
     }
-
-    protected function countCollection(&$arguments, &$post_data)
-    {
-        $this->validateExistArguments(['collection_name']);
-        $arguments = $this->fetchAllArguments();
-        $post_data = $this->tryFetchPostData(['Criterion', 'Limit']);
-    }
-
-    protected function getCollection(&$arguments, &$post_data)
-    {
-        $this->validateExistArguments(['collection_name']);
-        $arguments = $this->fetchAllArguments();
-        $post_data = $this->tryFetchPostData(['Criterion', 'Projection', 'SortBy', 'Skip', 'Limit']);
-    }
-
 }

@@ -2,18 +2,23 @@
 
 namespace Ilex\Base\Model\Core;
 
+use \Ilex\Core\Loader;
 use \Ilex\Base\Model\BaseModel;
+use \Ilex\Base\Model\Entity\User\UserEntity;
 
 /**
  * Class BaseCore
  * Base class of core models of Ilex.
  * @package Ilex\Base\Model\Core
  */
-class BaseCore extends BaseModel
+abstract class BaseCore //extends BaseModel
 {
-    protected function checkError($return_value)
+    const S_OK = 'ok';
+    protected $ok = [ self::S_OK => TRUE ];
+
+    final protected function loadCollection($path)
     {
-        if (is_array($return_value) && $return_value[T_IS_ERROR] === TRUE) return TRUE;
-        return FALSE;
+        $handler_name = Loader::getHandlerFromPath($path) . 'Collection';
+        return ($this->$handler_name = Loader::loadCollection($path));
     }
 }
