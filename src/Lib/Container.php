@@ -5,6 +5,7 @@ namespace Ilex\Lib;
 use \Ilex\Lib\Kit;
 
 /**
+ * @todo: method arg type validate
  * Class Container
  * Implementation of an abstract container.
  * @package Ilex\Lib
@@ -15,14 +16,16 @@ use \Ilex\Lib\Kit;
  * @method public mixed   __get(mixed $key)
  * @method public mixed   __set(mixed $key, mixed $value)
  * @method public string  __toString()
- * @method public this    assign(array $data = [])
- * @method public mixed   get(mixed $key, mixed $default = NULL)
+ * @method public self    assign(array $data = [])
+ * @method public self    clear()
+ * @method public mixed   get(mixed $key = NULL, mixed $default = NULL)
  * @method public boolean has(IMPLICIT)
- * @method public this    merge(array $data)
- * @method public array   miss(array $keys)
+ * @method public self    merge(array $data)
+ * @method public array   miss(array $key_list)
  * @method public mixed   set(mixed $key, mixed $value)
+ * @method public boolean delete(mixed $key)
  */
-class Container
+final class Container
 {
     private $data;
 
@@ -58,39 +61,46 @@ class Container
      */
     public function __toString()
     {
-        return Kit::toString($this->data);
-    }
-
-    /**
-     * Returns the params that do not exist as keys in $this->data.
-     * @param array $keys
-     * @return array
-     */
-    public function miss($keys)
-    {
-        $missing_keys = [];
-        foreach ($keys as $key) {
-            if (isset($this->data[$key]) === FALSE) {
-                $missing_keys[] = $key;
-            }
-        }
-        return $missing_keys;
+        return Kit::j($this->data);
     }
 
     /**
      * @param array $data
-     * @return this
+     * @return self
+     */
+    public function clear()
+    {
+        $this->assign();
+        return $this;
+    }
+
+    /**
+     * Returns the key names that do not exist as keys in $this->data.
+     * @param array $key_list
+     * @return array
+     */
+    public function miss($key_list)
+    {
+        $missing_key_list = [];
+        foreach ($key_list as $key) {
+            if (FALSE === isset($this->data[$key])) $missing_key_list[] = $key;
+        }
+        return $missing_key_list;
+    }
+
+    /**
+     * @param array $data
+     * @return self
      */
     public function merge($data)
     {
-        // @todo: use array_merge or '+' operator?
-        $this->assign($this->data + $data);
+        $this->assign(array_merge($this->data, $data));
         return $this;
     }
 
     /**
      * @param array $data
-     * @return this
+     * @return self
      */
     public function assign($data = [])
     {
@@ -99,16 +109,14 @@ class Container
     }
 
     /**
-     * Checks if all the params exist as keys in $this->data.
+     * Checks if all the key names exist as keys in $this->data.
      * @param mixed $key IMPLICIT MULTIPLE
      * @return boolean
      */
     public function has()
     {
         foreach (func_get_args() as $key) {
-            if (isset($this->data[$key]) === FALSE) {
-                return FALSE;
-            }
+            if (FALSE === isset($this->data[$key])) return FALSE;
         }
         return TRUE;
     }
@@ -118,11 +126,13 @@ class Container
      * @param mixed $default
      * @return mixed
      */
-    public function get($key, $default = NULL)
+    public function get($key = NULL, $default = NULL)
     {
-        return is_null($key) ?
-            $this->data :
-            (isset($this->data[$key]) ? $this->data[$key] : $default);
+        if (TRUE === is_null($key))
+            return $this->data;
+        elseif (TRUE === isset($this->data[$key]))
+            return $this->data[$key];
+        else return $default;
     }
 
     /**
@@ -133,5 +143,16 @@ class Container
     public function set($key, $value)
     {
         return ($this->data[$key] = $value);
+    }
+
+    /**
+     * @param mixed $key
+     * @return boolean
+     */
+    public function delete($key)
+    {
+        if (FALSE === isset($this->data[$key])) return FALSE;
+        unset($this->data[$key]);
+        return TRUE;
     }
 }

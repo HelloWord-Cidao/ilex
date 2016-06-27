@@ -9,7 +9,7 @@ use \Ilex\Base\Base;
  * Base class of controllers.
  * @package Ilex\Base\Controller
  */
-class BaseController extends Base
+abstract class BaseController extends Base
 {
 
 }

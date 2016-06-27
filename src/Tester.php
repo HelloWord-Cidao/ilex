@@ -2,25 +2,20 @@
 
 namespace Ilex;
 
-use \Ilex\Autoloader;
 use \Ilex\Core\Loader;
+use \Ilex\Autoloader;
 use \Ilex\Lib\Kit;
 
 /**
  * Class Tester
  * @package Ilex
  * 
- * @property private static \Ilex\Base\Model\System\Input   $Input
- * @property private static \Ilex\Base\Model\System\Session $Session
- * 
- * @method public static        boot($APPPATH, $RUNTIMEPATH)
- * @method public static string run($url = '/', $method = 'GET', $postData = [], $getData = [])
+ * @method public static        boot(string $APPPATH, string $RUNTIMEPATH)
+ * @method public static string run(string $url = '/', string $method = 'GET'
+ *                                  , array $postData = [], array $getData = [])
  */
-class Tester
+final class Tester
 {
-    private static $Input;
-    private static $Session;
-
     /**
      * @param string $APPPATH
      * @param string $RUNTIMEPATH
@@ -30,9 +25,6 @@ class Tester
     {
         Autoloader::initialize($APPPATH, $RUNTIMEPATH, $APPNAME);
         // Now Loader has been initialized by Autoloader::initialize().
-        // @todo: static or self?
-        static::$Input   = Loader::model('System/Input');
-        static::$Session = Loader::model('System/Session');
     }
 
     /**
@@ -44,15 +36,10 @@ class Tester
      */
     public static function run($url = '/', $method = 'GET', $postData = [], $getData = [])
     {
-        Kit::log([__METHOD__, [
-            'getData'  => $getData,
-            'method'   => $method,
-            'postData' => $postData,
-            'url'      => $url,
-        ]]);
-        static::$Input->clear()->merge('post', $postData)->merge('get', $getData);
-        Kit::log([__METHOD__, ['static::$Input' => static::$Input]]);
-        // $_SERVER['REQUEST_URI'] =  ENV_HOST . '/' . $url; // @todo: what?
+        $Input = Loader::loadInput();
+        $Input->clear();
+        $Input->merge('post', $postData);
+        $Input->merge('get', $getData);
         return Autoloader::resolve($method, $url);
     }
 }

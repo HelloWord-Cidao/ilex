@@ -2,16 +2,18 @@
 
 namespace app\Controller;
 
+use \Ilex\Base\Controller\BaseController;
+
 /**
  * Class ProjectController
  * @package app\Controller
  *
- * @method public index()
- * @method public view(mixed $id)
+ * @method final public index()
+ * @method final public view(mixed $id)
  */
-class ProjectController extends \Ilex\Base\Controller\Base
+final class ProjectController extends BaseController
 {
-    public function index()
+    final public function index()
     {
         return ('See all projects.');
     }
@@ -19,7 +21,7 @@ class ProjectController extends \Ilex\Base\Controller\Base
     /**
      * @param mixed $id
      */
-    public function view($id)
+    final public function view($id)
     {
         return ('You\'re looking at Project-' . strval($id));
     }
