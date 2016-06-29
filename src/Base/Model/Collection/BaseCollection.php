@@ -6,7 +6,7 @@ use \MongoId;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Base\Model\BaseModel;
-use \Ilex\Base\Model\Collection\MongoDBCollection;
+use \Ilex\Base\Model\Collection\MongoDBCollection as MDBC;
 use \Ilex\Base\Model\Entity\User\UserEntity;
 use \Ilex\Base\Model\Wrapper\CollectionWrapper;
 use \Ilex\Base\Model\Wrapper\EntityWrapper;
@@ -72,16 +72,16 @@ abstract class BaseCollection// extends BaseModel
         return new $entity_class_name($entity_wrapper, $entity_name, FALSE);
     }
 
-    final public function getBulkClassName()
+    final public function getEntityBulkClassName()
     {
-        return $this->collectionWrapper->getBulkClassName();
+        return $this->collectionWrapper->getEntityBulkClassName();
     }
 
-    final public function checkExistsId($_id)
+    final public function checkExistsId($id)
     {
-        if (FALSE === ($_id instanceof MongoId))
-            $_id = MongoDBCollection::stringToMongoId($_id);
-        $criterion = [ '_id' => $_id ];
+        if (FALSE === ($id instanceof MongoId))
+            $id = MDBC::stringToMongoId($id);
+        $criterion = [ '_id' => $id ];
         return $this->checkExistsOnlyOneEntity($criterion);
     }
 
@@ -126,11 +126,11 @@ abstract class BaseCollection// extends BaseModel
         return $this->getTheOnlyOneEntity($criterion);
     }
 
-    final public function getTheOnlyOneEntityById($_id)
+    final public function getTheOnlyOneEntityById($id)
     {
-        if (FALSE === ($_id instanceof MongoId))
-            $_id = MongoDBCollection::stringToMongoId($_id);
-        $criterion = [ '_id' => $_id ];
+        if (FALSE === ($id instanceof MongoId))
+            $id = MDBC::stringToMongoId($id);
+        $criterion = [ '_id' => $id ];
         return $this->getTheOnlyOneEntity($criterion);
     }
 

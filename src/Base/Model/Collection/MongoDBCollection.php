@@ -446,11 +446,11 @@ class MongoDBCollection
     //     if (TRUE === isset($criterion['_id'])) {
     //         if (FALSE === Kit::isString($criterion['_id'])) return $criterion;
     //         try {
-    //             $_id = $this->stringToMongoId($criterion['_id']);
+    //             $id = $this->stringToMongoId($criterion['_id']);
     //         } catch (Exception $e) {
     //             return $criterion;
     //         }
-    //         $criterion['_id'] = $_id;
+    //         $criterion['_id'] = $id;
     //     }
     //     return $criterion;
     // }

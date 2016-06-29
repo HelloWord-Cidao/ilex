@@ -9,7 +9,7 @@ use \Ilex\Core\Loader;
 use \Ilex\Lib\Http;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
-use \Ilex\Base\Model\Collection\MongoDBCollection;
+use \Ilex\Base\Model\Collection\MongoDBCollection as MDBC;
 
 /**
  * @todo: method arg type validate
@@ -115,7 +115,7 @@ final class Debug
     {
         Kit::ensureBoolean($is_error);
         $result = [
-            'rollback' => MongoDBCollection::rollback(),
+            'rollback' => MDBC::rollback(),
             'code'     => 0,
         ];
         if (FALSE === self::isProduction()) {

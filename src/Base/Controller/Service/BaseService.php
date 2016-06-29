@@ -13,7 +13,7 @@ use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 use \Ilex\Base\Controller\BaseController;
 use \Ilex\Base\Model\Core\BaseCore;
-use \Ilex\Base\Model\Collection\MongoDBCollection;
+use \Ilex\Base\Model\Collection\MongoDBCollection as MDBC;
 
 /**
  * Class BaseService
@@ -357,7 +357,7 @@ abstract class BaseService extends BaseController
     {
         if (FALSE === $close_cgi_only) {
             if (2 !== $this->getCode()) {
-                $this->result['rollback'] = MongoDBCollection::rollback();
+                $this->result['rollback'] = MDBC::rollback();
             } else $this->result['rollback'] = FALSE;
             Debug::updateExecutionRecord($execution_id, $execution_record);
             Debug::popExecutionId($execution_id);

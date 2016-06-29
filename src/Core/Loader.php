@@ -58,7 +58,7 @@ final class Loader
         'Collection',
         'Wrapper',
         'Entity',
-        'Bulk',
+        'EntityBulk',
     ];
 
     /**
@@ -226,9 +226,9 @@ final class Loader
         return $class_name; // full name
     }
 
-    public static function includeBulk($path)
+    public static function includeEntityBulk($path)
     {
-        $class_name = self::includeFile("Model/Bulk/${path}Bulk");
+        $class_name = self::includeFile("Model/Bulk/${path}EntityBulk");
         // $instance   = self::createInstance($class_name, TRUE, []);
         // return $instance;
         return $class_name; // full name

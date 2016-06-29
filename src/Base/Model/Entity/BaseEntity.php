@@ -147,12 +147,12 @@ abstract class BaseEntity
         return MDBC::mongoDateToTimestamp($this->getMeta('CreationTime'));
     }
 
-    final public function getId($id_to_string = FALSE)
+    final public function getId($to_string = FALSE)
     {
-        $_id = $this->get('_id');
-        if (TRUE === $id_to_string)
-            $_id = MDBC::mongoIdToString($_id);
-        return $_id;
+        $id = $this->get('_id');
+        if (TRUE === $to_string)
+            $id = MDBC::mongoIdToString($id);
+        return $id;
     }
 
     final public function setSignature($signature)
@@ -283,20 +283,18 @@ abstract class BaseEntity
         return $this->handleSet('Reference', $name, $value);
     }
 
-    final public function getBulkByMultiReference($name, $collection, $limit = NULL)
+    final public function getEntityBulkByMultiReference($name, $collection, $options = [])
     {
         $id_list = $this->getReference($name);
-        return $this->getBulkByIdList($id_list, $collection, $limit);
-    }
-
-    final public function getBulkByIdList($id_list, $collection, $limit = NULL)
-    {
         Kit::ensureArray($id_list);
-        $bulk_class_name = $collection->getBulkClassName();
-        if (FALSE === is_null($limit)) $id_list = Kit::slice($id_list, 0, $limit);
-        return new $bulk_class_name($id_list, $collection);
+        $entity_bulk_class_name = $collection->getEntityBulkClassName();
+        return new $entity_bulk_class_name($id_list, $collection);
     }
 
+    final public function getEntityByOneReference($name, $collection)
+    {
+        $id = 
+    }
 
 
     // ====================================================================================
@@ -350,11 +348,11 @@ abstract class BaseEntity
         return $this;
     }
 
-    final private function setId($_id)
+    final private function setId($id)
     {
-        if (FALSE === $_id instanceof MongoId)
-            throw new UserException('$_id is not a MongoId.', [ $_id, $this ]);
-        $this->set('_id', $_id, FALSE);
+        if (FALSE === $id instanceof MongoId)
+            throw new UserException('$id is not a MongoId.', [ $id, $this ]);
+        $this->set('_id', $id, FALSE);
         return $this;
     }
 

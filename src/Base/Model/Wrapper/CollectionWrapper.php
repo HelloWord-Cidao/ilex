@@ -37,8 +37,8 @@ final class CollectionWrapper extends MongoDBCollection
     private $entityClassName   = NULL;
     private $hasIncludedEntity = FALSE;
 
-    private $bulkClassName     = NULL;
-    private $hasIncludedBulk   = FALSE;
+    private $entityBulkClassName     = NULL;
+    private $hasIncludedEntityBulk   = FALSE;
 
     final public static function getInstance($collection_name, $entity_path)
     {
@@ -59,7 +59,7 @@ final class CollectionWrapper extends MongoDBCollection
             // throw new UserException('ENTITY_PATH is not set.'); // @CAUTION
         } else {
             $this->includeEntity($entity_path);
-            $this->includeBulk($entity_path);
+            $this->includeEntityBulk($entity_path);
         }
     }
 
@@ -80,19 +80,19 @@ final class CollectionWrapper extends MongoDBCollection
         }
     }
 
-    final private function includeBulk($entity_path)
+    final private function includeEntityBulk($entity_path)
     {
         $collection_name = $this->collectionName;
         if (TRUE === is_null($entity_path)) {
             throw new UserException("ENTITY_PATH is not set in collection($collection_name).");
         }
-        if (FALSE === $this->hasIncludedBulk) {
+        if (FALSE === $this->hasIncludedEntityBulk) {
             try {
-                $this->bulkClassName = Loader::includeBulk($entity_path);
+                $this->entityBulkClassName = Loader::includeEntityBulk($entity_path);
             } catch (Exception $e) {
-                $this->bulkClassName = Loader::includeBulk('Base');
+                $this->entityBulkClassName = Loader::includeEntityBulk('Base');
             }
-            $this->hasIncludedBulk = TRUE;
+            $this->hasIncludedEntityBulk = TRUE;
         }
     }
 
@@ -112,12 +112,12 @@ final class CollectionWrapper extends MongoDBCollection
         return $this->entityClassName;
     }
 
-    final public function getBulkClassName()
+    final public function getEntityBulkClassName()
     {
         $collection_name = $this->collectionName;
-        if (FALSE === isset($this->bulkClassName))
-            throw new UserException("Bulk has not been included in this collection($collection_name)");
-        return $this->bulkClassName;
+        if (FALSE === isset($this->entityBulkClassName))
+            throw new UserException("Entity bulk has not been included in this collection($collection_name)");
+        return $this->entityBulkClassName;
     }
 
     final private function createEntityWithDocument($document)
@@ -157,8 +157,8 @@ final class CollectionWrapper extends MongoDBCollection
     final public function getMultiEntities($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
     {
         $cursor = $this->getMulti($criterion, [], $sort_by, $skip, $limit);
-        $bulk_class_name = $this->getBulkClassName();
-        return new $bulk_class_name($cursor, $this);
+        $entity_bulk_class_name = $this->getEntityBulkClassName();
+        return new $entity_bulk_class_name($cursor, $this);
     }
 
     final public function getTheOnlyOneEntity($criterion)
