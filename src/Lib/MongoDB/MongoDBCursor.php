@@ -1,6 +1,6 @@
 <?php
 
-namespace Ilex\Base\Model\Collection;
+namespace Ilex\Lib\MongoDB;
 
 use \Exception;
 use \Iterator;
@@ -10,11 +10,11 @@ use \Ilex\Lib\UserException;
 /**
  * Class MongoDBCursor
  * Encapsulation of basic operations of MongoCursor class.
- * @package Ilex\Base\Model\Collection
+ * @package Ilex\Lib\MongoDB
  *
  * @property private MongoCursor $cursor
  * 
- * @method public         __construct(MongoCursor $mongo_cursor)
+ * @method public __construct(MongoCursor $mongo_cursor)
  * 
  * @method protected         rewind()
  * @method protected array   current()

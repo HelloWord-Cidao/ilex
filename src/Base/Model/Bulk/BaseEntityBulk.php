@@ -3,110 +3,46 @@
 namespace Ilex\Base\Model\Bulk;
 
 use \Closure;
-use \Iterator;
 use \Ilex\Lib\Kit;
-use \Ilex\Base\Model\Collection\MongoDBCursor;
-use \Ilex\Base\Model\Collection\BaseCollection;
-use \Ilex\Base\Model\Entity\BaseEntity;
-use \Ilex\Base\Model\Wrapper\CollectionWrapper;
-use \Ilex\Base\Model\Wrapper\EntityWrapper;
+use \Ilex\Base\Model\Collection\MongoDBCursor as MDBCur;
+use \Ilex\Base\Model\Entity\BaseEntity as BE;
+use \Ilex\Base\Model\Wrapper\EntityWrapper as EW;
+use \Ilex\Base\Model\Wrapper\QueryWrapper as QW;
 
 /**
  * Class BaseEntityBulk
  * Base class of entity bulk models of Ilex.
  * @package Ilex\Base\Model\Bulk
  */
-class BaseEntityBulk implements Iterator
+class BaseEntityBulk implements BaseBulk
 {
 
-    private $position = 0;
+    private $queryWrapper = NULL;
 
-    private $collectionWrapper = NULL;
-
-    private $entityList = [];
-
-    final public function __construct($cursor_or_id_list, $collection_or_wrapper)
+    public function __construct(MDBCur $cursor, QW $query_wrapper)
     {
-        if (TRUE === $cursor_or_id_list instanceof MongoDBCursor
-            AND TRUE === $collection_or_wrapper instanceof CollectionWrapper) {
-            $this->position = 0;
-            $this->collectionWrapper = $collection_or_wrapper;
-            foreach ($cursor_or_id_list as $document) {
-                $this->entityList[] = $this->createEntityWithDocument($document);
-            }
-        } elseif (TRUE === Kit::isArray($cursor_or_id_list)
-            AND TRUE === $collection_or_wrapper instanceof BaseCollection) {
-            $this->position = 0;
-            foreach ($cursor_or_id_list as $id) {
-                $this->entityList[] = $collection_or_wrapper->getTheOnlyOneEntityById($id);
-            }
-        } else throw new UserException('Invalid args.',
-            [ $cursor_or_id_list, $collection_or_wrapper ]);
-        
-        
-    }
-
-    final private function ensureInitialized()
-    {
-        if (FALSE === isset($this->collectionWrapper)
-            OR FALSE === $this->collectionWrapper instanceof CollectionWrapper)
-            throw new UserException('This entity bulk has not been initialized.');
+        $entity_list = [];
+        $this->queryWrapper = $query_wrapper;
+        foreach ($cursor as $document) {
+            $entity_list[] = $this->createEntityWithDocument($document);
+        }
+        parent::__construct($entity_list);
     }
 
     final private function createEntityWithDocument($document)
     {
         // Kit::ensureDict($document); // @CAUTION
         Kit::ensureArray($document);
-        $this->ensureInitialized();
-        $entity_name       = $this->collectionWrapper->getEntityName();
-        $entity_class_name = $this->collectionWrapper->getEntityClassName();
-        $collection_name   = $this->collectionWrapper->getCollectionName();
-        $entity_wrapper    = EntityWrapper::getInstance($collection_name, $entity_class_name);
+        $entity_name       = $this->queryWrapper->getEntityName();
+        $entity_class_name = $this->queryWrapper->getEntityClassName();
+        $collection_name   = $this->queryWrapper->getCollectionName();
+        $entity_wrapper    = EW::getInstance($collection_name, $entity_class_name);
         return new $entity_class_name($entity_wrapper, $entity_name, TRUE, $document);
-    }
-
-    final public function rewind() {
-        $this->position = 0;
-    }
-
-    final public function current() {
-        return $this->entityList[$this->position];
-    }
-
-    final public function key() {
-        return $this->position;
-    }
-
-    final public function next() {
-        ++$this->position;
-    }
-
-    final public function valid() {
-        return TRUE === isset($this->entityList[$this->position]);
     }
 
     final public function getEntityList()
     {
-        return $this->entityList;
-    }
-
-    final public function count()
-    {
-        return Kit::len($this->entityList);
-    }
-
-    final public function first()
-    {
-        if (0 === $this->count())
-            throw new UserException('Failed to get the first entity, because this entity bulk is empty.', $this);
-        return $this->entityList[0];
-    }
-
-    final public function last()
-    {
-        if (0 === $this->count())
-            throw new UserException('Failed to get the last entity, because this entity bulk is empty.', $this);
-        return Kit::last($this->entityList);
+        return $this->getItemList();
     }
 
     final public function batch($method_name)
@@ -119,8 +55,8 @@ class BaseEntityBulk implements Iterator
         foreach ($this->entityList as $index => $entity) {
             $result[] = ($item = call_user_func_array([ $entity, $method_name ],
                 array_merge($arg_list, [ $index ])));
-            if (TRUE === is_null($is_return_entity)) $is_return_entity = ($item instanceof BaseEntity);
-            if ($is_return_entity !== $item instanceof BaseEntity)
+            if (TRUE === is_null($is_return_entity)) $is_return_entity = ($item instanceof BE);
+            if ($is_return_entity !== $item instanceof BE)
                 throw new UserException('Inconsistent behavior of method.');
         }
         if (TRUE === $is_return_entity) return $this;
@@ -129,7 +65,7 @@ class BaseEntityBulk implements Iterator
 
     final public function map(Closure $function)
     {
-        Kit::map
+        // Kit::map
     }
 
     final public function iterMap(Closure $function, $context)

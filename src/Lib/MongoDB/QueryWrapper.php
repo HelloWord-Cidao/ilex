@@ -6,32 +6,16 @@ use \Exception;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
-use \Ilex\Base\Model\Collection\MongoDBCollection;
+use \Ilex\Base\Model\Wrapper\EntityWrapper as QW;
 
 /**
- * Class CollectionWrapper
+ * Class QueryWrapper
  * @package Ilex\Base\Model\Wrapper
  */
-final class CollectionWrapper extends MongoDBCollection
+final class QueryWrapper extends MongoDBCollection
 {
-    // protected static $methodsVisibility = [
-    //     self::V_PUBLIC => [
-    //         'getEntityName',
-    //         'getEntityClassName',
-    //         'checkExistEntities',
-    //         'ensureExistEntities',
-    //         'checkExistsOnlyOneEntity',
-    //         'ensureExistsOnlyOneEntity',
-    //         'countEntities',
-    //         'getMultiEntities',
-    //         'getTheOnlyOneEntity',
-    //         'getOneEntity',
-    //     ],
-    //     self::V_PROTECTED => [
-    //     ],
-    // ];
     
-    private static $collectionWrapperContainer = NULL;
+    private static $queryWrapperContainer = NULL;
 
     private $entityName        = NULL;
     private $entityClassName   = NULL;
@@ -44,11 +28,11 @@ final class CollectionWrapper extends MongoDBCollection
     {
         Kit::ensureString($collection_name);
         Kit::ensureString($entity_path);
-        if (FALSE === isset(self::$collectionWrapperContainer))
-            self::$collectionWrapperContainer = new Container();
-        if (TRUE === self::$collectionWrapperContainer->has($entity_path)) 
-            return self::$collectionWrapperContainer->get($entity_path);
-        else return (self::$collectionWrapperContainer->set(
+        if (FALSE === isset(self::$queryWrapperContainer))
+            self::$queryWrapperContainer = new Container();
+        if (TRUE === self::$queryWrapperContainer->has($entity_path)) 
+            return self::$queryWrapperContainer->get($entity_path);
+        else return (self::$queryWrapperContainer->set(
             $entity_path, new static($collection_name, $entity_path)));
     }
 
@@ -120,15 +104,6 @@ final class CollectionWrapper extends MongoDBCollection
         return $this->entityBulkClassName;
     }
 
-    final private function createEntityWithDocument($document)
-    {
-        // Kit::ensureDict($document); // @CAUTION
-        Kit::ensureArray($document);
-        $entity_class_name = $this->getEntityClassName();
-        $entity_wrapper    = EntityWrapper::getInstance($this->collectionName, $entity_class_name);
-        return new $entity_class_name($entity_wrapper, $this->getEntityName(), TRUE, $document);
-    }
-
     final public function checkExistEntities($criterion)
     {
         return $this->checkExistence($criterion);
@@ -167,9 +142,18 @@ final class CollectionWrapper extends MongoDBCollection
         return $this->createEntityWithDocument($document);
     }
 
-    final protected function getOneEntity($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
+    final public function getOneEntity($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
     {
         $document = $this->getOne($criterion, [], $sort_by, $skip, $limit);
         return $this->createEntityWithDocument($document);
+    }
+
+    final private function createEntityWithDocument($document)
+    {
+        // Kit::ensureDict($document); // @CAUTION
+        Kit::ensureArray($document);
+        $entity_class_name = $this->getEntityClassName();
+        $entity_wrapper    = EW::getInstance($this->collectionName, $entity_class_name);
+        return new $entity_class_name($entity_wrapper, $this->getEntityName(), TRUE, $document);
     }
 }

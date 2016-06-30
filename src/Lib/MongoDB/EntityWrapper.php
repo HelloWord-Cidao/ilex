@@ -2,9 +2,7 @@
 
 namespace Ilex\Base\Model\Wrapper;
 
-use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
-use \Ilex\Base\Model\Collection\MongoDBCollection;
 use \Ilex\Base\Model\Entity\BaseEntity;
 
 /**
@@ -13,14 +11,6 @@ use \Ilex\Base\Model\Entity\BaseEntity;
  */
 final class EntityWrapper extends MongoDBCollection
 {
-    // protected static $methodsVisibility = [
-    //     self::V_PUBLIC => [
-    //         'addOneEntity',
-    //         'updateTheOnlyOneEntity',
-    //     ],
-    //     self::V_PROTECTED => [
-    //     ],
-    // ];
 
     private static $entityWrapperContainer = NULL;
 

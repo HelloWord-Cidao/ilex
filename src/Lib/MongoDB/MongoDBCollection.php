@@ -1,31 +1,26 @@
 <?php
 
-namespace Ilex\Base\Model\Collection;
+namespace Ilex\Lib\MongoDB;
 
 use \Exception;
 use \MongoId;
 use \MongoDate;
 use \MongoCollection;
 use \Ilex\Core\Loader;
-use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
-// use \Ilex\Base\Model\BaseModel;
-use \Ilex\Base\Model\Collection\MongoDBCursor;
 
 /**
  * Class MongoDBCollection
  * Encapsulation of basic operations of MongoCollection class.
- * @package Ilex\Base\Model\Collection
+ * @package Ilex\Lib\MongoDB
  *
  * @property private MongoCollection $collection
  *
  * @method       public                               __construct()
- * @method       protected        MongoId             addOne(array $document)
+ * @method       protected        array               addOne(array $document)
  * @method final protected        boolean             checkExistence(array $criterion)
  * @method final protected        boolean             checkExistsOnlyOnce(array $criterion)
- * @method final protected        string              mongoIdToString(MongoId $id)
- * @method final protected        MongoId             stringToMongoId(string $id)
  * @method final protected        int                 count(array $criterion = []
  *                                                        , int $skip = NULL
  *                                                        , int $limit = NULL)
@@ -57,7 +52,7 @@ use \Ilex\Base\Model\Collection\MongoDBCursor;
  *                                                 , boolean $to_array = TRUE)
  * @method final protected array|NULL          mongoFindOne(array $criterion = []
  *                                                 , array $projection = [])
- * @method final protected MongoId             mongoInsert(array $document)
+ * @method final protected array               mongoInsert(array $document)
  * @method final protected array               mongoUpdate(array $criterion
  *                                                 , array $update
  *                                                 , boolean $multiple = FALSE)
@@ -75,32 +70,8 @@ class MongoDBCollection
 // https://www.idontplaydarts.com/2011/02/mongodb-null-byte-injection-attacks/
 // https://www.idontplaydarts.com/2010/07/mongodb-is-vulnerable-to-sql-injection-in-php-at-least/
 
-    // protected static $methodsVisibility = [
-    //     self::V_PUBLIC => [
-    //         'getCollectionName',
-    //     ],
-    //     self::V_PROTECTED => [
-    //         // 'addMulti',
-    //         'addOne',
-    //         'checkExistence',
-    //         'ensureExistence',
-    //         'checkExistsOnlyOnce',
-    //         'ensureExistsOnlyOnce',
-    //         // 'mongoIdToString',
-    //         // 'stringToMongoId',
-    //         'count',
-    //         'getMulti',
-    //         'getOne',
-    //         'getTheOnlyOne',
-    //         // 'recoverCriterion',
-    //         // 'sanitizeCriterion',
-    //         'updateMulti',
-    //         // 'updateOne',
-    //         'updateTheOnlyOne',
-    //     ],
-    // ];
-
     protected $collectionName = NULL;
+
     private $collection     = NULL;
 
     final public static function rollback()
@@ -133,19 +104,9 @@ class MongoDBCollection
             throw new UserException("This collection($collection_name) has not been initialized.");
     }
 
-    final private function ensureDocumentHasNoId($document)
-    {
-        Kit::ensureArray($document);
-        if (TRUE === isset($document['_id']))
-            throw new UserException('$document should have no _id field.', $document);
-    }
-
-    final private function ensureCriterionHasProperId($criterion)
-    {
-        Kit::ensureArray($criterion);
-        if (TRUE === isset($criterion['_id']) AND FALSE === $criterion['_id'] instanceof MongoId)
-            throw new UserException('$criterion has improper _id.', $criterion);
-    }
+    
+    // ================================================================================
+    
 
     /**
      * Inserts a document into the collection, and returns the generated _id.
@@ -184,6 +145,8 @@ class MongoDBCollection
         ) {
             throw new UserException('No _id has been generated in the inserted document.', $result);
         }
+        // @CAUTION: do this in BaseEntity
+        // $result['document']['_id'] = new MongoDBId($result['document']['_id']);
         return [
             'document' => $result['document'],
             'status'   => $result['status'],
@@ -400,7 +363,7 @@ class MongoDBCollection
 
     /**
      * Remove the only one document from this collection based on a given criterion.
-     * @param array   $criterion Associative array with fields to match.
+     * @param array $criterion Associative array with fields to match.
      * @return array Returns an array containing the status of the removal.
      * @throws MongoCursorException        if the "w" option is set and the write fails.
      * @throws MongoCursorTimeoutException if the "w" option is set to a value greater than one
@@ -424,6 +387,26 @@ class MongoDBCollection
         return $status;
     }
 
+
+    // ================================================================================
+
+
+    final private function ensureDocumentHasNoId($document)
+    {
+        Kit::ensureArray($document);
+        if (TRUE === isset($document['_id']))
+            throw new UserException('$document should have no _id field.', $document);
+    }
+
+    final private function ensureCriterionHasProperId($criterion)
+    {
+        Kit::ensureArray($criterion);
+        if (TRUE === isset($criterion['_id']) AND FALSE === $criterion['_id'] instanceof MongoId)
+            throw new UserException('$criterion has improper _id.', $criterion);
+        // @CAUTION: do this in BaseQuery
+        // $criterion['_id'] = $criterion['_id']->toMongoId();
+    }
+
     final private function validateOperationStatus($status)
     {
         return FALSE === (
@@ -433,79 +416,7 @@ class MongoDBCollection
         );
     }
 
-    // /**
-    //  * Sanitize _id in $criterion.
-    //  * This method will not throw any exception.
-    //  * @param array $criterion
-    //  * @return array
-    //  */
-    // final private function sanitizeCriterion($criterion)
-    // {
-    //     // Kit::ensureDict($criterion); // @CAUTION
-    //     Kit::ensureArray($criterion);
-    //     if (TRUE === isset($criterion['_id'])) {
-    //         if (FALSE === Kit::isString($criterion['_id'])) return $criterion;
-    //         try {
-    //             $id = $this->stringToMongoId($criterion['_id']);
-    //         } catch (Exception $e) {
-    //             return $criterion;
-    //         }
-    //         $criterion['_id'] = $id;
-    //     }
-    //     return $criterion;
-    // }
-
-    /**
-     * Converts a string to a MongoId.
-     * @param string $string
-     * @return MongoId
-     * @throws UserException if $string is not a string or can not be parsed as a MongoId.
-     */
-    final public static function stringToMongoId($string)
-    {
-        Kit::ensureString($string);
-        try {
-            return new MongoId($string);
-        } catch (Exception $e) {
-            throw new UserException('Can not be parsed as a MongoId.', $string);
-        }
-    }
-
-    /**
-     * Converts a MongoId to a string.
-     * @param MongoId $mongo_id
-     * @return string
-     * @throws UserException if $mongo_id is not a MongoId.
-     */
-    final public static function mongoIdToString($mongo_id)
-    {
-        if (FALSE === ($mongo_id instanceof MongoId))
-            throw new UserException('$mongo_id is not a MongoId.', $mongo_id);
-        else return strval($mongo_id);
-    }
-
-    final public static function mongoDateToTimestamp(MongoDate $mongo_date)
-    {
-        $result = Kit::split(' ', $mongo_date->__toString());
-        return (int)$result[1] + (float)$result[0];
-    }
-
-    // /**
-    //  * Recovers '.' from '_' in a MongoDB criterion keys.
-    //  * @param array $criterion
-    //  * @return array
-    //  */
-    // final private function recoverCriterion($criterion)
-    // {
-    //     // Kit::ensureDict($criterion); // @CAUTION
-    //     Kit::ensureArray($criterion);
-    //     foreach ($criterion as $key => $value) {
-    //         unset($criterion[$key]);
-    //         $criterion[str_replace('_', '.', $key)] = $value;
-    //     }
-    //     return $criterion;
-    // }
-
+    
     // ================================================================================
     // Below are private methods that interact directly with MongoCollection methods.
     // ================================================================================
@@ -515,7 +426,7 @@ class MongoDBCollection
      * Inserting two elements with the same _id will causes a MongoCursorException to be thrown.
      * @param array $document An array or object.
      *                        If an object is used, it may not have protected or private properties.
-     * @return MongoId Returns the generated _id.
+     * @return 
      * @throws MongoException              if the inserted document is empty
      *                                     or if it contains zero-length keys.
      *                                     Attempting to insert an object with protected

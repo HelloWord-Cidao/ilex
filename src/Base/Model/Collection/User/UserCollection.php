@@ -10,11 +10,6 @@ use \Ilex\Base\Model\Collection\BaseCollection;
  */
 class UserCollection extends BaseCollection
 {
-    // protected static $methodsVisibility = [
-    //     self::V_PROTECTED => [
-    //     ],
-    // ];
-
     const COLLECTION_NAME = 'User';
     const ENTITY_PATH     = 'User/User';
 

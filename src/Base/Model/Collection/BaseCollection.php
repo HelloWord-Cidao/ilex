@@ -5,10 +5,8 @@ namespace Ilex\Base\Model\Collection;
 use \MongoId;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
-use \Ilex\Base\Model\BaseModel;
-use \Ilex\Base\Model\Collection\MongoDBCollection as MDBC;
-use \Ilex\Base\Model\Entity\User\UserEntity;
 use \Ilex\Base\Model\Wrapper\CollectionWrapper;
+use \Ilex\Base\Model\Wrapper\QueryWrapper;
 use \Ilex\Base\Model\Wrapper\EntityWrapper;
 
 /**
@@ -16,27 +14,8 @@ use \Ilex\Base\Model\Wrapper\EntityWrapper;
  * Base class of collection models of Ilex.
  * @package Ilex\Base\Model\Collection
  */
-abstract class BaseCollection// extends BaseModel
+abstract class BaseCollection
 {
-    // protected static $methodsVisibility = [
-    //     self::V_PUBLIC => [
-    //         // 'createEntity',
-    //         // 'checkExistEntities',
-    //         // 'checkExistsId',
-    //         // 'checkExistsSignature',
-    //         // 'countAll',
-    //         // 'getTheOnlyOneEntityBySignature',
-    //     ],
-    //     self::V_PROTECTED => [
-    //         // 'ensureExistEntities',
-    //         // 'checkExistsOnlyOneEntity',
-    //         // 'ensureExistsOnlyOneEntity',
-    //         // 'countEntities',
-    //         // 'getMultiEntities',
-    //         // 'getTheOnlyOneEntity',
-    //         // 'getOneEntity',
-    //     ],
-    // ];
 
     private $collectionWrapper = NULL;
 
@@ -62,6 +41,16 @@ abstract class BaseCollection// extends BaseModel
             throw new UserException('This collection has not been initialized.');
     }
 
+    final public function createQuery()
+    {
+        $this->ensureInitialized();
+        $query_name        = $this->collectionWrapper->getQueryName();
+        $query_class_name  = $this->collectionWrapper->getQueryClassName();
+        $collection_name   = $this->collectionWrapper->getCollectionName();
+        $query_wrapper     = QueryWrapper::getInstance($collection_name, $query_class_name);
+        return new $query_class_name($query_wrapper, $query_name, FALSE);
+    }
+
     final public function createEntity()
     {
         $this->ensureInitialized();
@@ -77,112 +66,4 @@ abstract class BaseCollection// extends BaseModel
         return $this->collectionWrapper->getEntityBulkClassName();
     }
 
-    final public function checkExistsId($id)
-    {
-        if (FALSE === ($id instanceof MongoId))
-            $id = MDBC::stringToMongoId($id);
-        $criterion = [ '_id' => $id ];
-        return $this->checkExistsOnlyOneEntity($criterion);
-    }
-
-    final public function checkExistsSignature($signature)
-    {
-        $criterion = [ 'Signature' => $signature ];
-        return $this->checkExistsOnlyOneEntity($criterion);
-    }
-
-    final public function countAll()
-    {
-        return $this->countEntities();
-    }
-
-    final public function getAllEntities()
-    {
-        $criterion = [ ];
-        return $this->getMultiEntities($criterion);
-    }
-
-    final public function getAllEntitiesByType($type)
-    {
-        $criterion = [
-            'Meta.Type' => $type,
-        ];
-        return $this->getMultiEntities($criterion);
-    }
-    
-    final public function getAllEntitiesByReference($entity, $name)
-    {
-        $criterion = [
-            "Reference.$name" => $entity->getId(),
-        ];
-        return $this->getMultiEntities($criterion);
-    }
-
-    final public function getTheOnlyOneEntityBySignature($signature)
-    {
-        $criterion = [
-            'Signature' => $signature,
-        ];
-        return $this->getTheOnlyOneEntity($criterion);
-    }
-
-    final public function getTheOnlyOneEntityById($id)
-    {
-        if (FALSE === ($id instanceof MongoId))
-            $id = MDBC::stringToMongoId($id);
-        $criterion = [ '_id' => $id ];
-        return $this->getTheOnlyOneEntity($criterion);
-    }
-
-
-    //==============================================================================
-
-
-    final protected function checkExistEntities($criterion)
-    {
-        $this->ensureInitialized();
-        return $this->collectionWrapper->checkExistEntities($criterion);
-    }
-
-    final protected function ensureExistEntities($criterion)
-    {
-        $this->ensureInitialized();
-        $this->collectionWrapper->ensureExistEntities($criterion);
-    }
-
-    final protected function checkExistsOnlyOneEntity($criterion)
-    {
-        $this->ensureInitialized();
-        return $this->collectionWrapper->checkExistsOnlyOneEntity($criterion);
-    }
-
-    final protected function ensureExistsOnlyOneEntity($criterion)
-    {
-        $this->ensureInitialized();
-        $this->collectionWrapper->ensureExistsOnlyOneEntity($criterion);
-    }
-     
-    final protected function countEntities($criterion = [], $skip = NULL, $limit = NULL)
-    {
-        $this->ensureInitialized();
-        return $this->collectionWrapper->countEntities($criterion, $skip, $limit);
-    }
-
-    final protected function getMultiEntities($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
-    {
-        $this->ensureInitialized();
-        return $this->collectionWrapper->getMultiEntities($criterion, $sort_by, $skip, $limit);
-    }
-
-    final protected function getTheOnlyOneEntity($criterion)
-    {
-        $this->ensureInitialized();
-        return $this->collectionWrapper->getTheOnlyOneEntity($criterion);
-    }
-
-    final protected function getOneEntity($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
-    {
-        $this->ensureInitialized();
-        return $this->collectionWrapper->getOneEntity($criterion, $sort_by, $skip, $limit);
-    }
 }

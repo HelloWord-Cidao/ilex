@@ -9,7 +9,7 @@ use \Ilex\Core\Loader;
 use \Ilex\Lib\Http;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
-use \Ilex\Base\Model\Collection\MongoDBCollection as MDBC;
+use \Ilex\Lib\MongoDB\MongoDBCollection as MDBC;
 
 /**
  * @todo: method arg type validate
