@@ -13,7 +13,7 @@ use \Ilex\Base\Model\Entity\BaseEntity;
  * Base class of query models of Ilex.
  * @package Ilex\Base\Model\Query
  */
-abstract class BaseQuery
+class BaseQuery
 {
 
     private $queryWrapper = NULL;
@@ -69,21 +69,21 @@ abstract class BaseQuery
         return $this->isEqualTo('_id', $id->toMongoId());
     }
 
-    final protected function dataIs($field_name, $field_value)
+    // @TODO: move it into ContentQuery
+    final public function signatureIs($signature)
+    {
+        return $this->isEqualTo('Signature', $signature);
+    }
+
+    final protected function dataFieldIs($field_name, $field_value)
     {
         return $this->isEqualTo("Data.${field_name}", $field_value);
     }
 
-    final protected function infoIs($field_name, $field_value)
+    final protected function infoFieldIs($field_name, $field_value)
     {
         return $this->isEqualTo("Info.${field_name}", $field_value);
     }
-
-    // @TODO: move it into ContentQuery
-    // final public function signatureIs($signature)
-    // {
-    //     return $this->isEqualTo('Signature', $signature);
-    // }
 
     final public function hasMultiReferenceTo(BaseEntity $entity, $name = NULL)
     {
@@ -184,7 +184,7 @@ abstract class BaseQuery
 
     final private function mergeCriterion($criterion)
     {
-        Kit::ensureDict($criterion)
+        Kit::ensureDict($criterion);
         if (TRUE === is_null($this->criterion)) $this->criterion = [ ];
         Kit::update($this->criterion, $criterion);
         return $this;

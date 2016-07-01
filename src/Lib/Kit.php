@@ -292,7 +292,7 @@ final class Kit
     {
         self::ensureBoolean($can_be_empty);
         return self::isType($variable, self::TYPE_STRING, $can_be_null)
-            AND (TRUE === $can_be_empty OR '' !== $variable);
+            AND (TRUE === $can_be_null OR TRUE === $can_be_empty OR '' !== $variable);
     }
 
     public static function ensureString(&$variable, $can_be_null = FALSE, $can_be_empty = FALSE)
@@ -321,8 +321,9 @@ final class Kit
 
     public static function isInt(&$variable, $can_be_null = FALSE, $should_be_positive = TRUE)
     {
+        self::ensureBoolean($should_be_positive);
         return self::isType($variable, self::TYPE_INT, $can_be_null)
-            AND (FALSE === $should_be_positive OR $variable > 0);
+            AND (TRUE === $can_be_null OR FALSE === $should_be_positive OR $variable > 0);
     }
 
     public static function ensureInt(&$variable, $can_be_null = FALSE, $should_be_positive = TRUE)
@@ -422,7 +423,7 @@ final class Kit
 
     public static function join($delimiter, &$string_list)
     {
-        self::ensureString($delimiter);
+        self::ensureString($delimiter, FALSE, TRUE);
         self::ensureListOfType($string_list, self::TYPE_STRING);
         return implode($delimiter, $string_list);
     }
@@ -639,7 +640,7 @@ final class Kit
     public static function slice(&$list, $offset, $length = NULL)
     {
         self::ensureList($list);
-        self::ensureInt($offset);
+        self::ensureInt($offset, FALSE, FALSE);
         self::ensureInt($length, TRUE);
         // @TODO: check corner cases
         return array_slice($list, $offset, $length);

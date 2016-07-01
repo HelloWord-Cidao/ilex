@@ -385,8 +385,8 @@ abstract class BaseEntity
 
     final private function setId($id)
     {
-        if (FALSE === $id instanceof MongoId)
-            throw new UserException('$id is not a MongoId.', [ $id, $this ]);
+        if (FALSE === $id instanceof MongoDBId)
+            throw new UserException('$id is not a MongoDBId.', [ $id, $this ]);
         $this->set('_id', $id, FALSE);
         return $this;
     }

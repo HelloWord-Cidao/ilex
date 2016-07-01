@@ -3,8 +3,11 @@
 namespace Ilex\Base\Model\Bulk;
 
 use \Closure;
+use \MongoId;
+use \Ilex\Lib\Bulk;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
+use \Ilex\Lib\MongoDB\MongoDBId;
 use \Ilex\Lib\MongoDB\MongoDBCursor;
 use \Ilex\Base\Model\Entity\BaseEntity;
 
@@ -13,10 +16,10 @@ use \Ilex\Base\Model\Entity\BaseEntity;
  * Base class of entity bulk models of Ilex.
  * @package Ilex\Base\Model\Bulk
  */
-class BaseEntityBulk implements BaseBulk
+class BaseEntityBulk extends Bulk
 {
 
-    public function __construct(MongoDBCursor $cursor, $collection_name, $entity_path, $entity_class_name)
+    final public function __construct(MongoDBCursor $cursor, $collection_name, $entity_path, $entity_class_name)
     {
         Kit::ensureString($collection_name);
         Kit::ensureString($entity_path);
@@ -56,7 +59,7 @@ class BaseEntityBulk implements BaseBulk
         if (count($arg_list) > 1) $arg_list = Kit::slice($arg_list, 1); else $arg_list = [];
         $is_return_entity = NULL;
         $result = [];
-        foreach ($this->entityList as $index => $entity) {
+        foreach ($this->getEntityList() as $index => $entity) {
             $result[] = ($item = call_user_func_array([ $entity, $method_name ],
                 array_merge($arg_list, [ $index ])));
             if (TRUE === is_null($is_return_entity)) $is_return_entity = ($item instanceof BaseEntity);
@@ -76,7 +79,7 @@ class BaseEntityBulk implements BaseBulk
     {
         $arg_list = func_get_args();
         if (count($arg_list) > 2) $arg_list = Kit::slice($arg_list, 2); else $arg_list = [];
-        foreach ($this->entityList as $index => $entity) {
+        foreach ($this->getEntityList() as $index => $entity) {
             $context = call_user_func_array($function,
                 array_merge([ $entity, $context ], $arg_list, [ $index ]));
         }

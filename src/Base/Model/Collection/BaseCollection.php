@@ -3,8 +3,9 @@
 namespace Ilex\Base\Model\Collection;
 
 use \Exception;
+use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
-use \Ilex\Lib\Loader;
+use \Ilex\Base\Model\Entity\BaseEntity;
 
 /**
  * Class BaseCollection
@@ -52,11 +53,54 @@ abstract class BaseCollection
 
     final private function includeEntity()
     {
-        try {
-            $this->entityClassName = Loader::includeEntity(static::ENTITY_PATH);
-        } catch (Exception $e) {
-            $this->entityClassName = Loader::includeEntity('Base');
-        }
+        $this->entityClassName = Loader::includeEntity(static::ENTITY_PATH);
+    }
+
+
+    // ====================================================================================
+
+
+    final public function checkExistsId($id)
+    {
+        return $this->createQuery()->idIs($id)->checkExistsOnlyOneEntity();
+    }
+
+    final public function checkExistsSignature($signature)
+    {
+        return $this->createQuery()->signatureIs($signature)->checkExistsOnlyOneEntity();
+    }
+    final public function countAll()
+    {
+        return $this->createQuery()->all()->countEntities();
+    }
+    final public function getAllEntities()
+    {
+        return $this->createQuery()->all()->getMultiEntities();
+    }
+
+    final public function getTheOnlyOneEntityById($id)
+    {
+        return $this->createQuery()->idIs($id)->getTheOnlyOneEntity();
+    }
+
+    final public function getTheOnlyOneEntityBySignature($signature)
+    {
+        return $this->createQuery()->signatureIs($signature)->getTheOnlyOneEntity();
+    }
+    
+    final public function getAllEntitiesByMultiReference(BaseEntity $entity, $name = NULL)
+    {
+        return $this->createQuery()->hasMultiReferenceTo($entity)->getMultiEntities();
+    }
+
+    final public function getAllEntitiesByOneReference(BaseEntity $entity, $name = NULL)
+    {
+        return $this->createQuery()->hasOneReferenceTo($entity)->getMultiEntities();
+    }
+
+    final public function getAllEntitiesByType($type)
+    {
+        return $this->createQuery()->typeIs($type)->getMultiEntities();
     }
 
 }

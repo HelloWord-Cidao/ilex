@@ -3,6 +3,7 @@
 namespace Ilex\Lib\MongoDB;
 
 use \MongoId;
+use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\Entity\BaseEntity;

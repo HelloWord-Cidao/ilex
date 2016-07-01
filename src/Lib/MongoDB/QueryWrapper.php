@@ -46,11 +46,7 @@ final class QueryWrapper extends MongoDBCollection
 
     final private function includeEntity()
     {
-        try {
-            $this->entityClassName = Loader::includeEntity($this->entityPath);
-        } catch (Exception $e) {
-            $this->entityClassName = Loader::includeEntity('Base');
-        }
+        $this->entityClassName = Loader::includeEntity($this->entityPath);
     }
 
     final private function includeEntityBulk()
@@ -66,37 +62,31 @@ final class QueryWrapper extends MongoDBCollection
 
     final public function checkExistEntities($criterion)
     {
-        $this->ensureCriterionHasProperId($criterion);
         return $this->checkExistence($criterion);
     }
 
     final public function ensureExistEntities($criterion)
     {
-        $this->ensureCriterionHasProperId($criterion);
         $this->ensureExistence($criterion);
     }
 
     final public function checkExistsOnlyOneEntity($criterion)
     {
-        $this->ensureCriterionHasProperId($criterion);
         return $this->checkExistsOnlyOnce($criterion);
     }
 
     final public function ensureExistsOnlyOneEntity($criterion)
     {
-        $this->ensureCriterionHasProperId($criterion);
         $this->ensureExistsOnlyOnce($criterion);
     }
      
     final public function countEntities($criterion = [], $skip = NULL, $limit = NULL)
     {
-        $this->ensureCriterionHasProperId($criterion);
         return $this->count($criterion, $skip, $limit);
     }
 
     final public function getMultiEntities($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
     {
-        $this->ensureCriterionHasProperId($criterion);
         $cursor = $this->getMulti($criterion, [ ], $sort_by, $skip, $limit);
         $entity_bulk_class_name = $this->entityBulkClassName;
         Kit::ensureString($entity_bulk_class_name);
@@ -106,26 +96,17 @@ final class QueryWrapper extends MongoDBCollection
 
     final public function getTheOnlyOneEntity($criterion)
     {
-        $this->ensureCriterionHasProperId($criterion);
         $document = $this->getTheOnlyOne($criterion);
         return $this->createEntityWithDocument($document);
     }
 
     final public function getOneEntity($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
     {
-        $this->ensureCriterionHasProperId($criterion);
         $document = $this->getOne($criterion, [ ], $sort_by, $skip, $limit);
         return $this->createEntityWithDocument($document);
     }
 
     //===============================================================================================
-
-    final private function ensureCriterionHasProperId(&$criterion)
-    {
-        Kit::ensureArray($criterion);
-        if (TRUE === isset($criterion['_id']) AND FALSE === $criterion['_id'] instanceof MongoId)
-            throw new UserException('$criterion has improper _id.', $criterion);
-    }
 
     final private function createEntityWithDocument($document)
     {

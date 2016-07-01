@@ -1,6 +1,6 @@
 <?php
 
-namespace Ilex\Lib\Bulk;
+namespace Ilex\Lib;
 
 use \Iterator;
 use \Ilex\Lib\Kit;
@@ -9,7 +9,7 @@ use \Ilex\Lib\UserException;
 /**
  * Class Bulk
  * Base class of bulk models of Ilex.
- * @package Ilex\Base\Model\Bulk
+ * @package Ilex\Lib
  */
 class Bulk implements Iterator
 {
@@ -17,7 +17,7 @@ class Bulk implements Iterator
     private $position = 0;
     private $itemList = [];
 
-    final public function __construct($item_list)
+    public function __construct($item_list)
     {
         Kit::ensureArray($item_list); // @CAUTION
         $this->position = 0;
