@@ -222,7 +222,7 @@ abstract class BaseEntity
         Kit::ensureBoolean($ensure_no_existence);
         if (TRUE === is_null($reference_name))
             $field_name  = $entity->getEntityName() . 'Id';
-        else $field_name = $reference_name;
+        else $field_name = $reference_name . 'Id';
         $entity_id   = $entity->getId();
         $field_value = $this->getDocument('Reference', $field_name, FALSE);
         if (TRUE === $ensure_no_existence AND FALSE === is_null($field_value)) {
@@ -252,8 +252,14 @@ abstract class BaseEntity
         return $entity->getId()->isEqualTo($this->getOneReference($reference_name));
     }
 
+    final protected function setMultiReference($reference_name, $reference_value)
+    {
+        Kit::ensureString($reference_name);
+        return $this->setReference($reference_name . 'IdList', $reference_value);
+    }
+
     // O(N)
-    final private function getMultiReference($reference_name)//, $ensure_existence = TRUE, $default = NULL)
+    final protected function getMultiReference($reference_name)//, $ensure_existence = TRUE, $default = NULL)
     {
         Kit::ensureString($reference_name);
         $result = [ ]; // @TODO: use Bulk
@@ -263,7 +269,13 @@ abstract class BaseEntity
         return $result;
     }
 
-    final private function getOneReference($reference_name)//, $ensure_existence = TRUE, $default = NULL)
+    final protected function setOneReference($reference_name, $reference_value)
+    {
+        Kit::ensureString($reference_name);
+        return $this->setReference($reference_name . 'Id', $reference_value);
+    }
+
+    final protected function getOneReference($reference_name)//, $ensure_existence = TRUE, $default = NULL)
     {
         Kit::ensureString($reference_name);
         return new MongoDBId($this->getReference($reference_name . 'Id'));//, $ensure_existence, $default);
@@ -301,15 +313,17 @@ abstract class BaseEntity
     }
 
     // @TODO
-    // final public function getCreationTime()
-    // {
-    //     return MDBC::mongoDateToTimestamp($this->getMeta('CreationTime'));
-    // }
+    final public function getCreationTime()
+    {
+        $result = Kit::split(' ', $this->getMeta('CreationTime')->__toString());
+        return (int)$result[1] + (float)$result[0];
+    }
 
-    // final public function getModificationTime()
-    // {
-    //     return MDBC::mongoDateToTimestamp($this->getMeta('ModificationTime'));
-    // }
+    final public function getModificationTime()
+    {
+        $result = Kit::split(' ', $this->getMeta('ModificationTime')->__toString());
+        return (int)$result[1] + (float)$result[0];
+    }
     
     final public function setMeta($arg1 = NULL, $arg2 = Kit::TYPE_VACANCY)
     {

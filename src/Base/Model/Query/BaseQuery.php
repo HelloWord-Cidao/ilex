@@ -101,7 +101,14 @@ class BaseQuery
 
     final public function typeIs($type)
     {
+        Kit::ensureString($type);
         return $this->isEqualTo('Meta.Type', $type);
+    }
+
+    final public function stateIs($state)
+    {
+        Kit::ensureType($state, [ Kit::TYPE_INT, Kit::TYPE_STRING ]);
+        return $this->isEqualTo('Meta.State', $state);
     }
 
     final public function isCreatedBefore($timestamp)
@@ -207,7 +214,8 @@ class BaseQuery
     final public function skip($skip = NULL)
     {
         if (TRUE === is_null($skip)) return $this->skip;
-        Kit::ensureInt($skip);
+        Kit::ensureInt($skip, FALSE, FALSE);
+        if ($skip < 0) throw new UserException("\$skip($skip) is negative.");
         $this->skip = $skip;
         return $this;
     }
