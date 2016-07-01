@@ -128,6 +128,7 @@ final class Loader
 
     public static function loadService($path)
     {
+        Kit::ensureString($path);
         return self::loadController("Service/${path}Service");
     }
 
@@ -139,6 +140,9 @@ final class Loader
      */
     private static function loadController($path, $with_instantiate = TRUE, $arg_list = [])
     {
+        Kit::ensureString($path);
+        Kit::ensureBoolean($with_instantiate);
+        Kit::ensureArray($arg_list);
         return self::load("Controller/$path", $with_instantiate, $arg_list);
     }
 
@@ -149,26 +153,33 @@ final class Loader
 
     public static function loadConfig($path)
     {
+        Kit::ensureString($path);
         return self::loadModel("Config/${path}Config");
     }
 
     public static function loadData($path)
     {
+        Kit::ensureString($path);
         return self::loadModel("Data/${path}Data");
     }
 
     public static function loadLog($path)
     {
+        Kit::ensureString($path);
         return self::loadModel("Log/${path}Log");
     }
 
     public static function loadCore($path, $arg_list = [])
     {
+        Kit::ensureString($path);
+        Kit::ensureArray($arg_list);
         return self::loadModel("Core/${path}Core", TRUE, $arg_list);
     }
 
     public static function loadCollection($path, $arg_list = [])
     {
+        Kit::ensureString($path);
+        Kit::ensureArray($arg_list);
         return self::loadModel("Collection/${path}Collection", TRUE, $arg_list);
     }
 
@@ -180,6 +191,9 @@ final class Loader
      */
     public static function loadModel($path, $with_instantiate = TRUE, $arg_list = [])
     {
+        Kit::ensureString($path);
+        Kit::ensureBoolean($with_instantiate);
+        Kit::ensureArray($arg_list);
         return self::load("Model/$path", $with_instantiate, $arg_list);
     }
 
@@ -194,7 +208,9 @@ final class Loader
       */
     private static function load($path, $with_instantiate, $arg_list)
     {
-        // var_dump([$path, self::has($path)]);
+        Kit::ensureString($path);
+        Kit::ensureBoolean($with_instantiate);
+        Kit::ensureArray($arg_list);
         if (TRUE === self::has($path)) {
             return self::get($path);
         } else {
@@ -212,14 +228,27 @@ final class Loader
      */
     private static function createInstance($class_name, $with_instantiate, $arg_list)
     {
+        Kit::ensureString($class_name);
+        Kit::ensureBoolean($with_instantiate);
+        Kit::ensureArray($arg_list);
         $reflection_class = new ReflectionClass($class_name);
         if (TRUE === $with_instantiate)
             return $reflection_class->newInstanceArgs($arg_list);
         else return $reflection_class->newInstanceWithoutConstructor();
     }
 
+    public static function includeQuery($path)
+    {
+        Kit::ensureString($path);
+        $class_name = self::includeFile("Model/Query/${path}Query");
+        // $instance   = self::createInstance($class_name, TRUE, []);
+        // return $instance;
+        return $class_name; // full name
+    }
+
     public static function includeEntity($path)
     {
+        Kit::ensureString($path);
         $class_name = self::includeFile("Model/Entity/${path}Entity");
         // $instance   = self::createInstance($class_name, TRUE, []);
         // return $instance;
@@ -228,6 +257,7 @@ final class Loader
 
     public static function includeEntityBulk($path)
     {
+        Kit::ensureString($path);
         $class_name = self::includeFile("Model/Bulk/${path}EntityBulk");
         // $instance   = self::createInstance($class_name, TRUE, []);
         // return $instance;
@@ -236,6 +266,7 @@ final class Loader
 
     public static function includeCore($path)
     {
+        Kit::ensureString($path);
         $class_name = self::includeFile("Model/Core/${path}Core");
         // $instance   = self::createInstance($class_name, TRUE, []);
         // return $instance;
@@ -253,6 +284,7 @@ final class Loader
      */
     private static function includeFile($path)
     {
+        Kit::ensureString($path);
         $item_list = [
             'app' => [
                 'name' => '\\' . self::get('APPNAME') . '\\' . str_replace('/', '\\', $path),
@@ -276,16 +308,18 @@ final class Loader
 
     /**
      * Extracts handler prefix name from path.
-     * eg. 'Service/AdminServiceController'           => 'Admin'
+     * eg. 'Service/AdminServiceController'             => 'Admin'
      * eg. 'Collection/Content/ResourceCollectionModel' => 'Resource'
      * eg. 'Collection/LogCollection'                   => 'Log'
-     * eg. 'Entity/Resource'                          => 'Resource'
+     * eg. 'Entity/Resource'                            => 'Resource'
      * @param string $path
      * @param string $delimiter
      * @return string
      */
     public static function getHandlerPrefixFromPath($path, $delimiter = '\\')
     {
+        Kit::ensureString($path);
+        Kit::ensureString($delimiter);
         $handler         = self::getHandlerFromPath($path, $delimiter);
         $title_word_list = Kit::separateTitleWords($handler);
         if (Kit::len($title_word_list) > 0) {
@@ -309,6 +343,8 @@ final class Loader
      */
     public static function getHandlerSuffixFromPath($path, $delimiter = '\\')
     {
+        Kit::ensureString($path);
+        Kit::ensureString($delimiter);
         $handler         = self::getHandlerFromPath($path, $delimiter);
         $title_word_list = Kit::separateTitleWords($handler);
         if (Kit::len($title_word_list) > 0) {
@@ -327,6 +363,8 @@ final class Loader
      */
     public static function getHandlerFromPath($path, $delimiter = '/')
     {
+        Kit::ensureString($path);
+        Kit::ensureString($delimiter);
         return Kit::last(Kit::split($delimiter, $path));
     }
 
@@ -336,6 +374,8 @@ final class Loader
      */
     public static function getModelPath($model_class_name, $delimiter = '\\')
     {
+        Kit::ensureString($model_class_name);
+        Kit::ensureString($delimiter);
         $handler_prefix = self::getHandlerPrefixFromPath($model_class_name); // 'Resource'
         $word_list = Kit::split($delimiter, $model_class_name);
         while (Kit::len($word_list) > 0 AND 'Model' !== $word_list[0]) {
@@ -383,5 +423,6 @@ final class Loader
  */
 function includeFile($file)
 {
+    Kit::ensureString($file);
     include_once $file;
 }

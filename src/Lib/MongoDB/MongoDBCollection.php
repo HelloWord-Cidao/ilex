@@ -82,7 +82,6 @@ class MongoDBCollection
     protected function __construct($collection_name)
     {
         Kit::ensureString($collection_name);
-        if ('' === $collection_name) throw new UserException('$collection_name is an empty string.');
         try {
             $this->collectionName = $collection_name;
             $this->collection = Loader::loadMongoDB()->selectCollection($collection_name);
@@ -145,8 +144,6 @@ class MongoDBCollection
         ) {
             throw new UserException('No _id has been generated in the inserted document.', $result);
         }
-        // @CAUTION: do this in BaseEntity
-        // $result['document']['_id'] = new MongoDBId($result['document']['_id']);
         return [
             'document' => $result['document'],
             'status'   => $result['status'],
@@ -403,8 +400,6 @@ class MongoDBCollection
         Kit::ensureArray($criterion);
         if (TRUE === isset($criterion['_id']) AND FALSE === $criterion['_id'] instanceof MongoId)
             throw new UserException('$criterion has improper _id.', $criterion);
-        // @CAUTION: do this in BaseQuery
-        // $criterion['_id'] = $criterion['_id']->toMongoId();
     }
 
     final private function validateOperationStatus($status)

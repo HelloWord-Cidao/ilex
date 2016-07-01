@@ -15,7 +15,7 @@ use \Ilex\Lib\UserTypeException;
  * @method public static array      columns(array $list_of_array, array|mixed $column_name_list
  *                                      , boolean $ensure_existence = TRUE, mixed $default = NULL
  *                                      , boolean $return_only_values = FALSE)
- * @mehtod public static array      columnsExclude(array $list_of_array, array $column_name_list
+ * @method public static array      columnsExclude(array $list_of_array, array $column_name_list
  *                                      , boolean $check_existence = FALSE)
  * @method public static array      exclude(array $array, array $key_list
  *                                      , boolean $check_existence = FALSE)
@@ -297,7 +297,8 @@ final class Kit
 
     public static function ensureString(&$variable, $can_be_null = FALSE, $can_be_empty = FALSE)
     {
-        self::ensureType($variable, self::TYPE_STRING, $can_be_null);
+        if (FALSE === self::isString($variable, $can_be_null, $can_be_empty))
+            throw new UserTypeException($variable, self::TYPE_STRING);
     }
 
     public static function isMatchRegex(&$variable, $regex, $can_be_null = FALSE)
@@ -315,7 +316,7 @@ final class Kit
     public static function ensureMatchRegex(&$variable, $regex, $can_be_null = FALSE)
     {
         if (FALSE === self::isMatchRegex($variable, $regex, $can_be_null))
-            throw new UserException("\$variable($variable) macth \$regex($regex) failed.", $can_be_null);
+            throw new UserException("\$variable($variable) match \$regex($regex) failed.", $can_be_null);
     }
 
     public static function isInt(&$variable, $can_be_null = FALSE, $should_be_positive = TRUE)
@@ -326,7 +327,8 @@ final class Kit
 
     public static function ensureInt(&$variable, $can_be_null = FALSE, $should_be_positive = TRUE)
     {
-        self::ensureType($variable, self::TYPE_INT, $can_be_null, $should_be_positive);
+        if (FALSE === self::isInt($variable, $can_be_null, $should_be_positive))
+            throw new UserTypeException($variable, self::TYPE_INT);
     }
 
     public static function isFloat(&$variable, $can_be_null = FALSE)
@@ -600,7 +602,7 @@ final class Kit
         $result = $array;
         foreach ($key_list as $key) {
             if (FALSE === isset($array[$key]) AND TRUE === $check_existence) {
-                $msg = "Field($key) does not exist, thus can not be exclued.";
+                $msg = "Field($key) does not exist, thus can not be excluded.";
                 throw new UserException($msg, $array);
             }
             unset($result[$key]);
@@ -1024,7 +1026,7 @@ final class Kit
 
     /**
      * @todo: remove $env
-     * This mehtod logs debug info.
+     * This method logs debug info.
      * @param mixed  $data
      * @param boolean $quotation_mark_list indicates whether to include quotation marks
      *                                     when dealing with strings

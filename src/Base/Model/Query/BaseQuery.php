@@ -2,11 +2,11 @@
 
 namespace Ilex\Base\Model\Query;
 
-use \MongoId;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
-use \Ilex\Base\Model\Wrapper\QueryWrapper as QW;
-use \Ilex\Base\Model\Entity\BaseEntity as BE;
+use \Ilex\Lib\MongoDB\MongoDBId;
+use \Ilex\Lib\MongoDB\QueryWrapper;
+use \Ilex\Base\Model\Entity\BaseEntity;
 
 /**
  * Class BaseQuery
@@ -18,7 +18,7 @@ abstract class BaseQuery
 
     private $queryWrapper = NULL;
 
-    private $criterion = [];
+    private $criterion = NULL;
     private $sortBy    = NULL;
     private $skip      = NULL;
     private $limit     = NULL;
@@ -26,17 +26,15 @@ abstract class BaseQuery
     final public function __construct($collection_name, $entity_path)
     {
         Kit::ensureString($collection_name, TRUE);
-        if (TRUE === is_null($collection_name)) {
-            // throw new UserException('COLLECTION_NAME is not set.'); // @CAUTION
-        } else {
-            $this->queryWrapper = QW::getInstance($collection_name, $entity_path);
-        }
+        Kit::ensureString($entity_path);
+        if (FALSE === is_null($collection_name))
+            $this->queryWrapper = QueryWrapper::getInstance($collection_name, $entity_path);
         $this->clear();
     }
 
     final public function clear()
     {
-        $this->criterion = [];
+        $this->criterion = NULL;
         $this->sortBy    = NULL;
         $this->skip      = NULL;
         $this->limit     = NULL;
@@ -46,16 +44,29 @@ abstract class BaseQuery
     final private function ensureInitialized()
     {
         if (FALSE === isset($this->queryWrapper)
-            OR FALSE === $this->queryWrapper instanceof QW)
+            OR FALSE === $this->queryWrapper instanceof QueryWrapper)
             throw new UserException('This query has not been initialized.');
         if (TRUE === is_null($this->criterion))
             throw new UserException('Criterion has not been initialized.');
     }
 
+
+    //==============================================================================
+
+
+    final public function all()
+    {
+        return $this->mergeCriterion([ ]);
+    }
+
     final public function idIs($id)
     {
-        if (FALSE === MDBC::isMongoId($id)) $id = MDBC::stringToMongoId($id);
-        return $this->isEqualTo('_id', $id);
+        if (TRUE === Kit::isString($id))
+            $id = new MongoDBId($id);
+        elseif (FALSE === $id instanceof MongoDBId)
+            throw new UserException('Invalid $id.', $id);
+        // Now $id must be MongoDBId
+        return $this->isEqualTo('_id', $id->toMongoId());
     }
 
     final protected function dataIs($field_name, $field_value)
@@ -74,18 +85,18 @@ abstract class BaseQuery
     //     return $this->isEqualTo('Signature', $signature);
     // }
 
-    final public function hasMultiReferenceTo(BE $entity, $name = NULL)
+    final public function hasMultiReferenceTo(BaseEntity $entity, $name = NULL)
     {
         if (TRUE === is_null($name)) $name = $entity->getEntityName();
         else Kit::ensureString($name);
-        return $this->isEqualTo("Reference.${name}IdList", $entity->getId());
+        return $this->isEqualTo("Reference.${name}IdList", $entity->getId()->toMongoId());
     }
     
-    final public function hasOneReferenceTo(BE $entity, $name = NULL)
+    final public function hasOneReferenceTo(BaseEntity $entity, $name = NULL)
     {
         if (TRUE === is_null($name)) $name = $entity->getEntityName();
         else Kit::ensureString($name);
-        return $this->isEqualTo("Reference.${name}Id", $entity->getId());
+        return $this->isEqualTo("Reference.${name}Id", $entity->getId()->toMongoId());
     }
 
     final public function typeIs($type)
@@ -174,7 +185,7 @@ abstract class BaseQuery
     final private function mergeCriterion($criterion)
     {
         Kit::ensureDict($criterion)
-        if (TRUE === is_null($this->criterion)) $this->criterion = [];
+        if (TRUE === is_null($this->criterion)) $this->criterion = [ ];
         Kit::update($this->criterion, $criterion);
         return $this;
     }

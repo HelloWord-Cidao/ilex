@@ -28,7 +28,7 @@ final class MongoDBId
     {
         if (TRUE === $id_or_string instanceof MongoId)
             $this->id = $id_or_string;
-        elseif (MongoId::isValid($id_or_string)) {
+        elseif (TRUE === MongoId::isValid($id_or_string)) {
             Kit::ensureString($id_or_string);
             try {
                 $this->id = new MongoId($id_or_string);

@@ -2,11 +2,11 @@
 
 namespace Ilex\Base\Model\Entity;
 
-use \MongoId;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
-use \Ilex\Base\Model\Wrapper\EntityWrapper;
+use \Ilex\Lib\MongoDB\MongoDBId;
+use \Ilex\Lib\MongoDB\EntityWrapper;
 
 /**
  * Class BaseEntity
@@ -16,9 +16,9 @@ use \Ilex\Base\Model\Wrapper\EntityWrapper;
 abstract class BaseEntity
 {
 
-    protected $name               = NULL;
-    protected $isInCollection     = FALSE;
-    protected $isSameAsCollection = FALSE; // @TODO private it
+    private $name               = NULL; // @TODO private it
+    private $isInCollection     = FALSE; // @TODO private it
+    private $isSameAsCollection = FALSE; // @TODO private it
 
     private static $rootFieldNameList = [
         'Signature',
@@ -31,18 +31,20 @@ abstract class BaseEntity
     private $document      = NULL;
     private $isReadOnly    = FALSE;
 
-    final public function __construct(EntityWrapper $entity_wrapper, $name, $is_in_collection, $document = NULL)
+    final public function __construct($collection_name, $entity_path, $is_in_collection, $document = NULL)
     {
-        Kit::ensureString($name);
+        Kit::ensureString($collection_name, TRUE);
+        Kit::ensureString($entity_path);
         Kit::ensureBoolean($is_in_collection);
         // Kit::ensureDict($document); // @CAUTION
         Kit::ensureArray($document, TRUE);
         if (TRUE === $is_in_collection AND
             (FALSE === isset($document['_id']) 
-                OR FALSE === ($document['_id'] instanceof MongoId)))
-            throw new UserException('_id is not set or is not a MongoId.', $this);
-        $this->entityWrapper      = $entity_wrapper;
-        $this->name               = $name;
+                OR FALSE === ($document['_id'] instanceof MongoDBId)))
+            throw new UserException('_id is not set or is not a MongoDBId.', $this);
+        if (FALSE === is_null($collection_name))
+            $this->entityWrapper  = EntityWrapper::getInstance($collection_name, $entity_path);;
+        $this->name               = Loader::getHandlerFromPath($entity_path);
         $this->isInCollection     = $is_in_collection;
         $this->isSameAsCollection = $is_in_collection;
         if (FALSE === is_null($document))
@@ -52,7 +54,7 @@ abstract class BaseEntity
             'Info'      => [ ],
             'Reference' => [ ],
             'Meta'      => [
-                'Type' => $name,
+                'Type' => $this->name,
             ],
         ];
     }
@@ -61,6 +63,31 @@ abstract class BaseEntity
     {
         $handler_name = Loader::getHandlerFromPath($path) . 'Collection';
         return ($this->$handler_name = Loader::loadCollection($path));
+    }
+
+    final private function ensureInitialized()
+    {
+        if (FALSE === isset($this->entityWrapper)
+            OR FALSE === $this->entityWrapper instanceof EntityWrapper)
+            throw new UserException('This entity has not been initialized.', $this);
+        return $this;
+    }
+
+    final public function getEntityName()
+    {
+        return $this->name;
+    }
+
+    final public function isInCollection()
+    {
+        return $this->isInCollection;
+    }
+
+    final private function ensureInCollection()
+    {
+        if (FALSE === $this->isInCollection)
+            throw new UserException('This entity is not in collection.', $this);
+        return $this;
     }
 
     final public function setReadOnly()
@@ -81,24 +108,6 @@ abstract class BaseEntity
         return $this;
     }
 
-    final public function getEntityName()
-    {
-        return $this->name;
-    }
-
-    final public function isInCollection()
-    {
-        return $this->isInCollection;
-    }
-
-    final public function ensureInCollection()
-    {
-        if (FALSE === $this->isInCollection)
-            throw new UserException('This entity is not in collection.');
-        return $this;
-    }
-
-
     //=======================================================================================
 
 
@@ -111,8 +120,8 @@ abstract class BaseEntity
     final public function getId($to_string = FALSE)
     {
         $id = $this->ensureInCollection()->get('_id');
-        if (TRUE === $to_string) $id = MDBC::mongoIdToString($id);
-        return $id;
+        if (TRUE === $to_string) return $id->toString();
+        else return $id;
     }
 
 
@@ -198,13 +207,11 @@ abstract class BaseEntity
         $field_value = $this->getDocument('Reference', $field_name, FALSE, []);
         if (TRUE === $check_duplicate) {
             foreach ($field_value as $id) {
-                if (MDBC::mongoIdToString($id) 
-                    === MDBC::mongoIdToString($entity_id))
-                    // return FALSE;
+                if (TRUE === $entity_id->isEqualTo($id))
                     return $this;
             }
         }
-        $field_value[] = $entity_id;
+        $field_value[] = $entity_id->toMongoId();
         $this->setDocument('Reference', $field_name, $field_value);
         return $this;
     }
@@ -219,47 +226,52 @@ abstract class BaseEntity
         $entity_id   = $entity->getId();
         $field_value = $this->getDocument('Reference', $field_name, FALSE);
         if (TRUE === $ensure_no_existence AND FALSE === is_null($field_value)) {
-            $msg = "Can not build reference($field_name) as " . (string)$entity_id 
-                . ", old value is " . (string)$field_value . ".";
+            $msg = "Can not build reference($field_name) as " . $entity_id->toString()
+                . ", old value is " . $field_value->toString() . ".";
             throw new UserException($msg);
         }
-        $this->setDocument('Reference', $field_name, $entity_id);
+        $this->setDocument('Reference', $field_name, $entity_id->toMongoId());
         return $this;
     }
 
-    final public function hasMultiReferenceTo(BaseEntity $entity, $reference_name = NULL)
-    {
-        if (TRUE === is_null($reference_name))
-            $reference_name = $entity->getEntityName();
-        else Kit::ensureString($reference_name);
-
-        return $this->handleHas('Reference', $reference_name . 'IdList');
-    }
+    // O(N)
+    // final public function hasMultiReferenceTo(BaseEntity $entity, $reference_name = NULL)
+    // {
+    //     if (TRUE === is_null($reference_name))
+    //         $reference_name = $entity->getEntityName();
+    //     foreach ($this->getMultiReference($reference_name) as $id) {
+    //         if ($entity->getId()->isEqualTo($id)) return TRUE;
+    //     };
+    //     return FALSE;
+    // }
 
     final public function hasOneReferenceTo(BaseEntity $entity, $reference_name = NULL)
     {
         if (TRUE === is_null($reference_name))
             $reference_name = $entity->getEntityName();
-        else Kit::ensureString($reference_name);
-        return MDBC::mongoIdToString($this->getOneReference($reference_name))
-            === MDBC::mongoIdToString($entity->getId());
+        return $entity->getId()->isEqualTo($this->getOneReference($reference_name));
     }
 
+    // O(N)
     final private function getMultiReference($reference_name)//, $ensure_existence = TRUE, $default = NULL)
     {
         Kit::ensureString($reference_name);
-        return $this->getReference($reference_name . 'IdList');//, $ensure_existence, $default);
+        $result = [ ]; // @TODO: use Bulk
+        foreach ($this->getReference($reference_name . 'IdList') as $id) {
+            $result[] = new MongoDBId($id);
+        }
+        return $result;
     }
 
     final private function getOneReference($reference_name)//, $ensure_existence = TRUE, $default = NULL)
     {
         Kit::ensureString($reference_name);
-        return $this->getReference($reference_name . 'Id');//, $ensure_existence, $default);
+        return new MongoDBId($this->getReference($reference_name . 'Id'));//, $ensure_existence, $default);
     }
 
-    final private function getReference($reference_name = NULL, $ensure_existence = TRUE, $default = NULL)
+    final private function getReference($reference_name)// = NULL, $ensure_existence = TRUE, $default = NULL)
     {
-        return $this->handleGet('Reference', $reference_name, $ensure_existence, $default);
+        return $this->handleGet('Reference', $reference_name, TRUE, NULL);
     }
 
     final private function setReference($reference_name, $reference_value)
@@ -288,15 +300,16 @@ abstract class BaseEntity
         return $this->getMeta('Type');
     }
 
-    final public function getCreationTime()
-    {
-        return MDBC::mongoDateToTimestamp($this->getMeta('CreationTime'));
-    }
+    // @TODO
+    // final public function getCreationTime()
+    // {
+    //     return MDBC::mongoDateToTimestamp($this->getMeta('CreationTime'));
+    // }
 
-    final public function getModificationTime()
-    {
-        return MDBC::mongoDateToTimestamp($this->getMeta('ModificationTime'));
-    }
+    // final public function getModificationTime()
+    // {
+    //     return MDBC::mongoDateToTimestamp($this->getMeta('ModificationTime'));
+    // }
     
     final public function setMeta($arg1 = NULL, $arg2 = Kit::TYPE_VACANCY)
     {
@@ -343,26 +356,6 @@ abstract class BaseEntity
 
     // ====================================================================================
 
-
-    final private function ensureInitialized()
-    {
-        if (FALSE === isset($this->entityWrapper)
-            OR FALSE === $this->entityWrapper instanceof EntityWrapper)
-            throw new UserException('This entity has not been initialized.', $this);
-        return $this;
-    }
-
-    final private function ensureInCollection()
-    {
-        if (FALSE === $this->isInCollection)
-            throw new UserException('This entity is not in collection.', $this);
-        return $this;
-    }
-
-    final private function checkIsSameAsCollection()
-    {
-        return $this->isSameAsCollection;
-    }
 
     final private function inCollection()
     {

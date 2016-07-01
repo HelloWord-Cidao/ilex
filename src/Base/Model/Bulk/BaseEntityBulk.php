@@ -4,10 +4,9 @@ namespace Ilex\Base\Model\Bulk;
 
 use \Closure;
 use \Ilex\Lib\Kit;
-use \Ilex\Base\Model\Collection\MongoDBCursor as MDBCur;
-use \Ilex\Base\Model\Entity\BaseEntity as BE;
-use \Ilex\Base\Model\Wrapper\EntityWrapper as EW;
-use \Ilex\Base\Model\Wrapper\QueryWrapper as QW;
+use \Ilex\Lib\UserException;
+use \Ilex\Lib\MongoDB\MongoDBCursor;
+use \Ilex\Base\Model\Entity\BaseEntity;
 
 /**
  * Class BaseEntityBulk
@@ -17,12 +16,15 @@ use \Ilex\Base\Model\Wrapper\QueryWrapper as QW;
 class BaseEntityBulk implements BaseBulk
 {
 
-    private $queryWrapper = NULL;
-
-    public function __construct(MDBCur $cursor, QW $query_wrapper)
+    public function __construct(MongoDBCursor $cursor, $collection_name, $entity_path, $entity_class_name)
     {
+        Kit::ensureString($collection_name);
+        Kit::ensureString($entity_path);
+        Kit::ensureString($entity_class_name);
+        $this->collectionName  = $collection_name;
+        $this->entityPath      = $entity_path;
+        $this->entityClassName = $entity_class_name;
         $entity_list = [];
-        $this->queryWrapper = $query_wrapper;
         foreach ($cursor as $document) {
             $entity_list[] = $this->createEntityWithDocument($document);
         }
@@ -33,13 +35,15 @@ class BaseEntityBulk implements BaseBulk
     {
         // Kit::ensureDict($document); // @CAUTION
         Kit::ensureArray($document);
-        $entity_name       = $this->queryWrapper->getEntityName();
-        $entity_class_name = $this->queryWrapper->getEntityClassName();
-        $collection_name   = $this->queryWrapper->getCollectionName();
-        $entity_wrapper    = EW::getInstance($collection_name, $entity_class_name);
-        return new $entity_class_name($entity_wrapper, $entity_name, TRUE, $document);
+        if (FALSE === isset($document['_id']) OR FALSE === $document['_id'] instanceof MongoId)
+            throw new UserException('_id is not set or proper in $document.', $document);
+        $document['_id']   = new MongoDBId($document['_id']);
+        $entity_class_name = $this->entityClassName;
+        return new $entity_class_name($this->collectionName, $this->entityPath, TRUE, $document);
     }
 
+    //===============================================================================================
+    
     final public function getEntityList()
     {
         return $this->getItemList();
@@ -55,8 +59,8 @@ class BaseEntityBulk implements BaseBulk
         foreach ($this->entityList as $index => $entity) {
             $result[] = ($item = call_user_func_array([ $entity, $method_name ],
                 array_merge($arg_list, [ $index ])));
-            if (TRUE === is_null($is_return_entity)) $is_return_entity = ($item instanceof BE);
-            if ($is_return_entity !== $item instanceof BE)
+            if (TRUE === is_null($is_return_entity)) $is_return_entity = ($item instanceof BaseEntity);
+            if ($is_return_entity !== $item instanceof BaseEntity)
                 throw new UserException('Inconsistent behavior of method.');
         }
         if (TRUE === $is_return_entity) return $this;

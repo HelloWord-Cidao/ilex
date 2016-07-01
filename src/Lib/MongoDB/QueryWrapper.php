@@ -1,32 +1,29 @@
 <?php
 
-namespace Ilex\Base\Model\Wrapper;
+namespace Ilex\Lib\MongoDB;
 
 use \Exception;
+use \MongoId;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Container;
 use \Ilex\Lib\Kit;
-use \Ilex\Base\Model\Wrapper\EntityWrapper as QW;
+use \Ilex\Lib\UserException;
 
 /**
  * Class QueryWrapper
- * @package Ilex\Base\Model\Wrapper
+ * @package Ilex\Lib\MongoDB
  */
 final class QueryWrapper extends MongoDBCollection
 {
     
     private static $queryWrapperContainer = NULL;
 
-    private $entityName        = NULL;
-    private $entityClassName   = NULL;
-    private $hasIncludedEntity = FALSE;
-
-    private $entityBulkClassName     = NULL;
-    private $hasIncludedEntityBulk   = FALSE;
+    private $entityPath          = NULL;
+    private $entityClassName     = NULL;
+    private $entityBulkClassName = NULL;
 
     final public static function getInstance($collection_name, $entity_path)
     {
-        Kit::ensureString($collection_name);
         Kit::ensureString($entity_path);
         if (FALSE === isset(self::$queryWrapperContainer))
             self::$queryWrapperContainer = new Container();
@@ -38,122 +35,107 @@ final class QueryWrapper extends MongoDBCollection
 
     final protected function __construct($collection_name, $entity_path)
     {
+        // @TODO: check when $collection_name and $entity_path can be null
         parent::__construct($collection_name);
-        if (TRUE === is_null($entity_path)) {
-            // throw new UserException('ENTITY_PATH is not set.'); // @CAUTION
-        } else {
-            $this->includeEntity($entity_path);
-            $this->includeEntityBulk($entity_path);
+        $this->entityPath = $entity_path;
+        if (TRUE === is_null($entity_path))
+            throw new UserException('ENTITY_PATH is not set.'); // @CAUTION
+        $this->includeEntity();
+        $this->includeEntityBulk();
+    }
+
+    final private function includeEntity()
+    {
+        try {
+            $this->entityClassName = Loader::includeEntity($this->entityPath);
+        } catch (Exception $e) {
+            $this->entityClassName = Loader::includeEntity('Base');
         }
     }
 
-    final private function includeEntity($entity_path)
+    final private function includeEntityBulk()
     {
-        $collection_name = $this->collectionName;
-        if (TRUE === is_null($entity_path)) {
-            throw new UserException("ENTITY_PATH is not set in collection($collection_name).");
-        }
-        if (FALSE === $this->hasIncludedEntity) {
-            try {
-                $this->entityClassName = Loader::includeEntity($entity_path);
-            } catch (Exception $e) {
-                $this->entityClassName = Loader::includeEntity('Base');
-            }
-            $this->entityName = Loader::getHandlerFromPath($entity_path);
-            $this->hasIncludedEntity = TRUE;
+        try {
+            $this->entityBulkClassName = Loader::includeEntityBulk($this->entityPath);
+        } catch (Exception $e) {
+            $this->entityBulkClassName = Loader::includeEntityBulk('Base');
         }
     }
 
-    final private function includeEntityBulk($entity_path)
-    {
-        $collection_name = $this->collectionName;
-        if (TRUE === is_null($entity_path)) {
-            throw new UserException("ENTITY_PATH is not set in collection($collection_name).");
-        }
-        if (FALSE === $this->hasIncludedEntityBulk) {
-            try {
-                $this->entityBulkClassName = Loader::includeEntityBulk($entity_path);
-            } catch (Exception $e) {
-                $this->entityBulkClassName = Loader::includeEntityBulk('Base');
-            }
-            $this->hasIncludedEntityBulk = TRUE;
-        }
-    }
-
-    final public function getEntityName()
-    {
-        $collection_name = $this->collectionName;
-        if (FALSE === isset($this->entityName))
-            throw new UserException("Enity has not been included in this collection($collection_name)");
-        return $this->entityName;
-    }
-
-    final public function getEntityClassName()
-    {
-        $collection_name = $this->collectionName;
-        if (FALSE === isset($this->entityClassName))
-            throw new UserException("Enity has not been included in this collection($collection_name)");
-        return $this->entityClassName;
-    }
-
-    final public function getEntityBulkClassName()
-    {
-        $collection_name = $this->collectionName;
-        if (FALSE === isset($this->entityBulkClassName))
-            throw new UserException("Entity bulk has not been included in this collection($collection_name)");
-        return $this->entityBulkClassName;
-    }
+    //===============================================================================================
 
     final public function checkExistEntities($criterion)
     {
+        $this->ensureCriterionHasProperId($criterion);
         return $this->checkExistence($criterion);
     }
 
     final public function ensureExistEntities($criterion)
     {
+        $this->ensureCriterionHasProperId($criterion);
         $this->ensureExistence($criterion);
     }
 
     final public function checkExistsOnlyOneEntity($criterion)
     {
+        $this->ensureCriterionHasProperId($criterion);
         return $this->checkExistsOnlyOnce($criterion);
     }
 
     final public function ensureExistsOnlyOneEntity($criterion)
     {
+        $this->ensureCriterionHasProperId($criterion);
         $this->ensureExistsOnlyOnce($criterion);
     }
      
     final public function countEntities($criterion = [], $skip = NULL, $limit = NULL)
     {
+        $this->ensureCriterionHasProperId($criterion);
         return $this->count($criterion, $skip, $limit);
     }
 
     final public function getMultiEntities($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
     {
-        $cursor = $this->getMulti($criterion, [], $sort_by, $skip, $limit);
-        $entity_bulk_class_name = $this->getEntityBulkClassName();
-        return new $entity_bulk_class_name($cursor, $this);
+        $this->ensureCriterionHasProperId($criterion);
+        $cursor = $this->getMulti($criterion, [ ], $sort_by, $skip, $limit);
+        $entity_bulk_class_name = $this->entityBulkClassName;
+        Kit::ensureString($entity_bulk_class_name);
+        return new $entity_bulk_class_name($cursor,
+            $this->collectionName, $this->entityPath, $this->entityClassName);
     }
 
     final public function getTheOnlyOneEntity($criterion)
     {
+        $this->ensureCriterionHasProperId($criterion);
         $document = $this->getTheOnlyOne($criterion);
         return $this->createEntityWithDocument($document);
     }
 
     final public function getOneEntity($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
     {
-        $document = $this->getOne($criterion, [], $sort_by, $skip, $limit);
+        $this->ensureCriterionHasProperId($criterion);
+        $document = $this->getOne($criterion, [ ], $sort_by, $skip, $limit);
         return $this->createEntityWithDocument($document);
+    }
+
+    //===============================================================================================
+
+    final private function ensureCriterionHasProperId(&$criterion)
+    {
+        Kit::ensureArray($criterion);
+        if (TRUE === isset($criterion['_id']) AND FALSE === $criterion['_id'] instanceof MongoId)
+            throw new UserException('$criterion has improper _id.', $criterion);
     }
 
     final private function createEntityWithDocument($document)
     {
         // Kit::ensureDict($document); // @CAUTION
         Kit::ensureArray($document);
-        $entity_class_name = $this->getEntityClassName();
-        $entity_wrapper    = EW::getInstance($this->collectionName, $entity_class_name);
-        return new $entity_class_name($entity_wrapper, $this->getEntityName(), TRUE, $document);
+        if (FALSE === isset($document['_id']) OR FALSE === $document['_id'] instanceof MongoId)
+            throw new UserException('_id is not set or proper in $document.', $document);
+        $document['_id']   = new MongoDBId($document['_id']);
+        $entity_class_name = $this->entityClassName;
+        Kit::ensureString($entity_class_name);
+        return new $entity_class_name($this->collectionName, $this->entityPath, TRUE, $document);
     }
 }

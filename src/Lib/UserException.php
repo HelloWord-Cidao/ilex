@@ -28,7 +28,7 @@ class UserException extends Exception
     // (and otherwise needless) try/catch block.
     // When using finally keep in mind that when a exit/die statement is used in the catch block
     // it will NOT go through the finally block. 
-    // There's some inconsistent behaviour associated with PHP 5.5.3's finally and return statements.
+    // There's some inconsistent behavior associated with PHP 5.5.3's finally and return statements.
     // If a method returns a variable in a try block (e.g. return $foo;),
     // and finally modifies that variable, the /modified/ value is returned.
     // However, if the try block has a return that has to be evaluated in-line (e.g. return $foo+0;),

@@ -129,7 +129,7 @@ final class MongoDBCursor implements Iterator
      * if you haven't queried yet, you can still apply limits, skips, etc.
      * If you have started iterating through results,
      * it will not move the current position of the cursor.
-     * If you have exhasted the cursor, it will not reset it.
+     * If you have exhausted the cursor, it will not reset it.
      * @return int The number of documents returned by this cursor's query.
      * @throws MongoConnectionException if it cannot reach the database.
      * @throws UserException

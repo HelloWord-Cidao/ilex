@@ -2,12 +2,9 @@
 
 namespace Ilex\Base\Model\Collection;
 
-use \MongoId;
-use \Ilex\Core\Loader;
+use \Exception;
 use \Ilex\Lib\Kit;
-use \Ilex\Base\Model\Wrapper\CollectionWrapper;
-use \Ilex\Base\Model\Wrapper\QueryWrapper;
-use \Ilex\Base\Model\Wrapper\EntityWrapper;
+use \Ilex\Lib\Loader;
 
 /**
  * Class BaseCollection
@@ -17,8 +14,6 @@ use \Ilex\Base\Model\Wrapper\EntityWrapper;
 abstract class BaseCollection
 {
 
-    private $collectionWrapper = NULL;
-
     // const COLLECTION_NAME = NULL; // should set in subclass
     // const ENTITY_PATH     = NULL; // should set in subclass
 
@@ -27,43 +22,41 @@ abstract class BaseCollection
         $collection_name = static::COLLECTION_NAME;
         $entity_path     = static::ENTITY_PATH;
         Kit::ensureString($collection_name, TRUE);
-        if (TRUE === is_null($collection_name)) {
-            // throw new UserException('COLLECTION_NAME is not set.'); // @CAUTION
-        } else {
-            $this->collectionWrapper = CollectionWrapper::getInstance($collection_name, $entity_path);
-        }
-    }
-
-    final private function ensureInitialized()
-    {
-        if (FALSE === isset($this->collectionWrapper)
-            OR FALSE === $this->collectionWrapper instanceof CollectionWrapper)
-            throw new UserException('This collection has not been initialized.');
+        Kit::ensureString($entity_path);
+        $this->includeQuery();
+        $this->includeEntity();
     }
 
     final public function createQuery()
     {
-        $this->ensureInitialized();
-        $query_name        = $this->collectionWrapper->getQueryName();
-        $query_class_name  = $this->collectionWrapper->getQueryClassName();
-        $collection_name   = $this->collectionWrapper->getCollectionName();
-        $query_wrapper     = QueryWrapper::getInstance($collection_name, $query_class_name);
-        return new $query_class_name($query_wrapper, $query_name, FALSE);
+        $query_class_name = $this->queryClassName;
+        Kit::ensureString($query_class_name);
+        return new $query_class_name(static::COLLECTION_NAME, static::ENTITY_PATH);
+    }
+
+    final private function includeQuery()
+    {
+        try {
+            $this->queryClassName = Loader::includeQuery(static::ENTITY_PATH);
+        } catch (Exception $e) {
+            $this->queryClassName = Loader::includeQuery('Base');
+        }
     }
 
     final public function createEntity()
     {
-        $this->ensureInitialized();
-        $entity_name       = $this->collectionWrapper->getEntityName();
-        $entity_class_name = $this->collectionWrapper->getEntityClassName();
-        $collection_name   = $this->collectionWrapper->getCollectionName();
-        $entity_wrapper    = EntityWrapper::getInstance($collection_name, $entity_class_name);
-        return new $entity_class_name($entity_wrapper, $entity_name, FALSE);
+        $entity_class_name = $this->entityClassName;
+        Kit::ensureString($entity_class_name);
+        return new $entity_class_name(static::COLLECTION_NAME, static::ENTITY_PATH, FALSE);
     }
 
-    final public function getEntityBulkClassName()
+    final private function includeEntity()
     {
-        return $this->collectionWrapper->getEntityBulkClassName();
+        try {
+            $this->entityClassName = Loader::includeEntity(static::ENTITY_PATH);
+        } catch (Exception $e) {
+            $this->entityClassName = Loader::includeEntity('Base');
+        }
     }
 
 }
