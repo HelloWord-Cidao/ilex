@@ -207,7 +207,7 @@ abstract class BaseEntity
         $field_value = $this->getDocument('Reference', $field_name, FALSE, []);
         if (TRUE === $check_duplicate) {
             foreach ($field_value as $id) {
-                if (TRUE === $entity_id->isEqualTo($id))
+                if (TRUE === $entity_id->isEqualTo(new MongoDBId($id)))
                     return $this;
             }
         }
@@ -259,7 +259,7 @@ abstract class BaseEntity
     }
 
     // O(N)
-    final protected function getMultiReference($reference_name)//, $ensure_existence = TRUE, $default = NULL)
+    final public function getMultiReference($reference_name)//, $ensure_existence = TRUE, $default = NULL)
     {
         Kit::ensureString($reference_name);
         $result = [ ]; // @TODO: use Bulk
@@ -275,7 +275,7 @@ abstract class BaseEntity
         return $this->setReference($reference_name . 'Id', $reference_value);
     }
 
-    final protected function getOneReference($reference_name)//, $ensure_existence = TRUE, $default = NULL)
+    final public function getOneReference($reference_name)//, $ensure_existence = TRUE, $default = NULL)
     {
         Kit::ensureString($reference_name);
         return new MongoDBId($this->getReference($reference_name . 'Id'));//, $ensure_existence, $default);

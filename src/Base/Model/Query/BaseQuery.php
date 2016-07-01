@@ -64,7 +64,8 @@ class BaseQuery
         if (TRUE === Kit::isString($id))
             $id = new MongoDBId($id);
         elseif (FALSE === $id instanceof MongoDBId)
-            throw new UserException('Invalid $id.', $id);
+            $id = new MongoDBId($id);
+            // throw new UserException('Invalid $id.', $id);
         // Now $id must be MongoDBId
         return $this->isEqualTo('_id', $id->toMongoId());
     }
@@ -193,7 +194,7 @@ class BaseQuery
     {
         Kit::ensureDict($criterion);
         if (TRUE === is_null($this->criterion)) $this->criterion = [ ];
-        Kit::update($this->criterion, $criterion);
+        $this->criterion = array_merge_recursive($this->criterion, $criterion);
         return $this;
     }
 
