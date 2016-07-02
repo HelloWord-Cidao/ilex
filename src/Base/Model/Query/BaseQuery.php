@@ -267,7 +267,7 @@ class BaseQuery
         $this->ensureInitialized();
         $result = $this->queryWrapper->checkExistsOnlyOneEntity($this->criterion);
         $this->clear();
-        return $this;
+        return $result;
     }
 
     final public function ensureExistsOnlyOneEntity()
