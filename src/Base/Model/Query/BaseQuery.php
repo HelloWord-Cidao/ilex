@@ -76,13 +76,27 @@ class BaseQuery
         return $this->isEqualTo('Signature', $signature);
     }
 
-    final protected function dataFieldIs($field_name, $field_value)
+    final public function dataIs($field_value)
     {
+        Kit::ensureArray($field_value);
+        return $this->isEqualTo("Data", $field_value);
+    }
+
+    final public function dataFieldIs($field_name, $field_value)
+    {
+        Kit::ensureString($field_name);
         return $this->isEqualTo("Data.${field_name}", $field_value);
     }
 
-    final protected function infoFieldIs($field_name, $field_value)
+    final public function infoIs($field_value)
     {
+        Kit::ensureArray($field_value);
+        return $this->isEqualTo("Info", $field_value);
+    }
+
+    final public function infoFieldIs($field_name, $field_value)
+    {
+        Kit::ensureString($field_name);
         return $this->isEqualTo("Info.${field_name}", $field_value);
     }
 

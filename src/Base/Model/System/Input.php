@@ -44,9 +44,11 @@ final class Input
     {
         self::$getData   = new Container();
         self::$postData  = new Container();
+        // self::$cookieData  = new Container();
         self::$inputData = new Container();
         self::merge('get', $_GET);
         self::merge('post', $_POST);
+        // self::merge('cookie', $_COOKIE);
         $opts = [ 'http' => [ 'timeout' => 60 ] ];
         $context = stream_context_create($opts);
         $input = file_get_contents('php://input', FALSE, $context);
