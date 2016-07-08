@@ -6,6 +6,7 @@ use \Exception;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\Core\BaseCore;
+use \Ilex\Base\Model\Entity\User\UserEntity;
 
 /**
  * Class UserCore
@@ -38,7 +39,7 @@ abstract class UserCore extends BaseCore
         }
     }
     
-    abstract protected function generateJWT($username);
+    abstract protected function generateJWT(UserEntity $user);
 
     abstract protected static function parseToken($jwt);
 

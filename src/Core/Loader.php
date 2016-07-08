@@ -180,6 +180,13 @@ final class Loader
     {
         Kit::ensureString($path);
         Kit::ensureArray($arg_list);
+        $core_class      = new ReflectionClass(self::includeCore($path));
+        $collection_name = $core_class->getConstant('COLLECTION_NAME');
+        $entity_path     = $core_class->getConstant('ENTITY_PATH');
+        Kit::ensureString($collection_name, TRUE);
+        Kit::ensureString($entity_path);
+        $tmp = [ $collection_name, $entity_path ];
+        $arg_list = Kit::extended($tmp, $arg_list);
         try {
             return self::loadModel("Collection/${path}Collection", TRUE, $arg_list);
         } catch (Exception $e) {
