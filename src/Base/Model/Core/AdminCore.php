@@ -11,14 +11,8 @@ use \Ilex\Base\Model\Core\BaseCore;
  */
 final class AdminCore extends BaseCore
 {
-    protected static $methodsVisibility = [
-        self::V_PUBLIC => [
-            'countCollection',
-            'getCollection',
-        ],
-    ];
 
-    protected function countCollection($input)
+    final public static function countCollection($input)
     {
         $this->loadCollection($input['collection_name']);
         $collection_name = $input['collection_name'] . 'Collection';
@@ -42,7 +36,7 @@ final class AdminCore extends BaseCore
             $data = Kit::generateError('$data is not numeric.');
     }
 
-    protected static function getCollection($input)
+    final public static function getCollection($input)
     {
         $this->loadCollection($input['collection_name']);
         $collection_name = $input['collection_name'] . 'Collection';

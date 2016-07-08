@@ -51,11 +51,7 @@ final class QueryWrapper extends MongoDBCollection
 
     final private function includeEntityBulk()
     {
-        try {
-            $this->entityBulkClassName = Loader::includeEntityBulk($this->entityPath);
-        } catch (Exception $e) {
-            $this->entityBulkClassName = Loader::includeEntityBulk('Base');
-        }
+        $this->entityBulkClassName = Loader::includeEntityBulk($this->entityPath);
     }
 
     //===============================================================================================

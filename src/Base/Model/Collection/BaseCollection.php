@@ -12,48 +12,47 @@ use \Ilex\Base\Model\Entity\BaseEntity;
  * Base class of collection models of Ilex.
  * @package Ilex\Base\Model\Collection
  */
-abstract class BaseCollection
+class BaseCollection
 {
 
-    // const COLLECTION_NAME = NULL; // should set in subclass
-    // const ENTITY_PATH     = NULL; // should set in subclass
+    protected $queryClassName  = NULL;
+    protected $entityClassName = NULL;
 
-    public function __construct()
+    private $collectionName = NULL;
+    private $entityPath     = NULL;
+
+    public function __construct($collection_name, $entity_path)
     {
-        $collection_name = static::COLLECTION_NAME;
-        $entity_path     = static::ENTITY_PATH;
         Kit::ensureString($collection_name, TRUE);
         Kit::ensureString($entity_path);
+        $this->collectionName = $collection_name;
+        $this->entityPath     = $entity_path;
         $this->includeQuery();
         $this->includeEntity();
+    }
+
+    final private function includeQuery()
+    {
+        $this->queryClassName = Loader::includeQuery($this->entityPath);
     }
 
     final public function createQuery()
     {
         $query_class_name = $this->queryClassName;
         Kit::ensureString($query_class_name);
-        return new $query_class_name(static::COLLECTION_NAME, static::ENTITY_PATH);
+        return new $query_class_name($this->collectionName, $this->entityPath);
     }
 
-    final private function includeQuery()
+    final private function includeEntity()
     {
-        try {
-            $this->queryClassName = Loader::includeQuery(static::ENTITY_PATH);
-        } catch (Exception $e) {
-            $this->queryClassName = Loader::includeQuery('Base');
-        }
+        $this->entityClassName = Loader::includeEntity($this->entityPath);
     }
 
     final public function createEntity()
     {
         $entity_class_name = $this->entityClassName;
         Kit::ensureString($entity_class_name);
-        return new $entity_class_name(static::COLLECTION_NAME, static::ENTITY_PATH, FALSE);
-    }
-
-    final private function includeEntity()
-    {
-        $this->entityClassName = Loader::includeEntity(static::ENTITY_PATH);
+        return new $entity_class_name($this->collectionName, $this->entityPath, FALSE);
     }
 
 

@@ -27,16 +27,17 @@ abstract class UserCore extends BaseCore
 
     abstract protected function generateJWT($username);
 
-    public static function getCurrentUserEntity($token)
+    final public static function getCurrentUserEntity($token)
     {
-
         try {
             $user_info = static::parseToken($token);
         } catch (Exception $e) {
             throw new UserException('Invalid token.', $e);
         }
         try {
-            $user = Loader::loadCollection('User/User')->getTheOnlyOneEntityById($user_info['userId'])->setReadOnly();
+            $user = Loader::loadCollection('User/User')
+                ->getTheOnlyOneEntityById($user_info['userId'])
+                ->setReadOnly();
             return $user;
         } catch (Exception $e) {
             throw new UserException('Token error or user not exist.', $e);

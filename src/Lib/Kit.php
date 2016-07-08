@@ -959,7 +959,7 @@ final class Kit
     {
         $randmax = mt_getrandmax();
         if (TRUE === is_null($max)) $max = $randmax;
-        self::ensureInt($min);
+        self::ensureInt($min, FALSE, FALSE);
         self::ensureInt($max);
         if ($min > $max) throw new UserException("Min($min) is larger than max($max).", [ $min, $max ]);
         return $min + self::round(1.0 * mt_rand() / $randmax * ($max - $min));
@@ -1036,64 +1036,65 @@ final class Kit
     public static function log($data, $quotation_mark_list = TRUE, $env = 'TESTILEX')
     {
         // @todo: use json_encode
-        if ($env === ENVIRONMENT) {
-            $result = '';
-            if (TRUE === is_array($data)) {
-                foreach ($data as $key => $value) {
-                    if (0 === $key) $result .= self::toString($value, FALSE) . ' : ';
-                    else $result .= self::toString($value, $quotation_mark_list) . "\t";
-                }
-                $result .= PHP_EOL.'<br>';
-            } else $result .= self::toString($data, FALSE) . PHP_EOL.'<br>';
-            echo $result;
-        }
+        // if ($env === ENVIRONMENT) {
+        //     $result = '';
+        //     if (TRUE === is_array($data)) {
+        //         foreach ($data as $key => $value) {
+        //             if (0 === $key) $result .= self::toString($value, FALSE) . ' : ';
+        //             else $result .= self::toString($value, $quotation_mark_list) . "\t";
+        //         }
+        //         $result .= PHP_EOL.'<br>';
+        //     } else $result .= self::toString($data, FALSE) . PHP_EOL.'<br>';
+        //     echo $result;
+        // }
     }
 
     /**
      * Generates the string form of data.
      * @param mixed   $data
-     * @param boolean $quotation_mark_list indicates whether to include quotation marks
-     *                                     when dealing with strings
      * @return string
      */
-    public static function toString(&$data, $quotation_mark_list = TRUE)
+    public static function toString(&$data)
     {
-        if (TRUE === is_array($data)) {
-            array_walk(
-                $data,
-                function(&$datum, $index, $quotation_mark_list) {
-                    $datum = self::toString($datum, $quotation_mark_list);
-                },
-                $quotation_mark_list
-            );
-        }
-        if (TRUE === self::isList($data)) {
-            if (0 === self::len($data)) return '[]';
-            return '[ ' . self::join(', ', $data) . ' ]';
-        }
-        else if (TRUE === self::isDict($data)) {
-            return '{ '
-                . self::join(', ',
-                    array_map(
-                        function($key, $value) {
-                            return self::toString($key, FALSE) . ' : ' . $value;
-                        },
-                        array_keys($data),
-                        array_values($data)
-                    )
-                ) . ' }';
+        if (TRUE === self::isNULL($data)) return 'NULL';
+        if (TRUE === self::isType($data, [ self::TYPE_INT, self::TYPE_FLOAT ])) return strval($data);
+        if (TRUE === self::isString($data, FALSE, TRUE)) return $data;
+        // if (TRUE === is_array($data)) {
+        //     array_walk(
+        //         $data,
+        //         function(&$datum, $index, $quotation_mark_list) {
+        //             $datum = self::toString($datum, $quotation_mark_list);
+        //         },
+        //         $quotation_mark_list
+        //     );
+        // }
+        // if (TRUE === self::isList($data)) {
+        //     if (0 === self::len($data)) return '[]';
+        //     return '[ ' . self::join(', ', $data) . ' ]';
+        // }
+        // else if (TRUE === self::isDict($data)) {
+        //     return '{ '
+        //         . self::join(', ',
+        //             array_map(
+        //                 function($key, $value) {
+        //                     return self::toString($key, FALSE) . ' : ' . $value;
+        //                 },
+        //                 array_keys($data),
+        //                 array_values($data)
+        //             )
+        //         ) . ' }';
             
-        }
-        else if (TRUE === $data instanceof Closure)
-            return 'Closure';
-        else if (TRUE === is_object($data) AND FALSE === method_exists($data, '__toString'))
-            return 'Object' . '(' . get_class($data) . ')';
-        else if (TRUE === is_bool($data))
-            return TRUE === $data ? 'TRUE' : 'FALSE';
-        else if (TRUE === is_null($data))
-            return 'NULL';
-        else if (TRUE === self::isString($data))
-            return TRUE === $quotation_mark_list ? ('\'' . $data . '\'') : $data;
-        else return strval($data);
+        // }
+        // else if (TRUE === $data instanceof Closure)
+        //     return 'Closure';
+        // else if (TRUE === is_object($data) AND FALSE === method_exists($data, '__toString'))
+        //     return 'Object' . '(' . get_class($data) . ')';
+        // else if (TRUE === is_bool($data))
+        //     return TRUE === $data ? 'TRUE' : 'FALSE';
+        // else if (TRUE === is_null($data))
+        //     return 'NULL';
+        // else if (TRUE === self::isString($data))
+        //     return TRUE === $quotation_mark_list ? ('\'' . $data . '\'') : $data;
+        // else return strval($data);
     }
 }

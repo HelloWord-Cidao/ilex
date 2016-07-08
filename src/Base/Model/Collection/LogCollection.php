@@ -10,25 +10,14 @@ use \Ilex\Base\Model\Collection\BaseCollection;
  */
 class LogCollection extends BaseCollection
 {
-    // protected static $methodsVisibility = [
-    //     self::V_PUBLIC => [
-    //         'addRequestLog',
-    //     ],
-    //     self::V_PROTECTED => [
-    //         'addLog',
-    //     ]
-    // ];
 
-    const COLLECTION_NAME = 'Log';
-    const ENTITY_PATH     = 'Log';
-
-    final protected function addRequestLog($content)
+    final public function addRequestLog($content)
     {
         $type = 'Request';
         return $this->call('addLog', $content, $type);
     }
 
-    final protected function addLog($content, $type = NULL)
+    final public function addLog($content, $type = NULL)
     {
         if (FALSE === is_null($type))
             $meta = [ 'Type' => $type ];

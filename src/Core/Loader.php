@@ -180,7 +180,11 @@ final class Loader
     {
         Kit::ensureString($path);
         Kit::ensureArray($arg_list);
-        return self::loadModel("Collection/${path}Collection", TRUE, $arg_list);
+        try {
+            return self::loadModel("Collection/${path}Collection", TRUE, $arg_list);
+        } catch (Exception $e) {
+            return self::loadModel('Collection/BaseCollection', TRUE, $arg_list);
+        }
     }
 
     /**
@@ -240,37 +244,48 @@ final class Loader
     public static function includeQuery($path)
     {
         Kit::ensureString($path);
-        $class_name = self::includeFile("Model/Query/${path}Query");
-        // $instance   = self::createInstance($class_name, TRUE, []);
-        // return $instance;
-        return $class_name; // full name
+        try {
+            return self::includeFile("Model/Query/${path}Query");
+        } catch (Exception $e) {
+            return self::includeFile('Model/Query/BaseQuery');
+        }
     }
 
     public static function includeEntity($path)
     {
         Kit::ensureString($path);
-        $class_name = self::includeFile("Model/Entity/${path}Entity");
-        // $instance   = self::createInstance($class_name, TRUE, []);
-        // return $instance;
-        return $class_name; // full name
+        try {
+            return self::includeFile("Model/Entity/${path}Entity");
+        } catch (Exception $e) {
+            return self::includeFile('Model/Entity/BaseEntity');
+        }
     }
 
     public static function includeEntityBulk($path)
     {
         Kit::ensureString($path);
-        $class_name = self::includeFile("Model/Bulk/${path}EntityBulk");
-        // $instance   = self::createInstance($class_name, TRUE, []);
-        // return $instance;
-        return $class_name; // full name
+        try {
+            return self::includeFile("Model/Bulk/${path}EntityBulk");
+        } catch (Exception $e) {
+            return self::includeFile('Model/Bulk/BaseEntityBulk');
+        }
     }
 
     public static function includeCore($path)
     {
         Kit::ensureString($path);
         $class_name = self::includeFile("Model/Core/${path}Core");
-        // $instance   = self::createInstance($class_name, TRUE, []);
-        // return $instance;
         return $class_name; // full name
+    }
+
+    public static function includeCollection($path)
+    {
+        Kit::ensureString($path);
+        try {
+            return self::includeFile("Model/Collection/${path}Collection");
+        } catch (Exception $e) {
+            return self::includeFile('Model/Collection/BaseCollection');
+        }
     }
 
     /**

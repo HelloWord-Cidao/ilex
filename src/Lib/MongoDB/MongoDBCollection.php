@@ -37,7 +37,6 @@ use \Ilex\Lib\UserException;
  * @method final protected        array               getTheOnlyOne(array $criterion = []
  *                                                        , array $projection = [])
  * @method final protected        array               recoverCriterion(array $criterion)
- * @method final protected        array               sanitizeCriterion(array $criterion)
  * @method final protected        array               updateOne(array $criterion
  *                                                        , array $update)
  * 
@@ -72,7 +71,7 @@ class MongoDBCollection
 
     protected $collectionName = NULL;
 
-    private $collection     = NULL;
+    private $collection = NULL;
 
     final public static function rollback()
     {
@@ -162,7 +161,6 @@ class MongoDBCollection
     {
         // Kit::ensureDict($criterion); // @CAUTION
         Kit::ensureArray($criterion);
-        // $criterion = $this->sanitizeCriterion($criterion);
         $this->ensureCriterionHasProperId($criterion);
         return ($this->count($criterion, NULL, 1) > 0);
     }
@@ -185,15 +183,19 @@ class MongoDBCollection
     {
         // Kit::ensureDict($criterion); // @CAUTION
         Kit::ensureArray($criterion);
-        // $criterion = $this->sanitizeCriterion($criterion);
         $this->ensureCriterionHasProperId($criterion);
         return (1 === $this->count($criterion, NULL, 2));
     }
 
     final protected function ensureExistsOnlyOnce($criterion)
     {
-        if (FALSE === $this->checkExistsOnlyOnce($criterion))
-            throw new UserException('$criterion does not exist only once.', $criterion);
+        // if (FALSE === $this->checkExistsOnlyOnce($criterion))
+        Kit::ensureArray($criterion);
+        $this->ensureCriterionHasProperId($criterion);
+        if (0 === $this->count($criterion, NULL, 2))
+            throw new UserException('$criterion does not exist.', $criterion);
+        elseif ($this->count($criterion, NULL, 2) > 1)
+            throw new UserException('$criterion exists more than once.', $criterion);
     }
 
     /**
@@ -211,7 +213,6 @@ class MongoDBCollection
         Kit::ensureArray($criterion);
         Kit::ensureInt($skip, TRUE);
         Kit::ensureInt($limit, TRUE);
-        // $criterion = $this->sanitizeCriterion($criterion);
         $this->ensureCriterionHasProperId($criterion);
         return $this->mongoCount($criterion, $skip, $limit);
     }
@@ -245,7 +246,6 @@ class MongoDBCollection
         Kit::ensureInt($skip, TRUE);
         Kit::ensureInt($limit, TRUE);
         Kit::ensureBoolean($to_array);
-        // $criterion = $this->sanitizeCriterion($criterion);
         $this->ensureCriterionHasProperId($criterion);
         return $this->mongoFind($criterion, $projection, $sort_by, $skip, $limit, $to_array);
     }
@@ -265,7 +265,6 @@ class MongoDBCollection
         Kit::ensureArray($criterion);
         // Kit::ensureDict($projection); // @CAUTION
         Kit::ensureArray($projection);
-        // $criterion = $this->sanitizeCriterion($criterion);
         $this->ensureCriterionHasProperId($criterion);
         $this->ensureExistsOnlyOnce($criterion);
         return $this->getOne($criterion, $projection);
@@ -297,7 +296,6 @@ class MongoDBCollection
         // Kit::ensureDict($sort_by, TRUE); // @CAUTION
         Kit::ensureArray($sort_by, TRUE);
         Kit::ensureInt($skip, TRUE);
-        // $criterion = $this->sanitizeCriterion($criterion);
         $this->ensureCriterionHasProperId($criterion);
         $this->ensureExistence($criterion);
         // Now there must be at least one document matching the criterion.
@@ -332,7 +330,6 @@ class MongoDBCollection
         // Kit::ensureDict($update); // @CAUTION
         Kit::ensureArray($new_document);
         // Kit::ensureBoolean($is_document);
-        // $criterion = $this->sanitizeCriterion($criterion);
         $this->ensureCriterionHasProperId($criterion);
         $this->ensureExistsOnlyOnce($criterion);
         // if (TRUE === $is_document) {

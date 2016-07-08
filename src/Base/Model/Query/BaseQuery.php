@@ -88,6 +88,12 @@ class BaseQuery
         return $this->isEqualTo("Data.${field_name}", $field_value);
     }
 
+    final public function nameIs($name)
+    {
+        Kit::ensureString($name);
+        return $this->infoFieldIs('Name', $name);
+    }
+
     final public function infoIs($field_value)
     {
         Kit::ensureArray($field_value);

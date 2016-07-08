@@ -13,9 +13,11 @@ use \Ilex\Lib\MongoDB\EntityWrapper;
  * Base class of entity models of Ilex.
  * @package Ilex\Base\Model\Entity
  */
-abstract class BaseEntity
+class BaseEntity
 {
 
+    private $collectionName     = NULL;
+    private $entityPath         = NULL;
     private $name               = NULL; // @TODO private it
     private $isInCollection     = FALSE; // @TODO private it
     private $isSameAsCollection = FALSE; // @TODO private it
@@ -42,6 +44,8 @@ abstract class BaseEntity
             (FALSE === isset($document['_id']) 
                 OR FALSE === ($document['_id'] instanceof MongoDBId)))
             throw new UserException('_id is not set or is not a MongoDBId.', $this);
+        $this->collectionName = $collection_name;
+        $this->entityPath     = $entity_path;
         if (FALSE === is_null($collection_name))
             $this->entityWrapper  = EntityWrapper::getInstance($collection_name, $entity_path);;
         $this->name               = Loader::getHandlerFromPath($entity_path);
@@ -62,7 +66,8 @@ abstract class BaseEntity
     final protected function loadCollection($path)
     {
         $handler_name = Loader::getHandlerFromPath($path) . 'Collection';
-        return ($this->$handler_name = Loader::loadCollection($path));
+        return ($this->$handler_name = Loader::loadCollection($path,
+            [ $this->collectionName, $this->entityPath ]));
     }
 
     final private function ensureInitialized()
