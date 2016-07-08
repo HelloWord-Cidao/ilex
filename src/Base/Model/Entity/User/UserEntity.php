@@ -37,18 +37,17 @@ class UserEntity extends BaseEntity
         return $this->getInfo('Password');
     }
 
-    final public function setUserInfo($user_info)
-    {
-        Kit::ensureDict($user_info);
-        $this->setInfo('UserInfo', $user_info);
-        $this->setName($user_info['Name']);
-        return $this;
-    }
+    // final public function setUserInfo($user_info)
+    // {
+    //     Kit::ensureDict($user_info);
+    //     $this->setInfo('UserInfo', $user_info);
+    //     return $this;
+    // }
 
-    final public function getUserInfo()
-    {
-        return $this->getInfo('UserInfo');
-    }
+    // final public function getUserInfo()
+    // {
+    //     return $this->getInfo('UserInfo');
+    // }
 
     final public function loginNow()
     {
