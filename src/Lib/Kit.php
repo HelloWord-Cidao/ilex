@@ -485,7 +485,7 @@ final class Kit
         return 0 === count($array);
     }
 
-    public static function in(&$value, $array)
+    public static function in($value, $array)
     {
         self::ensureArray($array);
         return TRUE === in_array($value, $array, TRUE);

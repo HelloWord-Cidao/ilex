@@ -2,11 +2,12 @@
 
 namespace Ilex\Base\Model\Entity;
 
-use ReflectionClass;
+use \ReflectionClass;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 use \Ilex\Lib\MongoDB\MongoDBId;
+use \Ilex\Lib\MongoDB\MongoDBDate;
 use \Ilex\Lib\MongoDB\EntityWrapper;
 
 /**
@@ -98,6 +99,12 @@ class BaseEntity
     final public function setReadOnly()
     {
         $this->isReadOnly = TRUE;
+        return $this;
+    }
+
+    final public function setNotReadOnly()
+    {
+        $this->isReadOnly = FALSE;
         return $this;
     }
 
@@ -318,16 +325,14 @@ class BaseEntity
     }
 
     // @TODO
-    final public function getCreationTime()
+    final public function getCreationTimestamp()
     {
-        $result = Kit::split(' ', $this->getMeta('CreationTime')->__toString());
-        return (int)$result[1] + (float)$result[0];
+        return MongoDBDate::toTimestamp($this->getMeta('CreationTime'));
     }
 
-    final public function getModificationTime()
+    final public function getModificationTimestamp()
     {
-        $result = Kit::split(' ', $this->getMeta('ModificationTime')->__toString());
-        return (int)$result[1] + (float)$result[0];
+        return MongoDBDate::toTimestamp($this->getMeta('ModificationTime'));
     }
     
     final public function setMeta($arg1 = NULL, $arg2 = Kit::TYPE_VACANCY)

@@ -2,7 +2,10 @@
 
 namespace Ilex\Lib\MongoDB;
 
+use \DateTime;
+use \DateInterval;
 use \MongoDate;
+use \Ilex\Lib\Kit;
 
 /**
  * Class MongoDBDate
@@ -18,34 +21,24 @@ use \MongoDate;
  */
 final class MongoDBDate
 {
-    
-    private $date;
 
-    final public function __construct($timestamp?)
+    final public static function toTimestamp(MongoDate $mongo_date)
     {
-    }
-
-    final public function __toString()
-    {
-    }
-
-    final public function toString()
-    {
-    }
-
-    final public function toDateTime()
-    {
-    }
-
-    final public function toTimestamp()
-    {
-        $result = Kit::split(' ', $this->date->__toString());
+        $result = Kit::split(' ', $mongo_date->__toString());
         return (int)$result[1] + (float)$result[0];
     }
 
-    final public function isEqualTo(MongoDBDate $date)
+    // final public function isEqualTo(MongoDBDate $date)
+    // {
+    //     return $this->toTimestamp() === $date->toTimestamp();
+    // }
+    
+    final public static function daysAfterNow($days)
     {
-        return $this->toTimestamp() === $date->toTimestamp();
+        Kit::ensureInt($days);
+        return new MongoDate(
+            (new DateTime())->add(new DateInterval("P${days}D"))->getTimestamp()
+        );
     }
 
 }

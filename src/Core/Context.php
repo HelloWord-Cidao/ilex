@@ -31,9 +31,14 @@ final class Context
         }
     }
 
-    final public static function isLogin()
+    final public static function isLogin($user_type_list)
     {
-        return TRUE === isset(self::$currentUser) AND TRUE === (self::$currentUser instanceof UserEntity);
+        $result = (TRUE === isset(self::$currentUser) AND TRUE === (self::$currentUser instanceof UserEntity));
+        if (FALSE === $result OR 0 === Kit::len($user_type_list)) return $result;
+        foreach ($user_type_list as $user_type) {
+            if ($user_type === self::$currentUser->getType()) return TRUE;
+        }
+        return FALSE;
     }
 
     final public static function user()

@@ -115,9 +115,11 @@ final class Debug
     {
         Kit::ensureBoolean($is_error);
         $result = [
-            'rollback'        => MDBC::rollback(),
-            'databaseChanged' => MDBC::isChanged(),
-            'code'            => 0,
+            'database' => [
+                'rollbacked' => MDBC::rollback(),
+                'changed'    => MDBC::isChanged(),
+            ],
+            'code'     => 0,
         ];
         if (FALSE === self::isProduction()) {
             if (FALSE === $is_error) {

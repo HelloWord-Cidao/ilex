@@ -62,6 +62,8 @@ final class Autoloader
          * Loader::initialize() should be called before Constant::initialize(), 
          * because Loader::APPPATH() is called in Constant::initialize()
          */
+        session_cache_expire(240);
+        date_default_timezone_set('UTC');
         Loader::initialize($ILEXPATH, $APPPATH, $RUNTIMEPATH, $APPNAME);
         Constant::initialize();
         Debug::initialize();

@@ -37,7 +37,7 @@ use \Ilex\Lib\UserException;
  * @method final protected        array               getTheOnlyOne(array $criterion = []
  *                                                        , array $projection = [])
  * @method final protected        array               recoverCriterion(array $criterion)
- * @method final protected        array               updateOne(array $criterion
+ * @method final protected        array               updateTheOnlyOne(array $criterion
  *                                                        , array $update)
  * 
  * @method final protected int                 mongoCount(array $criterion = []
@@ -69,14 +69,31 @@ class MongoDBCollection
 // https://www.idontplaydarts.com/2011/02/mongodb-null-byte-injection-attacks/
 // https://www.idontplaydarts.com/2010/07/mongodb-is-vulnerable-to-sql-injection-in-php-at-least/
 
+    const OP_INSERT = 'INSERT';
+    const OP_UPDATE = 'UPDATE';
+    const OP_REMOVE = 'REMOVE';
+
     protected $collectionName = NULL;
 
-    private $collection = NULL;
+    private        $collection = NULL;
     private static $isChanged  = FALSE;
+    private static $history    = [];
 
     final public static function rollback()
     {
-        return FALSE;
+        if (0 === Kit::len(self::$history)) return FALSE;
+        foreach (Kit::reversed(self::$history) as $operation) {
+            if (self::OP_INSERT === $operation['Type']) {
+                $operation['Collection']->deleteTheOnlyOne([ '_id' => $operation['Id'] ], TRUE);
+            } elseif (self::OP_UPDATE === $operation['Type']) {
+                $operation['Collection']->updateTheOnlyOne([ '_id' => $operation['Document']['_id'] ],
+                    $operation['Document'], TRUE);
+            } elseif (self::OP_REMOVE === $operation['Type']) {
+                $operation['Collection']->addOne($operation['Document'], TRUE);
+            }
+        }
+        self::$isChanged = FALSE;
+        return TRUE;
     }
 
     final public static function isChanged()
@@ -132,12 +149,13 @@ class MongoDBCollection
      *                                     The operation in MongoCollection::$wtimeout
      *                                     is milliseconds.
      */
-    final protected function addOne($document)
+    final protected function addOne($document, $is_rollback = FALSE)
     {
         $collection_name = $this->collectionName;
         // Kit::ensureDict($document); // @CAUTION
         Kit::ensureArray($document);
-        $this->ensureDocumentHasNoId($document);
+        if (FALSE === $is_rollback)
+            $this->ensureDocumentHasNoId($document);
         if (FALSE === isset($document['Meta']))
             $document['Meta'] = [];
         $document['Meta']['CreationTime'] = new MongoDate();
@@ -152,6 +170,11 @@ class MongoDBCollection
             throw new UserException("<${collection_name}>No _id has been generated in the inserted document.",
                 $result);
         }
+        self::$history[] = [
+            'Collection' => $this,
+            'Type'       => self::OP_INSERT,
+            'Id'         => $result['document']['_id'],
+        ];
         return [
             'document' => $result['document'],
             'status'   => $result['status'],
@@ -332,7 +355,7 @@ class MongoDBCollection
      *                                     The operation in MongoCollection::$wtimeout
      *                                     is milliseconds.
      */
-    final protected function updateTheOnlyOne($criterion, $update/*, $is_document*/)
+    final protected function updateTheOnlyOne($criterion, $update, $is_rollback = FALSE/*, $is_document*/)
     {
         $collection_name = $this->collectionName;
         $new_document = $update; // @CAUTION
@@ -342,15 +365,17 @@ class MongoDBCollection
         Kit::ensureArray($new_document);
         // Kit::ensureBoolean($is_document);
         $this->ensureCriterionHasProperId($criterion);
-        $this->ensureExistsOnlyOnce($criterion);
+        $document = $this->getTheOnlyOne($criterion);
         // if (TRUE === $is_document) {
-            $this->ensureDocumentHasNoId($new_document);
+            if (FALSE === $is_rollback)
+                $this->ensureDocumentHasNoId($new_document);
             if (FALSE === isset($new_document['Meta']) 
                 OR FALSE === isset($new_document['Meta']['CreationTime'])){
                 $msg = "<${collection_name}>\$new_document has no Meta or Meta.CreationTime field as a document.";
                 throw new UserException($msg, $new_document);
             }
-            $new_document['Meta']['ModificationTime'] = new MongoDate();
+            if (FALSE === $is_rollback)
+                $new_document['Meta']['ModificationTime'] = new MongoDate();
         // } else {
             // if (FALSE === isset($update['$set'])) $update['$set'] = [];
             // $update['$set']['Meta.ModificationTime'] = new MongoDate();
@@ -362,6 +387,11 @@ class MongoDBCollection
             $msg = "<${collection_name}>MongoDBCollection update operation failed.";
             throw new UserException($msg, [ $status, $criterion, $new_document ]);
         }
+        self::$history[] = [
+            'Collection' => $this,
+            'Type'       => self::OP_UPDATE,
+            'Document'   => $document,
+        ];
         // return $status;
         return $new_document; // @CAUTION
     }
@@ -379,17 +409,22 @@ class MongoDBCollection
      *                                     The operation in MongoCollection::$wtimeout
      *                                     is milliseconds.
      */
-    final protected function deleteTheOnlyOne($criterion)
+    final protected function deleteTheOnlyOne($criterion, $is_rollback = FALSE)
     {
         $collection_name = $this->collectionName;
         $this->ensureInitialized();
         // Kit::ensureDict($criterion); // @CAUTION
         Kit::ensureArray($criterion);
         $this->ensureCriterionHasProperId($criterion);
-        $this->ensureExistsOnlyOnce($criterion);
+        $document = $this->getTheOnlyOne($criterion);
         $status = $this->mongoRemove($criterion, FALSE);
         if (FALSE === $this->validateOperationStatus($status))
             throw new UserException("<${collection_name}>MongoDBCollection remove operation failed.", [ $status, $criterion ]);
+        self::$history[] = [
+            'Collection' => $this,
+            'Type'       => self::OP_REMOVE,
+            'Document'   => $document,
+        ];
         return $status;
     }
 
@@ -461,7 +496,7 @@ class MongoDBCollection
         // Even if no new document was inserted,
         // the supplied array will still have a new MongoId key.
         $status = $this->collection->insert($document, ['w' => 1]);
-        $this->isChanged = TRUE;
+        self::$isChanged = TRUE;
         return [
             'document' => $document,
             'status'   => $status,
@@ -594,7 +629,7 @@ class MongoDBCollection
         ];
         // @TODO: check returns n, upserted, updatedExisting
         $status = $this->collection->update($criterion, $update, $options);
-        $this->isChanged = TRUE;
+        self::$isChanged = TRUE;
         return $status;
     }
 
@@ -623,7 +658,7 @@ class MongoDBCollection
             'justOne' => (FALSE === $multiple),
         ];
         $status = $this->collection->remove($criterion, $options);
-        $this->isChanged = TRUE;
+        self::$isChanged = TRUE;
         return $status;
     }
 }

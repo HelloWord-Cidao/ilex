@@ -2,7 +2,7 @@
 
 namespace Ilex\Base\Model\Core;
 
-use ReflectionClass;
+use \ReflectionClass;
 use \Ilex\Lib\Kit;
 use \Ilex\Core\Loader;
 
