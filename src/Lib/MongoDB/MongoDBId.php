@@ -13,11 +13,11 @@ use \Ilex\Lib\UserException;
  *
  * @property private MongoId $id
  * 
- * @method public __construct(MongoId|string $id_or_string)
- * @method public toMongoId()
- * @method public __toString()
- * @method public toString()
- * @method public isEqualTo(MongoDBId $id)
+ * @method final public __construct(MongoId|string $id_or_string)
+ * @method final public toMongoId()
+ * @method final public __toString()
+ * @method final public toString()
+ * @method final public isEqualTo(MongoDBId $id)
  */
 final class MongoDBId
 {

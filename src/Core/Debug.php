@@ -23,20 +23,20 @@ use \Ilex\Lib\MongoDB\MongoDBCollection as MDBC;
  * @property private static array  $executionRecordStack
  * @property private static int    $flag
  * 
- * @method public static int      addExecutionRecord(mixed $execution_record)
- * @method public static int      countExecutionRecord()
- * @method public static array    extractException(Exception $exception)
- * @method public static array    getExecutionRecordStack()
- * @method public static          initialize()
- * @method public static int      popExecutionId(int $execution_id)
- * @method public static          pushExecutionId(int $execution_id)
- * @method public static          updateExecutionRecord(int $execution_id, array $execution_record)
+ * @method final public static int      addExecutionRecord(mixed $execution_record)
+ * @method final public static int      countExecutionRecord()
+ * @method final public static array    extractException(Exception $exception)
+ * @method final public static array    getExecutionRecordStack()
+ * @method final public static          initialize()
+ * @method final public static int      popExecutionId(int $execution_id)
+ * @method final public static          pushExecutionId(int $execution_id)
+ * @method final public static          updateExecutionRecord(int $execution_id, array $execution_record)
  *
- * @method private static int|NULL peekExecutionId()
- * @method private static array    recoverBacktraceParameters(array $backtrace)
- * @method private static array    recoverFunctionParameters(string|NULL $class_name
- *                                         , string|Closure $function_name, array $arg_list)
- * @method private static array    extractInitiator(array $trace)
+ * @method final private static int|NULL peekExecutionId()
+ * @method final private static array    recoverBacktraceParameters(array $backtrace)
+ * @method final private static array    recoverFunctionParameters(string|NULL $class_name
+ *                                           , string|Closure $function_name, array $arg_list)
+ * @method final private static array    extractInitiator(array $trace)
  */
 final class Debug
 {
@@ -73,12 +73,12 @@ final class Debug
     private static $executionRecordStack = [ ]; // @TODO: disable it in production mode to save memory
     private static $startTime            = NULL;
 
-    public static function setErrorTypes($error_types)
+    final public static function setErrorTypes($error_types)
     {
         self::$errorTypes = $error_types;
     }
 
-    public static function initialize()
+    final public static function initialize()
     {
         $Input = Loader::loadInput();
         self::$config = [
@@ -111,7 +111,7 @@ final class Debug
         self::$startTime            = $_SERVER['REQUEST_TIME_FLOAT'];
     }
 
-    private static function respondOnFail($exception_or_error, $is_error = FALSE)
+    final private static function respondOnFail($exception_or_error, $is_error = FALSE)
     {
         Kit::ensureBoolean($is_error);
         $result = [
@@ -138,13 +138,13 @@ final class Debug
         Http::json($result);
     }
 
-    public static function isErrorCared($error)
+    final public static function isErrorCared($error)
     {
         Kit::ensureDict($error, TRUE);
         return (self::$errorTypes & $error['type']) === $error['type'];
     }
 
-    public static function handleFatalError($error = NULL) {
+    final public static function handleFatalError($error = NULL) {
         Kit::ensureDict($error, TRUE);
         if (TRUE === is_null($error)) $error = error_get_last();
         if (FALSE === self::$isErrorHandled
@@ -157,14 +157,14 @@ final class Debug
         exit();
     }
 
-    public static function handleUncaughtException(Exception $e)
+    final public static function handleUncaughtException(Exception $e)
     {
         self::respondOnFail($e);
         self::$isErrorHandled = TRUE;
         exit();
     }
 
-    public static function getDebugInfo()
+    final public static function getDebugInfo()
     {
         return [
             'trace'  => self::getExecutionRecordStack(),
@@ -173,7 +173,7 @@ final class Debug
         ];
     }
 
-    public static function getMemoryUsed($unit = self::M_MEGABYTE, $to_string = TRUE)
+    final public static function getMemoryUsed($unit = self::M_MEGABYTE, $to_string = TRUE)
     {
         $result = memory_get_peak_usage(TRUE);
         $result *= [
@@ -192,7 +192,7 @@ final class Debug
         return $result;
     }
 
-    public static function getTimeUsed($unit = self::T_MILLISECOND, $to_string = TRUE)
+    final public static function getTimeUsed($unit = self::T_MILLISECOND, $to_string = TRUE)
     {
         $result = microtime(TRUE) - self::$startTime;
         $result *= [
@@ -211,42 +211,37 @@ final class Debug
         return $result;
     }
 
-    public static function setEnvironmentToDevelopment()
+    final public static function setEnvironmentToDevelopment()
     {
         self::$environment = self::E_DEVELOPMENT;
     }
 
-    public static function setEnvironmentToProduction()
+    final public static function setEnvironmentToProduction()
     {
         self::$environment = self::E_PRODUCTION;
     }
 
-    public static function setEnvironmentToTest()
+    final public static function setEnvironmentToTest()
     {
         self::$environment = self::E_TEST;
     }
 
-    public static function isDevelopment()
+    final public static function isDevelopment()
     {
         return self::$environment === self::E_DEVELOPMENT;
     }
 
-    public static function isProduction()
+    final public static function isProduction()
     {
         return self::$environment === self::E_PRODUCTION;
     }
 
-    public static function isTest()
+    final public static function isTest()
     {
         return self::$environment === self::E_TEST;
     }
 
-    // private static function checkTraceDisplay($index, $flag)
-    // {
-    //     return ($flag & $offset) === $offset;
-    // }
-
-    private static function checkExceptionDisplay($index, $flag)
+    final private static function checkExceptionDisplay($index, $flag)
     {
         if (TRUE === isset(self::$config['exception']["@$index"]))
             $exception_flag = self::$config['exception']["@$index"];
@@ -258,7 +253,7 @@ final class Debug
      * Pushs $execution_id into the execution id stack.
      * @param int $execution_id
      */
-    public static function pushExecutionId($execution_id)
+    final public static function pushExecutionId($execution_id)
     {
         self::$executionIdStack[] = $execution_id;
     }
@@ -267,7 +262,7 @@ final class Debug
      * Pops $execution_id out of the execution id stack.
      * @param int $execution_id
      */
-    public static function popExecutionId($execution_id)
+    final public static function popExecutionId($execution_id)
     {
         if (0 === Kit::len(self::$executionIdStack))
             throw new UserException('$executionIdStack is empty.', 1);
@@ -282,7 +277,7 @@ final class Debug
      * Peeks the top execution id of the stack.
      * @return int|NULL $execution_id
      */
-    private static function peekExecutionId()
+    final private static function peekExecutionId()
     {
         if (0 === Kit::len(self::$executionIdStack)) {
             // throw new UserException('$executionIdStack is empty.', 1);
@@ -296,7 +291,7 @@ final class Debug
      * @param mixed $execution_record
      * @return int Current id of the execution record.
      */
-    public static function addExecutionRecord($execution_record)
+    final public static function addExecutionRecord($execution_record)
     {
         if (TRUE === isset($execution_record['args'])) {
             $class_name  = $execution_record['class'];
@@ -334,7 +329,7 @@ final class Debug
      * @param int   $execution_id
      * @param mixed $execution_record
      */
-    public static function updateExecutionRecord($execution_id, $execution_record)
+    final public static function updateExecutionRecord($execution_id, $execution_record)
     {
         if ($execution_id >= Kit::len(self::$executionRecordStack))
             throw new UserException("\$execution_id($execution_id) overflows \$executionRecordStack.");
@@ -343,7 +338,7 @@ final class Debug
             self::$executionRecordStack[$execution_id], $execution_record);
     }
 
-    // private static function simplifyExecutionRecord($execution_record)
+    // final private static function simplifyExecutionRecord($execution_record)
     // {
     //     return [
     //         'indent'              => $execution_record['indent'],
@@ -359,7 +354,7 @@ final class Debug
      * Counts the execution record stack.
      * @return int
      */
-    public static function countExecutionRecord()
+    final public static function countExecutionRecord()
     {
        return Kit::len(self::$executionRecordStack);
     }
@@ -368,7 +363,7 @@ final class Debug
      * Gets the execution record stack.
      * @return array
      */
-    public static function getExecutionRecordStack()
+    final public static function getExecutionRecordStack()
     {
         $result = self::$executionRecordStack;
         $index = 0;
@@ -426,7 +421,7 @@ final class Debug
      * @param Exception $exception
      * @return array
      */
-    public static function extractException(Exception $exception)
+    final public static function extractException(Exception $exception)
     {
         $result = [ self::extractExceptionIteratively($exception) ];
         $index = 0;
@@ -514,7 +509,7 @@ final class Debug
      * @param Exception $exception
      * @return array
      */
-    private static function extractExceptionIteratively(Exception $exception)
+    final private static function extractExceptionIteratively(Exception $exception)
     {
         $result = [
             'message' => $exception->getMessage(),
@@ -556,7 +551,7 @@ final class Debug
      * @param array $backtrace
      * @return array
      */
-    private static function recoverBacktraceParameters($backtrace)
+    final private static function recoverBacktraceParameters($backtrace)
     {
         foreach ($backtrace as $index => $record) {
             try {
@@ -583,7 +578,7 @@ final class Debug
      * @param array          $arg_list
      * @return array
      */
-    private static function recoverFunctionParameters($class_name, $function_name, $arg_list)
+    final private static function recoverFunctionParameters($class_name, $function_name, $arg_list)
     {
         $param_mapping = [];
         try {
@@ -629,7 +624,7 @@ final class Debug
      * @param array $trace
      * @return array
      */
-    private static function extractInitiator($trace)
+    final private static function extractInitiator($trace)
     {
         if (Kit::len($trace) <= 1) $index = NULL;
         else {
@@ -663,7 +658,7 @@ final class Debug
      * @param array $trace
      * @return array
      */
-    private static function polishTrace($trace)
+    final private static function polishTrace($trace)
     {
         $result = [];
         foreach ($trace as $index => $record) {
@@ -690,7 +685,7 @@ final class Debug
         return $result;
     }
 
-    private static function polishErrorType($error_type) 
+    final private static function polishErrorType($error_type) 
     {
         Kit::ensureInt($error_type);
         return [

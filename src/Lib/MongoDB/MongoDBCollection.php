@@ -17,43 +17,38 @@ use \Ilex\Lib\UserException;
  *
  * @property private MongoCollection $collection
  *
- * @method       public                               __construct()
- * @method       protected        array               addOne(array $document)
- * @method final protected        boolean             checkExistence(array $criterion)
- * @method final protected        boolean             checkExistsOnlyOnce(array $criterion)
- * @method final protected        int                 count(array $criterion = []
- *                                                        , int $skip = NULL
- *                                                        , int $limit = NULL)
- * @method final protected        array|MongoDBCursor getMulti(array $criterion = []
- *                                                        , array $projection = []
- *                                                        , array $sort_by = NULL
- *                                                        , int $skip = NULL
- *                                                        , int $limit = NULL
- *                                                        , boolean $to_array = TRUE)
- * @method final protected        array               getOne(array $criterion = []
- *                                                        , array $projection = []
- *                                                        , array $sort_by = NULL
- *                                                        , int $skip = NULL)
- * @method final protected        array               getTheOnlyOne(array $criterion = []
- *                                                        , array $projection = [])
- * @method final protected        array               recoverCriterion(array $criterion)
- * @method final protected        array               updateTheOnlyOne(array $criterion
- *                                                        , array $update)
- * 
- * @method final protected int                 mongoCount(array $criterion = []
+ * @method       public                        __construct()
+ * @method final protected array               addOne(array $document)
+ * @method final protected boolean             checkExistence(array $criterion)
+ * @method final protected boolean             checkExistsOnlyOnce(array $criterion)
+ * @method final protected int                 count(array $criterion = []
  *                                                 , int $skip = NULL
  *                                                 , int $limit = NULL)
- * @method final protected array|MongoDBCursor mongoFind(array $criterion = []
+ * @method final protected array|MongoDBCursor getMulti(array $criterion = []
  *                                                 , array $projection = []
  *                                                 , array $sort_by = NULL
  *                                                 , int $skip = NULL
  *                                                 , int $limit = NULL
  *                                                 , boolean $to_array = TRUE)
- * @method final protected array|NULL          mongoFindOne(array $criterion = []
- *                                                 , array $projection = [])
- * @method final protected array               mongoInsert(array $document)
- * @method final protected array               mongoUpdate(array $criterion
- *                                                 , array $update
+ * @method final protected array               getOne(array $criterion = []
+ *                                                 , array $projection = []
+ *                                                 , array $sort_by = NULL
+ *                                                 , int $skip = NULL)
+ * @method final protected array               getTheOnlyOne(array $criterion = [], array $projection = [])
+ * @method final protected array               updateTheOnlyOne(array $criterion, array $update)
+ * 
+ * @method final private int                 mongoCount(array $criterion = []
+ *                                                 , int $skip = NULL
+ *                                                 , int $limit = NULL)
+ * @method final private array|MongoDBCursor mongoFind(array $criterion = []
+ *                                                 , array $projection = []
+ *                                                 , array $sort_by = NULL
+ *                                                 , int $skip = NULL
+ *                                                 , int $limit = NULL
+ *                                                 , boolean $to_array = TRUE)
+ * @method final private array|NULL          mongoFindOne(array $criterion = [], array $projection = [])
+ * @method final private array               mongoInsert(array $document)
+ * @method final private array               mongoUpdate(array $criterion, array $update
  *                                                 , boolean $multiple = FALSE)
  */
 class MongoDBCollection
@@ -418,8 +413,10 @@ class MongoDBCollection
         $this->ensureCriterionHasProperId($criterion);
         $document = $this->getTheOnlyOne($criterion);
         $status = $this->mongoRemove($criterion, FALSE);
-        if (FALSE === $this->validateOperationStatus($status))
-            throw new UserException("<${collection_name}>MongoDBCollection remove operation failed.", [ $status, $criterion ]);
+        if (FALSE === $this->validateOperationStatus($status)) {
+            $msg = "<${collection_name}>MongoDBCollection remove operation failed.";
+            throw new UserException($msg, [ $status, $criterion ]);
+        }
         self::$history[] = [
             'Collection' => $this,
             'Type'       => self::OP_REMOVE,

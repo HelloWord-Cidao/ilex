@@ -51,7 +51,7 @@ class UserException extends Exception
     /**
      * @return mixed
      */
-    public function getDetail()
+    final public function getDetail()
     {
         return $this->detail;
     }

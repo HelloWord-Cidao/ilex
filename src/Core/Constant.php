@@ -9,6 +9,8 @@ use \Ilex\Lib\Kit;
  * Class Constant
  * The class in charge of initializing const variables.
  * @package Ilex\Core
+ *
+ * @property private static array $constantMapping
  * 
  * @method final public static initialize()
  */

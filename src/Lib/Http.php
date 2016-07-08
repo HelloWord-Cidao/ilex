@@ -8,10 +8,9 @@ namespace Ilex\Lib;
  * The class in charge of http operations.
  * @package Ilex\Lib
  * 
- * @method public static string escape(string $data)
- * @method public static        json(mixed $data)
- * @method public static        redirect(string $url)
- * @method public static        request($url, $param, $data = '', $method = 'GET')
+ * @method final public static string escape(string $data)
+ * @method final public static        json(mixed $data)
+ * @method final public static        request($url, $param, $data = '', $method = 'GET')
  */
 final class Http
 {
@@ -21,7 +20,7 @@ final class Http
      * @param string $data
      * @return string
      */
-    public static function escape($data)
+    final public static function escape($data)
     {
         return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
     }
@@ -29,12 +28,12 @@ final class Http
     /**
      * @param mixed $data
      */
-    public static function json($data)
+    final public static function json($data)
     {
         echo json_encode($data);
     }
 
-    public static function request($url, $param, $data = '', $method = 'GET')
+    final public static function request($url, $param, $data = '', $method = 'GET')
     {
         $opts = [
             CURLOPT_TIMEOUT        => 5,

@@ -14,6 +14,7 @@ use \Ilex\Core\Loader;
 abstract class BaseCore
 {
     const S_OK = 'ok';
+    
     protected $ok = [ self::S_OK => TRUE ];
 
     final protected function loadCore($path)

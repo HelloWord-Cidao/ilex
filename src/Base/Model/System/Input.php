@@ -16,20 +16,20 @@ use \Ilex\Lib\UserException;
  * @property private static \Ilex\Lib\Container $postData
  * @property private static \Ilex\Lib\Container $inputData
  * 
- * @method public                __construct()
- * @method public static boolean clear(string $name = NULL)
- * @method public static mixed   get(string $key = NULL, mixed $default = NULL)
- * @method public static boolean hasGet(array $key_list)
- * @method public static boolean hasInput(array $key_list)
- * @method public static boolean hasPost(array $key_list)
- * @method public static mixed   input(string $key = NULL, mixed $default = NULL)
- * @method public static boolean merge(string $name, array $data)
- * @method public static array   missGet(array $key_list)
- * @method public static array   missInput(array $key_list)
- * @method public static array   missPost(array $key_list)
- * @method public static mixed   post(string $key = NULL, mixed $default = NULL)
- * @method public static mixed   setInput(mixed $key, mixed $value)
- * @method public static boolean deleteInput(mixed $key)
+ * @method final public                __construct()
+ * @method final public static boolean clear(string $name = NULL)
+ * @method final public static mixed   get(string $key = NULL, mixed $default = NULL)
+ * @method final public static boolean hasGet(array $key_list)
+ * @method final public static boolean hasInput(array $key_list)
+ * @method final public static boolean hasPost(array $key_list)
+ * @method final public static mixed   input(string $key = NULL, mixed $default = NULL)
+ * @method final public static boolean merge(string $name, array $data)
+ * @method final public static array   missGet(array $key_list)
+ * @method final public static array   missInput(array $key_list)
+ * @method final public static array   missPost(array $key_list)
+ * @method final public static mixed   post(string $key = NULL, mixed $default = NULL)
+ * @method final public static mixed   setInput(mixed $key, mixed $value)
+ * @method final public static boolean deleteInput(mixed $key)
  */
 final class Input
 {
@@ -40,7 +40,7 @@ final class Input
     /**
      * Encapsulates global variables.
      */
-    public function __construct()
+    final public function __construct()
     {
         self::$getData   = new Container();
         self::$postData  = new Container();
@@ -67,7 +67,7 @@ final class Input
      * @param string $name
      * @return boolean
      */
-    public static function clear($name = NULL)
+    final public static function clear($name = NULL)
     {
         Kit::ensureString($name, TRUE);
         if (FALSE === is_null($name)) {
@@ -88,7 +88,7 @@ final class Input
      * @param array $key_list
      * @return boolean
      */
-    public static function hasInput($key_list)
+    final public static function hasInput($key_list)
     {
         return call_user_func_array([self::$inputData, 'has'], $key_list);
     }
@@ -97,7 +97,7 @@ final class Input
      * @param array $key_list
      * @return boolean
      */
-    public static function hasGet($key_list)
+    final public static function hasGet($key_list)
     {
         return call_user_func_array([self::$getData, 'has'], $key_list);
     }
@@ -106,7 +106,7 @@ final class Input
      * @param array $key_list
      * @return boolean
      */
-    public static function hasPost($key_list)
+    final public static function hasPost($key_list)
     {
         return call_user_func_array([self::$postData, 'has'], $key_list);
     }
@@ -116,7 +116,7 @@ final class Input
      * @param mixed  $default
      * @return mixed
      */
-    public static function input($key = NULL, $default = NULL)
+    final public static function input($key = NULL, $default = NULL)
     {
         return self::$inputData->get($key, $default);
 
@@ -127,7 +127,7 @@ final class Input
      * @param mixed  $default
      * @return mixed
      */
-    public static function get($key = NULL, $default = NULL)
+    final public static function get($key = NULL, $default = NULL)
     {
         return self::$getData->get($key, $default);
     }
@@ -137,7 +137,7 @@ final class Input
      * @param mixed  $default
      * @return mixed
      */
-    public static function post($key = NULL, $default = NULL)
+    final public static function post($key = NULL, $default = NULL)
     {
         return self::$postData->get($key, $default);
     }
@@ -147,7 +147,7 @@ final class Input
      * @param mixed  $value
      * @return mixed
      */
-    public static function setInput($key, $value)
+    final public static function setInput($key, $value)
     {
         return self::$inputData->set($key, $value);
     }
@@ -156,7 +156,7 @@ final class Input
      * @param string $key
      * @return boolean
      */
-    public static function deleteInput($key)
+    final public static function deleteInput($key)
     {
         return self::$inputData->delete($key);
     }
@@ -166,7 +166,7 @@ final class Input
      * @param array  $data
      * @return boolean
      */
-    public static function merge($name, $data)
+    final public static function merge($name, $data)
     {
         if (TRUE === Kit::in($name, ['get', 'post', 'input'])) {
             $name .= 'Data';
@@ -199,7 +199,7 @@ final class Input
      * @param array $key_list
      * @return array
      */
-    public static function missInput($key_list)
+    final public static function missInput($key_list)
     {
         return self::$inputData->miss($key_list);
     }
@@ -208,7 +208,7 @@ final class Input
      * @param array $key_list
      * @return array
      */
-    public static function missGet($key_list)
+    final public static function missGet($key_list)
     {
         return self::$getData->miss($key_list);
     }
@@ -217,7 +217,7 @@ final class Input
      * @param array $key_list
      * @return array
      */
-    public static function missPost($key_list)
+    final public static function missPost($key_list)
     {
         return self::$postData->miss($key_list);
     }

@@ -11,13 +11,6 @@ use \Ilex\Lib\Kit;
  * Class MongoDBDate
  * Encapsulation of basic operations of MongoDate class.
  * @package Ilex\Lib\MongoDB
- *
- * @property private MongoDate $date
- * 
- * @method public __construct()
- * @method public __toString()
- * @method public toString()
- * @method public isEqualTo(MongoDBDate $date)
  */
 final class MongoDBDate
 {

@@ -15,7 +15,7 @@ final class RequestLog extends BaseLog
     /**
      * @TODO: check efficiency
      */
-    public function addRequestLog($class_name, $method_name, $input, $code, $operation_status)
+    final public function addRequestLog($class_name, $method_name, $input, $code, $operation_status)
     {
         $content = [
             'Data' => [

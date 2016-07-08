@@ -22,11 +22,11 @@ use \Ilex\Lib\MongoDB\MongoDBCollection as MDBC;
  *
  * @method final public __call(string $method_name, array $arg_list)
  * 
- * @method final private       fail(Exception $exception)
  * @method final private array prepareExecutionRecord(string $method_name)
- * @method final private       respond(array $result, int $status_code
- *                                 , boolean $close_cgi_only = FALSE)
+ * @method final private       fail(Exception $exception)
  * @method final private       succeed(mixed $computation_data, mixed $operation_status
+ *                                 , boolean $close_cgi_only = FALSE)
+ * @method final private       respond(array $result, int $status_code
  *                                 , boolean $close_cgi_only = FALSE)
  */
 abstract class BaseService extends BaseController
