@@ -72,10 +72,16 @@ class MongoDBCollection
     protected $collectionName = NULL;
 
     private $collection = NULL;
+    private static $isChanged  = FALSE;
 
     final public static function rollback()
     {
         return FALSE;
+    }
+
+    final public static function isChanged()
+    {
+        return self::$isChanged;
     }
 
     protected function __construct($collection_name)
@@ -128,6 +134,7 @@ class MongoDBCollection
      */
     final protected function addOne($document)
     {
+        $collection_name = $this->collectionName;
         // Kit::ensureDict($document); // @CAUTION
         Kit::ensureArray($document);
         $this->ensureDocumentHasNoId($document);
@@ -137,11 +144,13 @@ class MongoDBCollection
         
         $result = $this->mongoInsert($document);
         if (FALSE === (bool)$result['status']['ok'] OR TRUE === isset($result['status']['err']))
-            throw new UserException('MongoDBCollection insert operation failed.', [ $result, $document ]);
+            throw new UserException("<${collection_name}>MongoDBCollection insert operation failed.",
+                [ $result, $document ]);
         if (FLASE === isset($result['document']['_id'])
             OR FALSE === ($result['document']['_id'] instanceof MongoId)
         ) {
-            throw new UserException('No _id has been generated in the inserted document.', $result);
+            throw new UserException("<${collection_name}>No _id has been generated in the inserted document.",
+                $result);
         }
         return [
             'document' => $result['document'],
@@ -167,8 +176,9 @@ class MongoDBCollection
 
     final protected function ensureExistence($criterion)
     {
+        $collection_name = $this->collectionName;
         if (FALSE === $this->checkExistence($criterion))
-            throw new UserException('$criterion does not exist.', $criterion);
+            throw new UserException("<${collection_name}>\$criterion does not exist.", $criterion);
     }
 
     /**
@@ -189,13 +199,13 @@ class MongoDBCollection
 
     final protected function ensureExistsOnlyOnce($criterion)
     {
-        // if (FALSE === $this->checkExistsOnlyOnce($criterion))
+        $collection_name = $this->collectionName;
         Kit::ensureArray($criterion);
         $this->ensureCriterionHasProperId($criterion);
         if (0 === $this->count($criterion, NULL, 2))
-            throw new UserException('$criterion does not exist.', $criterion);
+            throw new UserException("<${collection_name}>\$criterion does not exist.", $criterion);
         elseif ($this->count($criterion, NULL, 2) > 1)
-            throw new UserException('$criterion exists more than once.', $criterion);
+            throw new UserException("<${collection_name}>\$criterion exists more than once.", $criterion);
     }
 
     /**
@@ -324,6 +334,7 @@ class MongoDBCollection
      */
     final protected function updateTheOnlyOne($criterion, $update/*, $is_document*/)
     {
+        $collection_name = $this->collectionName;
         $new_document = $update; // @CAUTION
         // Kit::ensureDict($criterion); // @CAUTION
         Kit::ensureArray($criterion);
@@ -336,7 +347,7 @@ class MongoDBCollection
             $this->ensureDocumentHasNoId($new_document);
             if (FALSE === isset($new_document['Meta']) 
                 OR FALSE === isset($new_document['Meta']['CreationTime'])){
-                $msg = '$new_document has no Meta or Meta.CreationTime field as a document.';
+                $msg = "<${collection_name}>\$new_document has no Meta or Meta.CreationTime field as a document.";
                 throw new UserException($msg, $new_document);
             }
             $new_document['Meta']['ModificationTime'] = new MongoDate();
@@ -344,11 +355,11 @@ class MongoDBCollection
             // if (FALSE === isset($update['$set'])) $update['$set'] = [];
             // $update['$set']['Meta.ModificationTime'] = new MongoDate();
             // if (TRUE === isset($update['$set']['_id']))
-                // throw new UserException('$update should not set the _id field.', $update);
+                // throw new UserException("<${collection_name}>\$update should not set the _id field.", $update);
         // }
         $status = $this->mongoUpdate($criterion, $new_document, FALSE);
         if (FALSE === $this->validateOperationStatus($status)) {
-            $msg = 'MongoDBCollection update operation failed.';
+            $msg = "<${collection_name}>MongoDBCollection update operation failed.";
             throw new UserException($msg, [ $status, $criterion, $new_document ]);
         }
         // return $status;
@@ -370,6 +381,7 @@ class MongoDBCollection
      */
     final protected function deleteTheOnlyOne($criterion)
     {
+        $collection_name = $this->collectionName;
         $this->ensureInitialized();
         // Kit::ensureDict($criterion); // @CAUTION
         Kit::ensureArray($criterion);
@@ -377,7 +389,7 @@ class MongoDBCollection
         $this->ensureExistsOnlyOnce($criterion);
         $status = $this->mongoRemove($criterion, FALSE);
         if (FALSE === $this->validateOperationStatus($status))
-            throw new UserException('MongoDBCollection remove operation failed.', [ $status, $criterion ]);
+            throw new UserException("<${collection_name}>MongoDBCollection remove operation failed.", [ $status, $criterion ]);
         return $status;
     }
 
@@ -387,16 +399,18 @@ class MongoDBCollection
 
     final private function ensureDocumentHasNoId($document)
     {
+        $collection_name = $this->collectionName;
         Kit::ensureArray($document);
         if (TRUE === isset($document['_id']))
-            throw new UserException('$document should have no _id field.', $document);
+            throw new UserException("<${collection_name}>\$document should have no _id field.", $document);
     }
 
     final private function ensureCriterionHasProperId($criterion)
     {
+        $collection_name = $this->collectionName;
         Kit::ensureArray($criterion);
         if (TRUE === isset($criterion['_id']) AND FALSE === $criterion['_id'] instanceof MongoId)
-            throw new UserException('$criterion has improper _id.', $criterion);
+            throw new UserException("<${collection_name}>\$criterion has improper _id.", $criterion);
     }
 
     final private function validateOperationStatus($status)
@@ -447,6 +461,7 @@ class MongoDBCollection
         // Even if no new document was inserted,
         // the supplied array will still have a new MongoId key.
         $status = $this->collection->insert($document, ['w' => 1]);
+        $this->isChanged = TRUE;
         return [
             'document' => $document,
             'status'   => $status,
@@ -578,7 +593,9 @@ class MongoDBCollection
             'multiple' => $multiple,
         ];
         // @TODO: check returns n, upserted, updatedExisting
-        return $this->collection->update($criterion, $update, $options);
+        $status = $this->collection->update($criterion, $update, $options);
+        $this->isChanged = TRUE;
+        return $status;
     }
 
     /**
@@ -605,7 +622,9 @@ class MongoDBCollection
             'w'       => 1,
             'justOne' => (FALSE === $multiple),
         ];
-        return $this->collection->remove($criterion, $options);
+        $status = $this->collection->remove($criterion, $options);
+        $this->isChanged = TRUE;
+        return $status;
     }
 }
 

@@ -115,8 +115,9 @@ final class Debug
     {
         Kit::ensureBoolean($is_error);
         $result = [
-            'rollback' => MDBC::rollback(),
-            'code'     => 0,
+            'rollback'        => MDBC::rollback(),
+            'databaseChanged' => MDBC::isChanged(),
+            'code'            => 0,
         ];
         if (FALSE === self::isProduction()) {
             if (FALSE === $is_error) {
@@ -453,13 +454,13 @@ final class Debug
                     $tmp['detail'] = $result[$index]['detail'];
                     if (FALSE === self::checkExceptionDisplay($index, self::D_E_DETAIL_MORE)
                         AND TRUE === Kit::isArray($tmp['detail'])) {
-                        $tmp['detail'] = Kit::extract($tmp['detail'], [
-                            'class',
-                            'method',
-                            'args',
-                            'args_sanitization_result',
-                            'declaring_class',
-                        ], FALSE);
+                        // $tmp['detail'] = Kit::extract($tmp['detail'], [
+                        //     'class',
+                        //     'method',
+                        //     'args',
+                        //     'args_sanitization_result',
+                        //     'declaring_class',
+                        // ], FALSE);
                         if (FALSE === is_null($tmp['detail']['class'])
                             AND FALSE === is_null($tmp['detail']['method'])) {
                             $tmp['detail']['handler'] = sprintf('        %s :: %s',

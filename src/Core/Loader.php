@@ -183,7 +183,8 @@ final class Loader
         try {
             return self::loadModel("Collection/${path}Collection", TRUE, $arg_list);
         } catch (Exception $e) {
-            return self::loadModel('Collection/BaseCollection', TRUE, $arg_list);
+            $class_name = self::includeFile('Model/Collection/BaseCollection');
+            return self::createInstance($class_name, TRUE, $arg_list);
         }
     }
 

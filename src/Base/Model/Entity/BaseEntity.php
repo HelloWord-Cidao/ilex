@@ -2,6 +2,7 @@
 
 namespace Ilex\Base\Model\Entity;
 
+use ReflectionClass;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
@@ -65,9 +66,14 @@ class BaseEntity
 
     final protected function loadCollection($path)
     {
-        $handler_name = Loader::getHandlerFromPath($path) . 'Collection';
+        $handler_name    = Loader::getHandlerFromPath($path) . 'Collection';
+        $core_class      = new ReflectionClass(Loader::includeCore($path));
+        $collection_name = $core_class->getConstant('COLLECTION_NAME');
+        $entity_path     = $core_class->getConstant('ENTITY_PATH');
+        Kit::ensureString($collection_name, TRUE);
+        Kit::ensureString($entity_path);
         return ($this->$handler_name = Loader::loadCollection($path,
-            [ $this->collectionName, $this->entityPath ]));
+            [ $collection_name, $entity_path ]));
     }
 
     final private function ensureInitialized()

@@ -359,6 +359,7 @@ abstract class BaseService extends BaseController
             if (2 !== $this->getCode()) {
                 $this->result['rollback'] = MDBC::rollback();
             } else $this->result['rollback'] = FALSE;
+            $this->result['databaseChanged'] = MDBC::isChanged();
             Debug::updateExecutionRecord($execution_id, $execution_record);
             Debug::popExecutionId($execution_id);
         }

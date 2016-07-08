@@ -10,7 +10,5 @@ use \Ilex\Base\Model\Collection\BaseCollection;
  */
 class UserCollection extends BaseCollection
 {
-    const COLLECTION_NAME = 'User';
-    const ENTITY_PATH     = 'User/User';
-
+    
 }

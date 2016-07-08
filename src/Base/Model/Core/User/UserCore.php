@@ -2,11 +2,9 @@
 
 namespace Ilex\Base\Model\Core\User;
 
-use \Firebase\JWT\JWT;
 use \Exception;
-use \Ilex\Lib\UserException;
 use \Ilex\Core\Loader;
-use \Ilex\Lib\Kit;
+use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\Core\BaseCore;
 
 /**
@@ -15,17 +13,13 @@ use \Ilex\Base\Model\Core\BaseCore;
  */
 abstract class UserCore extends BaseCore
 {
-    // protected static $methodsVisibility = [
-    //     self::V_PUBLIC => [
-    //     ],
-    // ];
+    const COLLECTION_NAME = 'User';
+    const ENTITY_PATH     = 'User/User';
 
     public function __construct()
     {
-        $this->loadCollection('User/User');
+        $this->loadCollection(self::ENTITY_PATH);
     }
-
-    abstract protected function generateJWT($username);
 
     final public static function getCurrentUserEntity($token)
     {
@@ -35,7 +29,7 @@ abstract class UserCore extends BaseCore
             throw new UserException('Invalid token.', $e);
         }
         try {
-            $user = Loader::loadCollection('User/User')
+            $user = Loader::loadCollection(self::ENTITY_PATH)
                 ->getTheOnlyOneEntityById($user_info['userId'])
                 ->setReadOnly();
             return $user;
@@ -44,6 +38,8 @@ abstract class UserCore extends BaseCore
         }
     }
     
+    abstract protected function generateJWT($username);
+
     abstract protected static function parseToken($jwt);
 
 }
