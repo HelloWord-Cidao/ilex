@@ -26,6 +26,11 @@ final class MongoDBDate
     //     return $this->toTimestamp() === $date->toTimestamp();
     // }
     
+    final public static function now()
+    {
+        return new MongoDate();
+    }
+
     final public static function daysAfterNow($days)
     {
         Kit::ensureInt($days);

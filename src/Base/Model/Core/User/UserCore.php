@@ -17,11 +17,6 @@ abstract class UserCore extends BaseCore
     const COLLECTION_NAME = 'User';
     const ENTITY_PATH     = 'User/User';
 
-    public function __construct()
-    {
-        $this->loadCollection(self::ENTITY_PATH);
-    }
-
     final public static function getCurrentUserEntity($token)
     {
         try {
@@ -30,7 +25,7 @@ abstract class UserCore extends BaseCore
             throw new UserException('Invalid token.', $e);
         }
         try {
-            $user = Loader::loadCollection(self::ENTITY_PATH)
+            $user = Loader::loadCore(self::ENTITY_PATH)
                 ->getTheOnlyOneEntityById($user_info['userId'])
                 ->setReadOnly();
             return $user;

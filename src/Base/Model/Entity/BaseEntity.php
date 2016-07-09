@@ -20,9 +20,9 @@ class BaseEntity
 
     private $collectionName     = NULL;
     private $entityPath         = NULL;
-    private $name               = NULL; // @TODO private it
-    private $isInCollection     = FALSE; // @TODO private it
-    private $isSameAsCollection = FALSE; // @TODO private it
+    private $name               = NULL;
+    private $isInCollection     = FALSE;
+    private $isSameAsCollection = FALSE;
 
     private static $rootFieldNameList = [
         'Signature',
@@ -65,10 +65,10 @@ class BaseEntity
         ];
     }
 
-    final protected function loadCollection($path)
+    final protected function loadCore($path)
     {
-        $handler_name = Loader::getHandlerFromPath($path) . 'Collection';
-        return ($this->$handler_name = Loader::loadCollection($path));
+        $handler_name = Loader::getHandlerFromPath($path) . 'Core';
+        return ($this->$handler_name = Loader::loadCore($path));
     }
 
     final private function ensureInitialized()
@@ -316,7 +316,7 @@ class BaseEntity
 
     final public function getState()
     {
-        return $this->getMeta('State');
+        return $this->getMeta('State', FALSE);
     }
 
     final public function getType()

@@ -19,17 +19,6 @@ final class Constant
     private static $constantMapping = [
         /*
          * -----------------------
-         * System
-         * -----------------------
-         */
-        'SYS_SESSNAME' => 'ILEX_SESSION',
-        
-        // 'ENV_HOST'     => ((TRUE === isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : 'localhost'),
-        // 'ENV_SSL'      => (bool)(TRUE === isset($_SERVER['SERVER_PORT']) AND 443 === $_SERVER['SERVER_PORT']),
-        // 'ENV_HOST_URL' => TRUE === ENV_SSL ? 'https' : 'http') . '://' . ENV_HOST,
-
-        /*
-         * -----------------------
          * Server
          * -----------------------
          */

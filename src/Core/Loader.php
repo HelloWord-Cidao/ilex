@@ -55,7 +55,6 @@ final class Loader
         'Data',
         'Log',
         'Core',
-        'Collection',
         'Query',
         'Entity',
         'EntityBulk',
@@ -177,25 +176,6 @@ final class Loader
         return self::loadModel("Core/${path}Core", TRUE, $arg_list);
     }
 
-    final public static function loadCollection($path, $arg_list = [])
-    {
-        Kit::ensureString($path);
-        Kit::ensureArray($arg_list);
-        $core_class      = new ReflectionClass(self::includeCore($path));
-        $collection_name = $core_class->getConstant('COLLECTION_NAME');
-        $entity_path     = $core_class->getConstant('ENTITY_PATH');
-        Kit::ensureString($collection_name, TRUE);
-        Kit::ensureString($entity_path);
-        $tmp = [ $collection_name, $entity_path ];
-        $arg_list = Kit::extended($tmp, $arg_list);
-        try {
-            return self::loadModel("Collection/${path}Collection", TRUE, $arg_list);
-        } catch (Exception $e) {
-            $class_name = self::includeFile('Model/Collection/BaseCollection');
-            return self::createInstance($class_name, TRUE, $arg_list);
-        }
-    }
-
     /**
      * @param string  $path
      * @param boolean $with_instantiate
@@ -285,16 +265,6 @@ final class Loader
         Kit::ensureString($path);
         $class_name = self::includeFile("Model/Core/${path}Core");
         return $class_name; // full name
-    }
-
-    final public static function includeCollection($path)
-    {
-        Kit::ensureString($path);
-        try {
-            return self::includeFile("Model/Collection/${path}Collection");
-        } catch (Exception $e) {
-            return self::includeFile('Model/Collection/BaseCollection');
-        }
     }
 
     /**

@@ -286,20 +286,20 @@ final class Kit
         self::ensureType($variable, self::TYPE_ARRAY, $can_be_null);
     }
 
-    final public static function isString(&$variable, $can_be_null = FALSE, $can_be_empty = FALSE)
+    final public static function isString($variable, $can_be_null = FALSE, $can_be_empty = FALSE)
     {
         self::ensureBoolean($can_be_empty);
         return self::isType($variable, self::TYPE_STRING, $can_be_null)
             AND (TRUE === $can_be_null OR TRUE === $can_be_empty OR '' !== $variable);
     }
 
-    final public static function ensureString(&$variable, $can_be_null = FALSE, $can_be_empty = FALSE)
+    final public static function ensureString($variable, $can_be_null = FALSE, $can_be_empty = FALSE)
     {
         if (FALSE === self::isString($variable, $can_be_null, $can_be_empty))
             throw new UserTypeException($variable, self::TYPE_STRING);
     }
 
-    final public static function isMatchRegex(&$variable, $regex, $can_be_null = FALSE)
+    final public static function isMatchRegex($variable, $regex, $can_be_null = FALSE)
     {
         self::ensureString($variable, $can_be_null);
         if (TRUE === is_null($variable))
@@ -311,41 +311,41 @@ final class Kit
         return (1 === $result);
     }
 
-    final public static function ensureMatchRegex(&$variable, $regex, $can_be_null = FALSE)
+    final public static function ensureMatchRegex($variable, $regex, $can_be_null = FALSE)
     {
         if (FALSE === self::isMatchRegex($variable, $regex, $can_be_null))
             throw new UserException("\$variable($variable) match \$regex($regex) failed.", $can_be_null);
     }
 
-    final public static function isInt(&$variable, $can_be_null = FALSE, $should_be_positive = TRUE)
+    final public static function isInt($variable, $can_be_null = FALSE, $should_be_positive = TRUE)
     {
         self::ensureBoolean($should_be_positive);
         return self::isType($variable, self::TYPE_INT, $can_be_null)
             AND (TRUE === $can_be_null OR FALSE === $should_be_positive OR $variable > 0);
     }
 
-    final public static function ensureInt(&$variable, $can_be_null = FALSE, $should_be_positive = TRUE)
+    final public static function ensureInt($variable, $can_be_null = FALSE, $should_be_positive = TRUE)
     {
         if (FALSE === self::isInt($variable, $can_be_null, $should_be_positive))
             throw new UserTypeException($variable, self::TYPE_INT);
     }
 
-    final public static function isFloat(&$variable, $can_be_null = FALSE)
+    final public static function isFloat($variable, $can_be_null = FALSE)
     {
         return self::isType($variable, self::TYPE_FLOAT, $can_be_null);
     }
 
-    final public static function ensureFloat(&$variable, $can_be_null = FALSE)
+    final public static function ensureFloat($variable, $can_be_null = FALSE)
     {
         self::ensureType($variable, self::TYPE_FLOAT, $can_be_null);
     }
 
-    final public static function isBoolean(&$variable, $can_be_null = FALSE)
+    final public static function isBoolean($variable, $can_be_null = FALSE)
     {
         return self::isType($variable, self::TYPE_BOOLEAN, $can_be_null);
     }
 
-    final public static function ensureBoolean(&$variable, $can_be_null = FALSE)
+    final public static function ensureBoolean($variable, $can_be_null = FALSE)
     {
         self::ensureType($variable, self::TYPE_BOOLEAN, $can_be_null);
     }
@@ -370,12 +370,12 @@ final class Kit
         self::ensureType($variable, self::TYPE_RESOURCE, $can_be_null);
     }
 
-    final public static function isNULL(&$variable)
+    final public static function isNULL($variable)
     {
         return self::isType($variable, self::TYPE_NULL);
     }
 
-    final public static function ensureNULL(&$variable)
+    final public static function ensureNULL($variable)
     {
         self::ensureType($variable, self::TYPE_NULL);
     }
@@ -413,7 +413,7 @@ final class Kit
     //                       String                       //
     // ================================================== //
 
-    final public static function toInt(&$string)
+    final public static function toInt($string)
     {
         self::ensureMatchRegex($string, '^\d{1,9}$');
         return intval($string);
@@ -864,7 +864,7 @@ final class Kit
         if (TRUE === self::isString($data, FALSE, TRUE)) return $data;
         throw new UserException('Unknown type of $data.', $data);
     }
-    
+
     /**
      * Prettily prints data.
      * @param mixed $data

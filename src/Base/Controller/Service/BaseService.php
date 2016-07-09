@@ -39,7 +39,7 @@ abstract class BaseService extends BaseController
     ];
 
     private $hasCalledCoreModel = FALSE;
-    private $isProcessed = FALSE;
+    private $isProcessed        = FALSE;
 
     public function __construct()
     {

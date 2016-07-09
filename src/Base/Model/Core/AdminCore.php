@@ -2,7 +2,6 @@
 
 namespace Ilex\Base\Model\Core;
 
-use \Ilex\Lib\Kit;
 use \Ilex\Base\Model\Core\BaseCore;
 
 /**
