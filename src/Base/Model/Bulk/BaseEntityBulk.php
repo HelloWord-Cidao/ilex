@@ -52,6 +52,18 @@ class BaseEntityBulk extends Bulk
         return $this->getItemList();
     }
 
+    final private function setEntityList($entity_list)
+    {
+        return $this->setItemList($entity_list);
+    }
+
+    final public function getTheOnlyOneEntity()
+    {
+        if (1 !== $this->count())
+            throw new UserException('This bulk has no or more than one entities.');
+        return $this->getEntityList()[0];
+    }
+
     final public function batch($method_name)
     {
         Kit::ensureString($method_name);
@@ -66,7 +78,9 @@ class BaseEntityBulk extends Bulk
             if ($is_return_entity !== $item instanceof BaseEntity)
                 throw new UserException('Inconsistent behavior of method.');
         }
-        if (TRUE === $is_return_entity) return $this;
+        if (TRUE === $is_return_entity) {
+            return $this->setEntityList($result);
+        }
         else return $result;
     }
 
@@ -88,8 +102,23 @@ class BaseEntityBulk extends Bulk
 
     final public function filter(Closure $function)
     {
+        $arg_list = func_get_args();
         if (count($arg_list) > 1) $arg_list = Kit::slice($arg_list, 1); else $arg_list = [];
         $result = [];
+        foreach ($this->getEntityList() as $index => $entity) {
+            if (TRUE === call_user_func_array($function,
+                array_merge([ $entity ], $arg_list, [ $index ]))) {
+                $result[] = $entity;
+            }
+        }
+        return $this->setEntityList($result);
+    }
+
+    final public function filterById($id)
+    {
+        return $this->filter(function ($entity, $id) {
+            return $entity->isIdEqualTo($id);
+        }, $id)->getTheOnlyOneEntity();
     }
 
 }

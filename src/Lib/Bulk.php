@@ -49,6 +49,12 @@ class Bulk implements Iterator
         return $this->itemList;
     }
 
+    final protected function setItemList($item_list)
+    {
+        $this->itemList = $item_list;
+        return $this;
+    }
+
     final public function count()
     {
         return Kit::len($this->itemList);
