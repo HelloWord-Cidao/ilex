@@ -3,6 +3,7 @@
 namespace Ilex\Base\Model\Entity\User;
 
 use \MongoDate;
+use \Ilex\Core\Context as c;
 use \Ilex\Lib\Kit;
 use \Ilex\Base\Model\Entity\BaseEntity;
 
@@ -53,4 +54,17 @@ class UserEntity extends BaseEntity
     {
         return $this->setInfo('lastLoginTime', new MongoDate());
     }
+
+    final public function isMe()
+    {
+        return $this->getId()->isEqualTo(c::user()->getId());
+    }
+
+    final public function ensureMe()
+    {
+        if (FALSE === $this->isMe())
+            throw new UserException('This user is not me.');
+        return $this;
+    }
+
 }
