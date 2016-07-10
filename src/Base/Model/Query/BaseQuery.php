@@ -4,6 +4,7 @@ namespace Ilex\Base\Model\Query;
 
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
+use \Ilex\Lib\UserException;
 use \Ilex\Lib\MongoDB\MongoDBId;
 use \Ilex\Lib\MongoDB\QueryWrapper;
 use \Ilex\Base\Model\Entity\BaseEntity;
