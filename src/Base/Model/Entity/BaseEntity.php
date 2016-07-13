@@ -205,21 +205,16 @@ class BaseEntity
 
 
     // ======================================= Reference =============================================
+    // ======================================= one =============================================
     
-
     final public function hasMultiReference($reference_name)
     {
         Kit::ensureString($reference_name);
         return $this->handleHas('Reference', $reference_name . 'IdList');
     }
 
-    final public function hasOneReference($reference_name)
-    {
-        Kit::ensureString($reference_name);
-        return $this->handleHas('Reference', $reference_name . 'Id');
-    }
-
-    final public function buildMultiReferenceTo(BaseEntity $entity, $reference_name = NULL, $check_duplicate = TRUE)
+    // O(N) when $check_duplicate is TRUE
+    final public function buildMultiReferenceTo(BaseEntity $entity, $reference_name = NULL, $check_duplicate = FALSE)
     {
         Kit::ensureString($reference_name, TRUE);
         Kit::ensureBoolean($check_duplicate);
@@ -237,6 +232,60 @@ class BaseEntity
         $field_value[] = $entity_id->toMongoId();
         $this->setDocument('Reference', $field_name, $field_value);
         return $this;
+    }
+
+    // @TODO: check efficiency
+    final public function getEntitiesByMultiReference($reference_name, $entity_path)
+    {
+        Kit::ensureString($entity_path);
+        return $this->loadCore($entity_path)
+            ->getAllEntitiesByIdList($this->getMultiReference($reference_name));
+    }
+
+    // O(N)
+    final public function hasMultiReferenceTo(BaseEntity $entity, $reference_name = NULL)
+    {
+        if (TRUE === is_null($reference_name))
+            $reference_name = $entity->getEntityName();
+        foreach ($this->getMultiReference($reference_name) as $id) {
+            if ($entity->getId()->isEqualTo($id)) return TRUE;
+        };
+        return FALSE;
+    }
+
+    final public function ensureHasMultiReferenceTo(BaseEntity $entity, $reference_name = NULL)
+    {
+        if (FALSE === $this->hasMultiReferenceTo($entity, $reference_name)) {
+            $msg = 'This entity does not have multi reference to the entity.';
+            throw new UserException($msg, [ $entity->getName(), $reference_name ]);
+        }
+        return $this;
+    }
+
+    /**
+     * O(N) when $to_mongoDB_id is TRUE
+     * @param string $reference_name
+     * @param boolean $to_mongoDB_id
+     * @return List of MongoId or MongoDBId when $to_mongoDB_id is TRUE
+     */
+    final public function getMultiReference($reference_name, $to_mongoDB_id = FALSE)//, $ensure_existence = TRUE, $default = NULL)
+    {
+        Kit::ensureString($reference_name);
+        if (TRUE === $to_mongoDB_id) {
+            $result = [ ];
+            foreach ($this->getReference($reference_name . 'IdList') as $id) {
+                $result[] = new MongoDBId($id);
+            }
+            return $result;
+        } else return $this->getReference($reference_name . 'IdList');
+    }
+
+    // ======================================= one =============================================
+    
+    final public function hasOneReference($reference_name)
+    {
+        Kit::ensureString($reference_name);
+        return $this->handleHas('Reference', $reference_name . 'Id');
     }
 
     final public function buildOneReferenceTo(BaseEntity $entity, $reference_name = NULL, $ensure_no_existence = FALSE)
@@ -257,16 +306,12 @@ class BaseEntity
         return $this;
     }
 
-    // O(N)
-    // final public function hasMultiReferenceTo(BaseEntity $entity, $reference_name = NULL)
-    // {
-    //     if (TRUE === is_null($reference_name))
-    //         $reference_name = $entity->getEntityName();
-    //     foreach ($this->getMultiReference($reference_name) as $id) {
-    //         if ($entity->getId()->isEqualTo($id)) return TRUE;
-    //     };
-    //     return FALSE;
-    // }
+    final public function getEntityByOneReference($reference_name, $entity_path)
+    {
+        Kit::ensureString($entity_path);
+        return $this->loadCore($entity_path)
+            ->getTheOnlyOneEntityById($this->getOneReference($reference_name));
+    }
 
     final public function hasOneReferenceTo(BaseEntity $entity, $reference_name = NULL)
     {
@@ -275,34 +320,26 @@ class BaseEntity
         return $entity->getId()->isEqualTo($this->getOneReference($reference_name));
     }
 
-    final protected function setMultiReference($reference_name, $reference_value)
+    final public function ensureHasOneReferenceTo(BaseEntity $entity, $reference_name = NULL)
     {
-        Kit::ensureString($reference_name);
-        return $this->setReference($reference_name . 'IdList', $reference_value);
-    }
-
-    // O(N)
-    final public function getMultiReference($reference_name)//, $ensure_existence = TRUE, $default = NULL)
-    {
-        Kit::ensureString($reference_name);
-        $result = [ ]; // @TODO: use Bulk
-        foreach ($this->getReference($reference_name . 'IdList') as $id) {
-            $result[] = new MongoDBId($id);
+        if (FALSE === $this->hasOneReferenceTo($entity, $reference_name)) {
+            $msg = 'This entity does not have one reference to the entity.';
+            throw new UserException($msg, [ $entity->getName(), $reference_name ]);
         }
-        return $result;
+        return $this;
     }
 
-    final protected function setOneReference($reference_name, $reference_value)
-    {
-        Kit::ensureString($reference_name);
-        return $this->setReference($reference_name . 'Id', $reference_value);
-    }
-
+    /**
+     * @param string $reference_name
+     * @return MongoDBId
+     */
     final public function getOneReference($reference_name)//, $ensure_existence = TRUE, $default = NULL)
     {
         Kit::ensureString($reference_name);
         return new MongoDBId($this->getReference($reference_name . 'Id'));//, $ensure_existence, $default);
     }
+
+    // ======================================= basic =============================================
 
     final private function getReference($reference_name)// = NULL, $ensure_existence = TRUE, $default = NULL)
     {
@@ -335,7 +372,6 @@ class BaseEntity
         return $this->getMeta('Type');
     }
 
-    // @TODO
     final public function getCreationTimestamp()
     {
         return MongoDBDate::toTimestamp($this->getMeta('CreationTime'));

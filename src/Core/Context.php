@@ -16,6 +16,7 @@ final class Context
 {
 
     private static $currentUser            = NULL;
+    private static $currentInstitution     = NULL;
     private static $currentMemorizeMission = NULL;
     
     final public static function trySetCurrentUserEntity()
@@ -24,9 +25,11 @@ final class Context
         if (TRUE === Kit::isString($token) AND '' !== $token) {
             $class_name = Loader::includeCore('User/User');
             try {
-                self::$currentUser = $class_name::getCurrentUserEntity($token);
+                self::$currentUser        = $class_name::getCurrentUserEntity($token);
+                self::$currentInstitution = self::$currentUser->getInstitution()->setReadOnly();
             } catch (Exception $e) {
-                self::$currentUser = NULL;
+                self::$currentUser        = NULL;
+                self::$currentInstitution = NULL;
             }
         }
     }
@@ -44,6 +47,11 @@ final class Context
     final public static function user()
     {
         return self::$currentUser;
+    }
+
+    final public static function institution()
+    {
+        return self::$currentInstitution;
     }
 
 }

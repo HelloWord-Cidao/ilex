@@ -441,8 +441,14 @@ class MongoDBCollection
     {
         $collection_name = $this->collectionName;
         Kit::ensureArray($criterion);
-        if (TRUE === isset($criterion['_id']) AND FALSE === $criterion['_id'] instanceof MongoId)
-            throw new UserException("<${collection_name}>\$criterion has improper _id.", $criterion);
+        if (TRUE === isset($criterion['_id']) AND (
+            (TRUE === Kit::isArray($criterion['_id']) AND
+                FALSE === Kit::isArray($criterion['_id']['$in'])) 
+            OR
+            (FALSE === Kit::isArray($criterion['_id']) AND
+                FALSE === $criterion['_id'] instanceof MongoId)
+            )
+        ) throw new UserException("<${collection_name}>\$criterion has improper _id.", $criterion);
     }
 
     final private function validateOperationStatus($status)

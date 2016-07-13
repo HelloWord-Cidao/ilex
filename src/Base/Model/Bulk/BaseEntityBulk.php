@@ -57,10 +57,10 @@ class BaseEntityBulk extends Bulk
         return $this->setItemList($entity_list);
     }
 
-    final public function getTheOnlyOneEntity()
+    final private function getTheOnlyOneEntity()
     {
         if (1 !== $this->count())
-            throw new UserException('This bulk has no or more than one entities.');
+            throw new UserException('This bulk has no or more than one entities.', $this->getEntityList());
         return $this->getEntityList()[0];
     }
 
@@ -116,9 +116,13 @@ class BaseEntityBulk extends Bulk
 
     final public function filterById($id)
     {
-        return $this->filter(function ($entity, $id) {
+        $detail = $this->batch('getName');
+        $result = $this->filter(function ($entity, $id) {
             return $entity->isIdEqualTo($id);
-        }, $id)->getTheOnlyOneEntity();
+        }, $id);
+        if (1 !== $result->count())
+            throw new UserException('$id not found in this bulk.', $detail);
+        else return $result->getTheOnlyOneEntity();
     }
 
 }

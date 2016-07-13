@@ -71,6 +71,23 @@ class BaseQuery
         return $this->isEqualTo('_id', $id->toMongoId());
     }
 
+    // O(N) when $to_mongo_id is TRUE
+    final public function idIn($id_list, $to_mongo_id = FALSE)
+    {
+        if (TRUE === $to_mongo_id) {
+            $tmp = [];
+            foreach ($id_list as $id) {
+                if (TRUE === Kit::isString($id))
+                    $tmp[] = new MongoDBId($id);
+                elseif (FALSE === $id instanceof MongoDBId)
+                    $tmp[] = new MongoDBId($id);
+                    // throw new UserException('Invalid $id.', $id);
+            }
+            $id_list = $tmp;
+        }
+        return $this->in('_id', $id_list);
+    }
+
     // @TODO: move it into ContentQuery
     final public function signatureIs($signature)
     {
@@ -95,16 +112,16 @@ class BaseQuery
         return $this->infoFieldIs('Name', $name);
     }
 
-    final public function infoIs($field_value)
-    {
-        Kit::ensureArray($field_value);
-        return $this->isEqualTo("Info", $field_value);
-    }
-
     final public function infoFieldIs($field_name, $field_value)
     {
         Kit::ensureString($field_name);
         return $this->isEqualTo("Info.${field_name}", $field_value);
+    }
+
+    final public function infoIs($field_value)
+    {
+        Kit::ensureArray($field_value);
+        return $this->isEqualTo("Info", $field_value);
     }
 
     final public function hasMultiReferenceTo(BaseEntity $entity, $name = NULL)
@@ -127,10 +144,20 @@ class BaseQuery
         return $this->isEqualTo('Meta.Type', $type);
     }
 
+    final public function typeIn($type_list)
+    {
+        return $this->in('Meta.Type', $type_list);
+    }
+
     final public function stateIs($state)
     {
         Kit::ensureType($state, [ Kit::TYPE_INT, Kit::TYPE_STRING ]);
         return $this->isEqualTo('Meta.State', $state);
+    }
+
+    final public function stateIn($state_list)
+    {
+        return $this->in('Meta.State', $state_list);
     }
 
     final public function isCreatedBefore($timestamp)
@@ -202,6 +229,16 @@ class BaseQuery
         Kit::ensureString($field_name);
         $criterion = [
             $field_name => [ '$lte' => $field_value ],
+        ];
+        return $this->mergeCriterion($criterion);
+    }
+
+    final protected function in($field_name, $field_value_list)
+    {
+        Kit::ensureString($field_name);
+        Kit::ensureArray($field_value_list); // @CAUTION
+        $criterion = [
+            $field_name => [ '$in' => $field_value_list ],
         ];
         return $this->mergeCriterion($criterion);
     }

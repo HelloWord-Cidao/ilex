@@ -83,6 +83,11 @@ abstract class BaseCore
         return $this->createQuery()->idIs($id)->getTheOnlyOneEntity();
     }
 
+    final public function getAllEntitiesByIdList($id_list)
+    {
+        return $this->createQuery()->idIn($id_list)->getMultiEntities();
+    }
+
     final public function getTheOnlyOneEntityBySignature($signature)
     {
         return $this->createQuery()->signatureIs($signature)->getTheOnlyOneEntity();

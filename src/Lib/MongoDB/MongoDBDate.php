@@ -21,6 +21,12 @@ final class MongoDBDate
         return (int)$result[1] + (float)$result[0];
     }
 
+    final public static function fromTimestamp($timestamp)
+    {
+        Kit::ensureType($timestamp, [ Kit::TYPE_INT, Kit::TYPE_FLOAT ]);
+        return new MongoDate($timestamp);
+    }
+
     // final public function isEqualTo(MongoDBDate $date)
     // {
     //     return $this->toTimestamp() === $date->toTimestamp();
@@ -29,6 +35,11 @@ final class MongoDBDate
     final public static function now()
     {
         return new MongoDate();
+    }
+
+    final public static function timestampAtNow()
+    {
+        return time();
     }
 
     final public static function daysAfterNow($days)
