@@ -129,6 +129,11 @@ class BaseEntity
         return $this->document;
     }
 
+    final public function is(BaseEntity $entity)
+    {
+        return $this->isIdEqualTo($entity->getId());
+    }
+
     final public function getId($to_string = FALSE)
     {
         $id = $this->ensureInCollection()->get('_id');

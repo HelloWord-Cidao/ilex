@@ -86,10 +86,17 @@ class BaseEntityBulk extends Bulk
 
     final public function map(Closure $function)
     {
-        // Kit::map
+        $arg_list = func_get_args();
+        if (count($arg_list) > 1) $arg_list = Kit::slice($arg_list, 1); else $arg_list = [];
+        $result = [];
+        foreach ($this->getEntityList() as $index => $entity) {
+            $result[] = call_user_func_array($function,
+                array_merge([ $entity ], $arg_list, [ $index ]));
+        }
+        return $result;
     }
 
-    final public function iterMap(Closure $function, $context)
+    final public function aggregate(Closure $function, $context)
     {
         $arg_list = func_get_args();
         if (count($arg_list) > 2) $arg_list = Kit::slice($arg_list, 2); else $arg_list = [];
@@ -123,6 +130,16 @@ class BaseEntityBulk extends Bulk
         if (1 !== $result->count())
             throw new UserException('$id not found in this bulk.', $detail);
         else return $result->getTheOnlyOneEntity();
+    }
+
+    final public function filterByRandomlySelect($num)
+    {
+        return $this->setEntityList(Kit::randomlySelect($this->getEntityList(), $num));
+    }
+
+    final public function shuffle()
+    {
+        return $this->setEntityList(Kit::shuffled($this->getEntityList()));
     }
 
 }

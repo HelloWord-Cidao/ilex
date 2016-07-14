@@ -33,17 +33,18 @@ use \Ilex\Lib\UserTypeException;
 final class Kit
 {
 
-    const TYPE_VACANCY  = '@[VACANCY]#';
-    const TYPE_STRING   = 'STRING';
-    const TYPE_INT      = 'INT';
-    const TYPE_FLOAT    = 'FLOAT';
-    const TYPE_BOOLEAN  = 'BOOLEAN';
-    const TYPE_ARRAY    = 'ARRAY';
-    const TYPE_LIST     = 'LIST';
-    const TYPE_DICT     = 'DICT';
-    const TYPE_OBJECT   = 'OBJECT';
-    const TYPE_RESOURCE = 'RESOURCE';
-    const TYPE_NULL     = 'NULL';
+    const TYPE_VACANCY   = '@[VACANCY]#';
+    const TYPE_STRING    = 'STRING';
+    const TYPE_CHARACTER = 'CHARACTER';
+    const TYPE_INT       = 'INT';
+    const TYPE_FLOAT     = 'FLOAT';
+    const TYPE_BOOLEAN   = 'BOOLEAN';
+    const TYPE_ARRAY     = 'ARRAY';
+    const TYPE_LIST      = 'LIST';
+    const TYPE_DICT      = 'DICT';
+    const TYPE_OBJECT    = 'OBJECT';
+    const TYPE_RESOURCE  = 'RESOURCE';
+    const TYPE_NULL      = 'NULL';
 
     const M_MIN = 'min';
     const M_MAX = 'max';
@@ -87,6 +88,7 @@ final class Kit
         if (TRUE === is_null($type)) return FALSE;
         return TRUE === in_array($type, [
             self::TYPE_STRING,
+            self::TYPE_CHARACTER,
             self::TYPE_INT,
             self::TYPE_FLOAT,
             self::TYPE_BOOLEAN,
@@ -297,6 +299,17 @@ final class Kit
     {
         if (FALSE === self::isString($variable, $can_be_null, $can_be_empty))
             throw new UserTypeException($variable, self::TYPE_STRING);
+    }
+
+    final public static function isCharacter($variable, $can_be_null = FALSE)
+    {
+        return self::isString($variable, $can_be_null) AND 1 === self::len($variable);
+    }
+
+    final public static function ensureCharacter($variable, $can_be_null = FALSE)
+    {
+        if (FALSE === self::isCharacter($variable, $can_be_null))
+            throw new UserTypeException($variable, self::TYPE_CHARACTER);
     }
 
     final public static function isMatchRegex($variable, $regex, $can_be_null = FALSE)
@@ -713,7 +726,7 @@ final class Kit
     final public static function extend(&$list, &$value_list)
     {
         $list = self::extended($list, $value_list);
-        return count($list);
+        return $list;
     }
 
     final public static function reversed(&$list)
@@ -725,7 +738,7 @@ final class Kit
     final public static function reverse(&$list)
     {
         $list = self::reversed($list);
-        return count($list);
+        return $list;
     }
 
     // ================================================== //
@@ -777,6 +790,7 @@ final class Kit
         self::ensureDict($dict1);
         self::ensureDict($dict2);
         $dict1 = array_merge($dict1, $dict2);
+        return $dict1;
     }
 
     final public static function updated(&$dict1, &$dict2)
@@ -857,7 +871,7 @@ final class Kit
      * @param mixed $data
      * @return string
      */
-    final public static function toString(&$data)
+    final public static function toString($data)
     {
         if (TRUE === self::isNULL($data)) return 'NULL';
         if (TRUE === self::isType($data, [ self::TYPE_INT, self::TYPE_FLOAT ])) return strval($data);
@@ -966,6 +980,22 @@ final class Kit
         return round($number, $precision);
     }
 
+    final public static function intRange($min, $max, $step = 1)
+    {
+        self::ensureInt($min, FALSE, FALSE);
+        self::ensureInt($max, FALSE, FALSE);
+        self::ensureInt($step, FALSE, TRUE);
+        return range($min, $max, $step);
+    }
+
+    final public static function characterRange($min, $max, $step = 1)
+    {
+        self::ensureCharacter($min, FALSE, FALSE);
+        self::ensureCharacter($max, FALSE, FALSE);
+        self::ensureInt($step, FALSE, TRUE);
+        return range($min, $max, $step);
+    }
+
     final public static function randomInt($min = 0, $max = NULL)
     {
         $randmax = mt_getrandmax();
@@ -985,15 +1015,32 @@ final class Kit
         return $min + 1.0 * mt_rand() / mt_getrandmax() * ($max - $min);
     }
 
-    final public static function randomSelect($list, $num)
+    final public static function shuffled($list)
+    {
+        self::ensureArray($list);
+        if (FALSE === shuffle($list))
+            throw new UserException('Shuffle failed.');
+        return $list;
+    }
+
+    final public static function shuffle(&$list)
+    {
+        self::ensureArray($list);
+        if (FALSE === shuffle($list))
+            throw new UserException('Shuffle failed.');
+        return $list;
+    }
+
+    final public static function randomlySelect($list, $num)
     {
         self::ensureArray($list);
         self::ensureInt($num);
         if ($num > self::len($list)) $num = self::len($list);
-        $result = array_rand($list, $num);
-        if (1 === $num) $result = [ $result ];
-        $result = array_values(Kit::extract($list, $result));
-        return $result;
+        return self::slice(self::shuffle($list), 0, $num); // @TODO: check efficiency
+        // $result = array_rand($list, $num);
+        // if (1 === $num) $result = [ $result ];
+        // $result = array_values(Kit::extract($list, $result));
+        // return $result;
     }
 
     /**
@@ -1015,7 +1062,7 @@ final class Kit
      * @return array
      * @throws UserException if the sum of weights is 0.
      */
-    final public static function randomSelectByWeight(&$list_of_dict)
+    final public static function randomlySelectByWeight(&$list_of_dict)
     {
         self::ensureListOfDict($list_of_dict);
         $weight_list = self::columns($list_of_dict, 'weight', TRUE, NULL, TRUE);
