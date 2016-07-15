@@ -26,7 +26,9 @@ final class MongoDBId
 
     final public function __construct($id_or_string)
     {
-        if (TRUE === $id_or_string instanceof MongoId)
+        if (TRUE === $id_or_string instanceof MongoDBId)
+            $this->id = $id_or_string->toMongoId();
+        elseif (TRUE === $id_or_string instanceof MongoId)
             $this->id = $id_or_string;
         elseif (TRUE === MongoId::isValid($id_or_string)) {
             Kit::ensureString($id_or_string);
@@ -53,9 +55,9 @@ final class MongoDBId
         return $this->__toString();
     }
 
-    final public function isEqualTo(MongoDBId $id)
+    final public function isEqualTo($id)
     {
-        return $this->toString() === $id->toString();
+        return $this->toString() === (new MongoDBId($id))->toString();
     }
 
 }

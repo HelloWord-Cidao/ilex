@@ -62,12 +62,7 @@ class BaseQuery
 
     final public function idIs($id)
     {
-        if (TRUE === Kit::isString($id))
-            $id = new MongoDBId($id);
-        elseif (FALSE === $id instanceof MongoDBId)
-            $id = new MongoDBId($id);
-            // throw new UserException('Invalid $id.', $id);
-        // Now $id must be MongoDBId
+        $id = new MongoDBId($id);
         return $this->isEqualTo('_id', $id->toMongoId());
     }
 
@@ -77,11 +72,7 @@ class BaseQuery
         if (TRUE === $to_mongo_id) {
             $tmp = [];
             foreach ($id_list as $id) {
-                if (TRUE === Kit::isString($id))
-                    $tmp[] = new MongoDBId($id);
-                elseif (FALSE === $id instanceof MongoDBId)
-                    $tmp[] = new MongoDBId($id);
-                    // throw new UserException('Invalid $id.', $id);
+                $tmp[] = new MongoDBId($id);
             }
             $id_list = $tmp;
         }

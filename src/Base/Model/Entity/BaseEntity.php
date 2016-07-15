@@ -143,12 +143,6 @@ class BaseEntity
 
     final public function isIdEqualTo($id)
     {
-        if (TRUE === Kit::isString($id))
-            $id = new MongoDBId($id);
-        elseif (FALSE === $id instanceof MongoDBId)
-            $id = new MongoDBId($id);
-            // throw new UserException('Invalid $id.', $id);
-        // Now $id must be MongoDBId
         return $this->getId()->isEqualTo($id);
     }
 
