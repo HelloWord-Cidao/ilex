@@ -33,10 +33,13 @@ abstract class BaseService extends BaseController
 {
 
     private $result   = [
-        'code'    => NULL,
-        'data'    => [ ],
-        'status'  => [ ],
-        'process' => [ ],
+        'code'          => NULL,
+        'database'      => [ ],
+        'mainException' => NULL,
+        'monitor'       => NULL,
+        'data'          => [ ],
+        'status'        => [ ],
+        'process'       => [ ],
     ];
 
     private $hasCalledCoreModel = FALSE;
@@ -345,8 +348,10 @@ abstract class BaseService extends BaseController
         }
         // Now code must be NULL or 1 or 2.
         $this->setCode(0);
-        if (FALSE === Debug::isProduction())
-            $this->result['exception'] = Debug::extractException($exception);
+        if (FALSE === Debug::isProduction()) {
+            $this->result['exception']     = Debug::extractException($exception);
+            $this->result['mainException'] = Debug::extractMainException($this->result['exception']);
+        }
         $execution_record['success'] = FALSE;
         $this->respond($execution_id, $execution_record, 200); // @TODO: change code
     }
@@ -373,10 +378,18 @@ abstract class BaseService extends BaseController
         }
         header('Content-Type : application/json', TRUE, $status_code);
         if (FALSE === Debug::isProduction()) {
+            $this->result['monitor'] = Debug::getMonitor();
             $this->result += Debug::getDebugInfo();
-            $this->result += [ 'size' => Kit::len(json_encode($this->result)) ];
+            $this->result += [ 'size' => sprintf('%.2fKB', Kit::len(json_encode($this->result)) / 1024) ];
+            if (TRUE === is_null($this->result['mainException']))
+                unset($this->result['mainException']);
+            if (TRUE === is_null($this->result['monitor']))
+                unset($this->result['monitor']);
         } else {
-            // unset($this->result['process']);
+            unset($this->result['mainException']);
+            unset($this->result['monitor']);
+            unset($this->result['database']);
+            unset($this->result['process']);
         }
         Http::json($this->result);
         if (TRUE === $close_cgi_only) {

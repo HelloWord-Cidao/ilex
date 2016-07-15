@@ -72,6 +72,7 @@ final class Debug
     private static $executionIdStack     = [ ];
     private static $executionRecordStack = [ ]; // @TODO: disable it in production mode to save memory
     private static $startTime            = NULL;
+    private static $monitor              = NULL;
 
     final public static function setErrorTypes($error_types)
     {
@@ -129,11 +130,21 @@ final class Debug
                     $exception = self::extractException($e);
                     $result['last_exception'] = $exception_or_error;
                 }
-                $result['exception'] = $exception;
+                $result['mainException'] = self::extractMainException($exception);
+                $result['monitor']       = self::getMonitor();
+                $result['exception']     = $exception;
+                if (TRUE === $this->result['mainException'])
+                    unset($this->result['mainException']);
+                if (TRUE === $this->result['monitor'])
+                    unset($this->result['monitor']);
             } else {
                 $result['error'] = $exception_or_error;
             }
             $result += self::getDebugInfo();
+        } else {
+            unset($result['database']);
+            unset($result['mainException']);
+            unset($result['monitor']);
         }
         Http::json($result);
     }
@@ -162,6 +173,19 @@ final class Debug
         self::respondOnFail($e);
         self::$isErrorHandled = TRUE;
         exit();
+    }
+
+    final public static function setMonitor($field_name, $field_value)
+    {
+        Kit::ensureString($field_name);
+        if (TRUE === is_null(self::$monitor))
+            self::$monitor = [ ];
+        self::$monitor[$field_name] = $field_value;
+    }
+
+    final public static function getMonitor()
+    {
+        return self::$monitor;
     }
 
     final public static function getDebugInfo()
@@ -414,6 +438,12 @@ final class Debug
 
         // 'is_time_consuming'
         return $result;
+    }
+
+    final public static function extractMainException($exception)
+    {
+        Kit::ensureArray($exception);
+        return NULL;
     }
 
     /**
