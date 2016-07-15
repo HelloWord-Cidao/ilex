@@ -22,10 +22,4 @@ class UserQuery extends BaseQuery
         Kit::ensureString($password);
         return $this->infoFieldIs('Password', $password);
     }
-
-    final public function openIdIs($openId)
-    {
-        Kit::ensureString($openId);
-        return $this->infoFieldIs('UserInfo.OpenId', $openId);
-    }
 }

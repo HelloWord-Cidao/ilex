@@ -330,7 +330,7 @@ abstract class BaseService extends BaseController
         }
         // Now code must be 1 or 2 or 3.
         $execution_record['success'] = TRUE;
-        unset($this->result['process']);
+        // unset($this->result['process']);
         $this->respond($execution_id, $execution_record, 200, $close_cgi_only);
     }
 

@@ -175,7 +175,7 @@ final class Debug
         exit();
     }
 
-    final public static function setMonitor($field_name, $field_value)
+    final public static function monitor($field_name, $field_value)
     {
         Kit::ensureString($field_name);
         if (TRUE === is_null(self::$monitor))

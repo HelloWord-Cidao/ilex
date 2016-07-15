@@ -34,8 +34,8 @@ abstract class UserCore extends BaseCore
         }
     }
     
-    abstract protected function generateJWT(UserEntity $user);
+    abstract protected static function generateToken(UserEntity $user);
 
-    abstract protected static function parseToken($jwt);
+    abstract protected static function parseToken($token);
 
 }
