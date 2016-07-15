@@ -680,7 +680,8 @@ final class Kit
         if (count($arg_list) > 2) $arg_list = Kit::slice($arg_list, 2); else $arg_list = [];
         $result = [];
         foreach ($list as $index => $item) {
-            $result[] = call_user_func_array($function, array_merge([ $item ], $arg_list, [ $index ]));
+            $result_item = call_user_func_array($function, array_merge([ $item ], $arg_list, [ $index ]));
+            if (FALSE === self::isVacancy($result_item)) $result[] = $result_item;
         }
         return $result;
     }
@@ -740,6 +741,39 @@ final class Kit
         $list = self::reversed($list);
         return $list;
     }
+
+    final public static function shuffled($list)
+    {
+        self::ensureArray($list);
+        if (FALSE === shuffle($list))
+            throw new UserException('Shuffle failed.');
+        return $list;
+    }
+
+    final public static function shuffle(&$list)
+    {
+        self::ensureArray($list);
+        if (FALSE === shuffle($list))
+            throw new UserException('Shuffle failed.');
+        return $list;
+    }
+
+
+    // final public static function uniqued($list)
+    // {
+    //     self::ensureArray($list);
+    //     if (FALSE === shuffle($list))
+    //         throw new UserException('Shuffle failed.');
+    //     return $list;
+    // }
+
+    // final public static function unique(&$list)
+    // {
+    //     self::ensureArray($list);
+    //     if (FALSE === shuffle($list))
+    //         throw new UserException('Shuffle failed.');
+    //     return $list;
+    // }
 
     // ================================================== //
     //                       Dict                         //
@@ -1013,22 +1047,6 @@ final class Kit
         self::ensureType($max, [ self::TYPE_INT, self::TYPE_FLOAT ]);
         if ($min > $max) throw new UserException("Min($min) is larger than max($max).", [ $min, $max ]);
         return $min + 1.0 * mt_rand() / mt_getrandmax() * ($max - $min);
-    }
-
-    final public static function shuffled($list)
-    {
-        self::ensureArray($list);
-        if (FALSE === shuffle($list))
-            throw new UserException('Shuffle failed.');
-        return $list;
-    }
-
-    final public static function shuffle(&$list)
-    {
-        self::ensureArray($list);
-        if (FALSE === shuffle($list))
-            throw new UserException('Shuffle failed.');
-        return $list;
     }
 
     final public static function randomlySelect($list, $num)
