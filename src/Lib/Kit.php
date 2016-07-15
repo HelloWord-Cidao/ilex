@@ -12,40 +12,39 @@ use \Ilex\Lib\UserTypeException;
  * A kit class.
  * @package Ilex\Lib
  *
- * @method public static array      columns(array $list_of_array, array|mixed $column_name_list
- *                                      , boolean $ensure_existence = TRUE, mixed $default = NULL
- *                                      , boolean $return_only_values = FALSE)
- * @mehtod public static array      columnsExclude(array $list_of_array, array $column_name_list
- *                                      , boolean $check_existence = FALSE)
- * @method public static array      exclude(array $array, array $key_list
- *                                      , boolean $check_existence = FALSE)
- * @method public static array      extract(array $array, array $key_list
- *                                      , boolean $ensure_existence = TRUE, mixed $default = NULL)
- * @method public static string     getRealPath(string $path)
- * @method public static string     j(mixed $data)
- * @method public static mixed|NULL last(array $array, int $offset = 1)
- * @method public static            log(mixed $data, boolean $quotation_mark_list = TRUE
- *                                      , string $env = 'TEST')
- * @method public array|FALSE       randomByWeight(array $list_of_dict)
- * @method public static array      separateTitleWords(string $string)
- * @method public static string     time(int|NULL $time = NULL, string $format = 'Y-m-d H:i:s')
- * @method public static string     toString(mixed $data, boolean $quotation_mark_list = TRUE)
- * @method public static string     type(mixed $variable, string $empty_array = 'list')
+ * @method final public static array      columns(array $list_of_array, array|mixed $column_name_list
+ *                                            , boolean $ensure_existence = TRUE, mixed $default = NULL
+ *                                            , boolean $return_only_values = FALSE)
+ * @method final public static array      columnsExclude(array $list_of_array, array $column_name_list
+ *                                            , boolean $check_existence = FALSE)
+ * @method final public static array      exclude(array $array, array $key_list
+ *                                            , boolean $check_existence = FALSE)
+ * @method final public static array      extract(array $array, array $key_list
+ *                                            , boolean $ensure_existence = TRUE, mixed $default = NULL)
+ * @method final public static string     getRealPath(string $path)
+ * @method final public static string     j(mixed $data)
+ * @method final public static mixed|NULL last(array $array, int $offset = 1)
+ * @method final public array|FALSE       randomByWeight(array $list_of_dict)
+ * @method final public static array      separateTitleWords(string $string)
+ * @method final public static string     time(int|NULL $time = NULL, string $format = 'Y-m-d H:i:s')
+ * @method final public static string     toString(mixed $data, boolean $quotation_mark_list = TRUE)
+ * @method final public static string     type(mixed $variable, string $empty_array = 'list')
  */
 final class Kit
 {
 
-    const TYPE_VACANCY  = '@[VACANCY]#';
-    const TYPE_STRING   = 'STRING';
-    const TYPE_INT      = 'INT';
-    const TYPE_FLOAT    = 'FLOAT';
-    const TYPE_BOOLEAN  = 'BOOLEAN';
-    const TYPE_ARRAY    = 'ARRAY';
-    const TYPE_LIST     = 'LIST';
-    const TYPE_DICT     = 'DICT';
-    const TYPE_OBJECT   = 'OBJECT';
-    const TYPE_RESOURCE = 'RESOURCE';
-    const TYPE_NULL     = 'NULL';
+    const TYPE_VACANCY   = '@[VACANCY]#';
+    const TYPE_STRING    = 'STRING';
+    const TYPE_CHARACTER = 'CHARACTER';
+    const TYPE_INT       = 'INT';
+    const TYPE_FLOAT     = 'FLOAT';
+    const TYPE_BOOLEAN   = 'BOOLEAN';
+    const TYPE_ARRAY     = 'ARRAY';
+    const TYPE_LIST      = 'LIST';
+    const TYPE_DICT      = 'DICT';
+    const TYPE_OBJECT    = 'OBJECT';
+    const TYPE_RESOURCE  = 'RESOURCE';
+    const TYPE_NULL      = 'NULL';
 
     const M_MIN = 'min';
     const M_MAX = 'max';
@@ -61,7 +60,7 @@ final class Kit
      * @return string
      * @throws UserException if $empty_array is invalid or type of $variable unknown.
      */
-    public static function type(&$variable, $distinguish_array = FALSE, $empty_array = self::TYPE_LIST)
+    final public static function type(&$variable, $distinguish_array = FALSE, $empty_array = self::TYPE_LIST)
     {
         if (self::TYPE_LIST !== $empty_array AND self::TYPE_DICT !== $empty_array)
             throw new UserException('Invalid $empty_array.', $empty_array);
@@ -84,11 +83,12 @@ final class Kit
         throw new UserException('Unknown type of $variable given.', $variable);
     }
 
-    public static function isValidType($type)
+    final public static function isValidType($type)
     {
         if (TRUE === is_null($type)) return FALSE;
         return TRUE === in_array($type, [
             self::TYPE_STRING,
+            self::TYPE_CHARACTER,
             self::TYPE_INT,
             self::TYPE_FLOAT,
             self::TYPE_BOOLEAN,
@@ -101,7 +101,7 @@ final class Kit
         ], TRUE);
     }
 
-    public static function isType(&$variable, $type_list, $can_be_null = FALSE)
+    final public static function isType(&$variable, $type_list, $can_be_null = FALSE)
     {
         if (FALSE === is_bool($can_be_null))
             throw new UserTypeException($can_be_null, self::TYPE_BOOLEAN);
@@ -149,23 +149,23 @@ final class Kit
         return TRUE === in_array(self::type($variable, $distinguish_array, $empty_array), $type_list, TRUE);
     }
 
-    public static function ensureType(&$variable, $type_list, $can_be_null = FALSE)
+    final public static function ensureType(&$variable, $type_list, $can_be_null = FALSE)
     {
         if (FALSE === self::isType($variable, $type_list, $can_be_null))
             throw new UserTypeException($variable, $type_list);
     }
 
-    public static function isList(&$variable, $can_be_null = FALSE)
+    final public static function isList(&$variable, $can_be_null = FALSE)
     {
         return self::isType($variable, self::TYPE_LIST, $can_be_null);
     }
 
-    public static function ensureList(&$variable, $can_be_null = FALSE)
+    final public static function ensureList(&$variable, $can_be_null = FALSE)
     {
         self::ensureType($variable, self::TYPE_LIST, $can_be_null);
     }
 
-    public static function isListOfType(&$list, $type_list)
+    final public static function isListOfType(&$list, $type_list)
     {
         self::ensureList($list);
         foreach ($list as $value) {
@@ -174,66 +174,66 @@ final class Kit
         return TRUE;
     }
 
-    public static function ensureListOfType(&$list, $type_list)
+    final public static function ensureListOfType(&$list, $type_list)
     {
         if (FALSE === self::isListOfType($list, $type_list))
             throw new UserException('Values in $list is not of $type_list.', [ $list, $type_list ]);
     }
 
-    public static function isListOfList(&$list)
+    final public static function isListOfList(&$list)
     {
         return self::isListOfType($list, self::TYPE_LIST);
     }
 
-    public static function ensureListOfList(&$list)
+    final public static function ensureListOfList(&$list)
     {
         return self::ensureListOfType($list, self::TYPE_LIST);
     }
 
-    public static function isListOfDict(&$list)
+    final public static function isListOfDict(&$list)
     {
         return self::isListOfType($list, self::TYPE_DICT);
     }
 
-    public static function ensureListOfDict(&$list)
+    final public static function ensureListOfDict(&$list)
     {
         return self::ensureListOfType($list, self::TYPE_DICT);
     }
 
-    public static function isListOfArray(&$list)
+    final public static function isListOfArray(&$list)
     {
         return self::isListOfType($list, self::TYPE_ARRAY);
     }
 
-    public static function ensureListOfArray(&$list)
+    final public static function ensureListOfArray(&$list)
     {
         return self::ensureListOfType($list, self::TYPE_ARRAY);
     }
 
-    public static function isMatrix(&$matrix)
+    final public static function isMatrix(&$matrix)
     {
         if (FALSE === self::isList($matrix) OR FALSE === self::isListOfList($matrix)) return FALSE;
         if (FALSE === self::isAllValuesSame(array_map('count', $matrix))) return FALSE;
         return TRUE;
     }
 
-    public static function ensureMatrix(&$matrix)
+    final public static function ensureMatrix(&$matrix)
     {
         if (FALSE === self::isMatrix($list))
             throw new UserException('$matrix is not a matrix.', $matrix);
     }
 
-    public static function isDict(&$variable, $can_be_null = FALSE)
+    final public static function isDict(&$variable, $can_be_null = FALSE)
     {
         return self::isType($variable, self::TYPE_DICT, $can_be_null);
     }
 
-    public static function ensureDict(&$variable, $can_be_null = FALSE)
+    final public static function ensureDict(&$variable, $can_be_null = FALSE)
     {
         self::ensureType($variable, self::TYPE_DICT, $can_be_null);
     }
 
-    public static function isDictOfType(&$dict, $type_list)
+    final public static function isDictOfType(&$dict, $type_list)
     {
         self::ensureDict($dict);
         foreach ($dict as $value) {
@@ -242,65 +242,77 @@ final class Kit
         return TRUE;
     }
 
-    public static function ensureDictOfType(&$dict, $type_list)
+    final public static function ensureDictOfType(&$dict, $type_list)
     {
         if (FALSE === self::isDictOfType($dict, $type_list))
             throw new UserException('Values in $dict is not of $type_list.', [ $dict, $type_list ]);
     }
 
-    public static function isDictOfList(&$dict)
+    final public static function isDictOfList(&$dict)
     {
         return self::isDictOfType($list, self::TYPE_LIST);
     }
 
-    public static function ensureDictOfList(&$dict)
+    final public static function ensureDictOfList(&$dict)
     {
         return self::ensureDictOfType($list, self::TYPE_LIST);
     }
 
-    public static function isDictOfDict(&$dict)
+    final public static function isDictOfDict(&$dict)
     {
         return self::isDictOfType($list, self::TYPE_DICT);
     }
 
-    public static function ensureDictOfDict(&$dict)
+    final public static function ensureDictOfDict(&$dict)
     {
         return self::ensureDictOfType($list, self::TYPE_DICT);
     }
 
-    public static function isDictOfArray(&$dict)
+    final public static function isDictOfArray(&$dict)
     {
         return self::isDictOfType($dict, self::TYPE_ARRAY);
     }
 
-    public static function ensureDictOfArray(&$dict)
+    final public static function ensureDictOfArray(&$dict)
     {
         return self::ensureDictOfType($dict, self::TYPE_ARRAY);
     }
 
-    public static function isArray(&$variable, $can_be_null = FALSE)
+    final public static function isArray(&$variable, $can_be_null = FALSE)
     {
         return self::isType($variable, self::TYPE_ARRAY, $can_be_null);
     }
 
-    public static function ensureArray(&$variable, $can_be_null = FALSE)
+    final public static function ensureArray(&$variable, $can_be_null = FALSE)
     {
         self::ensureType($variable, self::TYPE_ARRAY, $can_be_null);
     }
 
-    public static function isString(&$variable, $can_be_null = FALSE, $can_be_empty = FALSE)
+    final public static function isString($variable, $can_be_null = FALSE, $can_be_empty = FALSE)
     {
         self::ensureBoolean($can_be_empty);
         return self::isType($variable, self::TYPE_STRING, $can_be_null)
-            AND (TRUE === $can_be_empty OR '' !== $variable);
+            AND (TRUE === $can_be_null OR TRUE === $can_be_empty OR '' !== $variable);
     }
 
-    public static function ensureString(&$variable, $can_be_null = FALSE, $can_be_empty = FALSE)
+    final public static function ensureString($variable, $can_be_null = FALSE, $can_be_empty = FALSE)
     {
-        self::ensureType($variable, self::TYPE_STRING, $can_be_null);
+        if (FALSE === self::isString($variable, $can_be_null, $can_be_empty))
+            throw new UserTypeException($variable, self::TYPE_STRING);
     }
 
-    public static function isMatchRegex(&$variable, $regex, $can_be_null = FALSE)
+    final public static function isCharacter($variable, $can_be_null = FALSE)
+    {
+        return self::isString($variable, $can_be_null) AND 1 === self::len($variable);
+    }
+
+    final public static function ensureCharacter($variable, $can_be_null = FALSE)
+    {
+        if (FALSE === self::isCharacter($variable, $can_be_null))
+            throw new UserTypeException($variable, self::TYPE_CHARACTER);
+    }
+
+    final public static function isMatchRegex($variable, $regex, $can_be_null = FALSE)
     {
         self::ensureString($variable, $can_be_null);
         if (TRUE === is_null($variable))
@@ -312,79 +324,93 @@ final class Kit
         return (1 === $result);
     }
 
-    public static function ensureMatchRegex(&$variable, $regex, $can_be_null = FALSE)
+    final public static function ensureMatchRegex($variable, $regex, $can_be_null = FALSE)
     {
         if (FALSE === self::isMatchRegex($variable, $regex, $can_be_null))
-            throw new UserException("\$variable($variable) macth \$regex($regex) failed.", $can_be_null);
+            throw new UserException("\$variable($variable) match \$regex($regex) failed.", $can_be_null);
     }
 
-    public static function isInt(&$variable, $can_be_null = FALSE, $should_be_positive = TRUE)
+    final public static function isInt($variable, $can_be_null = FALSE, $should_be_positive = TRUE)
+    {
+        self::ensureBoolean($should_be_positive);
+        return self::isType($variable, self::TYPE_INT, $can_be_null)
+            AND (TRUE === $can_be_null OR FALSE === $should_be_positive OR $variable > 0);
+    }
+
+    final public static function ensureInt($variable, $can_be_null = FALSE, $should_be_positive = TRUE)
+    {
+        if (FALSE === self::isInt($variable, $can_be_null, $should_be_positive))
+            throw new UserTypeException($variable, self::TYPE_INT);
+    }
+
+    final public static function isNonNegativeInt($variable, $can_be_null = FALSE)
     {
         return self::isType($variable, self::TYPE_INT, $can_be_null)
-            AND (FALSE === $should_be_positive OR $variable > 0);
+            AND (TRUE === $can_be_null OR $variable >= 0);
     }
 
-    public static function ensureInt(&$variable, $can_be_null = FALSE, $should_be_positive = TRUE)
+    final public static function ensureNonNegativeInt($variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_INT, $can_be_null, $should_be_positive);
+        if (FALSE === self::isNonNegativeInt($variable, $can_be_null))
+            throw new UserTypeException($variable, self::TYPE_INT);
     }
 
-    public static function isFloat(&$variable, $can_be_null = FALSE)
+    final public static function isFloat($variable, $can_be_null = FALSE)
     {
         return self::isType($variable, self::TYPE_FLOAT, $can_be_null);
     }
 
-    public static function ensureFloat(&$variable, $can_be_null = FALSE)
+    final public static function ensureFloat($variable, $can_be_null = FALSE)
     {
         self::ensureType($variable, self::TYPE_FLOAT, $can_be_null);
     }
 
-    public static function isBoolean(&$variable, $can_be_null = FALSE)
+    final public static function isBoolean($variable, $can_be_null = FALSE)
     {
         return self::isType($variable, self::TYPE_BOOLEAN, $can_be_null);
     }
 
-    public static function ensureBoolean(&$variable, $can_be_null = FALSE)
+    final public static function ensureBoolean($variable, $can_be_null = FALSE)
     {
         self::ensureType($variable, self::TYPE_BOOLEAN, $can_be_null);
     }
 
-    public static function isObject(&$variable, $can_be_null = FALSE)
+    final public static function isObject(&$variable, $can_be_null = FALSE)
     {
         return self::isType($variable, self::TYPE_OBJECT, $can_be_null);
     }
 
-    public static function ensureObject(&$variable, $can_be_null = FALSE)
+    final public static function ensureObject(&$variable, $can_be_null = FALSE)
     {
         self::ensureType($variable, self::TYPE_OBJECT, $can_be_null);
     }
 
-    public static function isResource(&$variable, $can_be_null = FALSE)
+    final public static function isResource(&$variable, $can_be_null = FALSE)
     {
         return self::isType($variable, self::TYPE_RESOURCE, $can_be_null);
     }
 
-    public static function ensureResource(&$variable, $can_be_null = FALSE)
+    final public static function ensureResource(&$variable, $can_be_null = FALSE)
     {
         self::ensureType($variable, self::TYPE_RESOURCE, $can_be_null);
     }
 
-    public static function isNULL(&$variable)
+    final public static function isNULL($variable)
     {
         return self::isType($variable, self::TYPE_NULL);
     }
 
-    public static function ensureNULL(&$variable)
+    final public static function ensureNULL($variable)
     {
         self::ensureType($variable, self::TYPE_NULL);
     }
 
-    public static function isVacancy(&$variable)
+    final public static function isVacancy(&$variable)
     {
         return self::TYPE_VACANCY === $variable;
     }
 
-    public static function ensureVacancy(&$variable)
+    final public static function ensureVacancy(&$variable)
     {
         if (FALSE === self::isVacancy($variable))
             throw new UserException('$variable is not vacancy.', $variable);
@@ -396,7 +422,7 @@ final class Kit
     // ================================================== //
 
 
-    public static function len(&$string_or_array)
+    final public static function len(&$string_or_array)
     {
         self::ensureType($string_or_array, [ self::TYPE_STRING, self::TYPE_ARRAY ]);
         if (TRUE === self::isString($string_or_array, FALSE, TRUE)) {
@@ -412,20 +438,20 @@ final class Kit
     //                       String                       //
     // ================================================== //
 
-    public static function toInt(&$string)
+    final public static function toInt($string)
     {
         self::ensureMatchRegex($string, '^\d{1,9}$');
         return intval($string);
     }
 
-    public static function join($delimiter, &$string_list)
+    final public static function join($delimiter, &$string_list)
     {
-        self::ensureString($delimiter);
+        self::ensureString($delimiter, FALSE, TRUE);
         self::ensureListOfType($string_list, self::TYPE_STRING);
         return implode($delimiter, $string_list);
     }
 
-    public static function split($delimiter, &$string)
+    final public static function split($delimiter, &$string)
     {
         self::ensureString($delimiter);
         self::ensureString($string);
@@ -434,24 +460,24 @@ final class Kit
         return explode($delimiter, $string);
     }
 
-    // public static function lstrip()
-    // public static function strip()
-    // public static function rstrip()
-    // public static function toUpper()
-    // public static function isUpper()
-    // public static function toLower()
-    // public static function isLower()
-    // public static function toTitle()
-    // public static function isTitle()
-    // public static function swapCase()
-    // public static function strpos()
+    // final public static function lstrip()
+    // final public static function strip()
+    // final public static function rstrip()
+    // final public static function toUpper()
+    // final public static function isUpper()
+    // final public static function toLower()
+    // final public static function isLower()
+    // final public static function toTitle()
+    // final public static function isTitle()
+    // final public static function swapCase()
+    // final public static function strpos()
 
     /**
      * Separates title words in a string.
      * @param string $string
      * @return array
      */
-    public static function separateTitleWords($string)
+    final public static function separateTitleWords($string)
     {
         self::ensureString($string);
         $match_list = [];
@@ -470,25 +496,25 @@ final class Kit
     //                       Array                        //
     // ================================================== //
 
-    public static function count(&$value, &$array)
+    final public static function count(&$value, &$array)
     {
         self::ensureArray($array);
         return count(array_keys($array, $value, TRUE));
     }
 
-    public static function isEmpty(&$array)
+    final public static function isEmpty(&$array)
     {
         self::ensureArray($array);
         return 0 === count($array);
     }
 
-    public static function in(&$value, $array)
+    final public static function in($value, $array)
     {
         self::ensureArray($array);
         return TRUE === in_array($value, $array, TRUE);
     }
 
-    public static function ensureIn(&$value, $array)
+    final public static function ensureIn(&$value, $array)
     {
         if (FALSE === self::in($value, $array)) {
             $msg = "\$value(" . self::toString($value) . ") is not in \$array(" . self::toString($array) . ").";
@@ -496,7 +522,7 @@ final class Kit
         }
     }
 
-    public static function hasKey()
+    final public static function hasKey()
     {
         $arg_list = func_get_args();
         $array = $arg_list[0];
@@ -511,14 +537,14 @@ final class Kit
         return TRUE;
     }
 
-    public static function ensureHasKey()
+    final public static function ensureHasKey()
     {
         $arg_list = func_get_args();
         if (FALSE === call_user_func_array([ self, 'hasKey' ], $arg_list))
             throw new UserException('$array has no $key.', $arg_list);
     }
 
-    public static function issetKey()
+    final public static function issetKey()
     {
         $arg_list = func_get_args();
         $array = $arg_list[0];
@@ -533,14 +559,14 @@ final class Kit
         return TRUE;
     }
 
-    public static function ensureIssetKey()
+    final public static function ensureIssetKey()
     {
         $arg_list = func_get_args();
         if (FALSE === call_user_func_array([ self, 'issetKey' ], $arg_list))
             throw new UserException('$key is not set in $array.', $arg_list);
     }
 
-    public static function getValue()
+    final public static function getValue()
     {
         $arg_list = func_get_args();
         $array = $arg_list[0];
@@ -564,7 +590,7 @@ final class Kit
      * @return array
      * @throws UserException if field($field_name) is empty
      */
-    public static function extract(&$array, $key_list, $ensure_existence = TRUE, $default = NULL)
+    final public static function extract(&$array, $key_list, $ensure_existence = TRUE, $default = NULL)
     {
         self::ensureArray($array);
         if (FALSE === is_array($key_list))
@@ -591,7 +617,7 @@ final class Kit
      * @param boolean     $check_existence whether it will check the existence of the to-be-excluded field
      * @return array
      */
-    public static function exclude($array, $key_list, $check_existence = FALSE)
+    final public static function exclude($array, $key_list, $check_existence = FALSE)
     {
         self::ensureArray($array);
         if (FALSE === is_array($key_list))
@@ -600,7 +626,7 @@ final class Kit
         $result = $array;
         foreach ($key_list as $key) {
             if (FALSE === isset($array[$key]) AND TRUE === $check_existence) {
-                $msg = "Field($key) does not exist, thus can not be exclued.";
+                $msg = "Field($key) does not exist, thus can not be excluded.";
                 throw new UserException($msg, $array);
             }
             unset($result[$key]);
@@ -608,7 +634,7 @@ final class Kit
         return $result;
     }
 
-    public static function isAllSame(&$array, $value = self::TYPE_VACANCY)
+    final public static function isAllSame(&$array, $value = self::TYPE_VACANCY)
     {
         self::ensureArray($array);
         $value_list = array_values($array);
@@ -618,13 +644,13 @@ final class Kit
         return TRUE;
     }
 
-    public static function ensureAllSame(&$array, $value = self::TYPE_VACANCY)
+    final public static function ensureAllSame(&$array, $value = self::TYPE_VACANCY)
     {
         if (FALSE === self::isAllSame($array, $value))
             throw new UserException('Values in $array are not same (or $value).', [ $array, $value ]);
     }
 
-    public static function sum(&$array)
+    final public static function sum(&$array)
     {
         self::ensureListOfType($array, [ self::TYPE_INT, self::TYPE_FLOAT, self::TYPE_BOOLEAN ]);
         return array_sum($array);
@@ -634,11 +660,12 @@ final class Kit
     //                       List                         //
     // ================================================== //
 
-    public static function slice(&$list, $offset, $length = NULL)
+    final public static function slice(&$list, $offset, $length = NULL)
     {
         self::ensureList($list);
-        self::ensureInt($offset);
+        self::ensureInt($offset, FALSE, FALSE);
         self::ensureInt($length, TRUE);
+        // @TODO: check corner cases
         return array_slice($list, $offset, $length);
     }
 
@@ -649,7 +676,7 @@ final class Kit
      * @return mixed|NULL
      * @throws UserException if $offset overflows $list.
      */
-    public static function last(&$list, $offset = 1)
+    final public static function last(&$list, $offset = 1)
     {
         self::ensureList($list);
         self::ensureInt($offset);
@@ -658,37 +685,31 @@ final class Kit
         return self::slice($list, - $offset)[0];
     }
 
-    public static function mapped($function, &$list)
+    final public static function mapped($function, &$list)
     {
         self::ensureArray($list);
         $arg_list = func_get_args();
-        if (count($arg_list) > 2)
-            $arg_list = self::slice($arg_list, 2);
-        else $arg_list = [];
+        if (count($arg_list) > 2) $arg_list = Kit::slice($arg_list, 2); else $arg_list = [];
         $result = [];
-        foreach ($list as $item) {
-            $result[] = call_user_func_array($function, array_merge([ $item ], $arg_list));
+        foreach ($list as $index => $item) {
+            $result_item = call_user_func_array($function, array_merge([ $item ], $arg_list, [ $index ]));
+            if (FALSE === self::isVacancy($result_item)) $result[] = $result_item;
         }
         return $result;
     }
 
-    public static function map($function, &$list)
+    final public static function map($function, &$list)
     {
-        self::ensureArray($list);
-        $arg_list = func_get_args();
-        if (count($arg_list) > 2)
-            $arg_list = self::slice($arg_list, 2);
-        else $arg_list = [];
-        $list = call_user_func_array([ 'self', 'mapped' ], array_merge([ $function, $list ], $arg_list));
+        $list = call_user_func_array([ 'self', 'mapped' ], func_get_args());
         return $list;
     }
 
-    // public static function sort(&$list)
-    // public static function sorted(&$list)
-    // public static function remove(&$list)
-    // public static function removed(&$list)
+    // final public static function sort(&$list)
+    // final public static function sorted(&$list)
+    // final public static function remove(&$list)
+    // final public static function removed(&$list)
     
-    public static function popedList(&$list)
+    final public static function popedList(&$list)
     {
         self::ensureList($list);
         if (0 === count($list))
@@ -696,7 +717,7 @@ final class Kit
         return Kit::slice($list, 0, count($list) - 1);
     }
 
-    public static function popList(&$list)
+    final public static function popList(&$list)
     {
         self::ensureList($list);
         if (0 === count($list))
@@ -704,52 +725,85 @@ final class Kit
         return array_pop($list);
     }
 
-    // public static function insert(&$list)
-    // public static function inserted(&$list)
-    // public static function index(&$list)
+    // final public static function insert(&$list)
+    // final public static function inserted(&$list)
+    // final public static function index(&$list)
     
-    public static function extended(&$list, &$value_list)
+    final public static function extended(&$list, &$value_list)
     {
         self::ensureList($list);
         self::ensureList($value_list);
         return array_merge($list, $value_list);
     }
 
-    public static function extend(&$list, &$value_list)
+    final public static function extend(&$list, &$value_list)
     {
         $list = self::extended($list, $value_list);
-        return count($list);
+        return $list;
     }
 
-    public static function reversed(&$list)
+    final public static function reversed(&$list)
     {
         self::ensureList($list);
         return array_reverse($list);
     }
 
-    public static function reverse(&$list)
+    final public static function reverse(&$list)
     {
         $list = self::reversed($list);
-        return count($list);
+        return $list;
     }
+
+    final public static function shuffled($list)
+    {
+        self::ensureArray($list);
+        if (FALSE === shuffle($list))
+            throw new UserException('Shuffle failed.');
+        return $list;
+    }
+
+    final public static function shuffle(&$list)
+    {
+        self::ensureArray($list);
+        if (FALSE === shuffle($list))
+            throw new UserException('Shuffle failed.');
+        return $list;
+    }
+
+
+    // final public static function uniqued($list)
+    // {
+    //     self::ensureArray($list);
+    //     if (FALSE === shuffle($list))
+    //         throw new UserException('Shuffle failed.');
+    //     return $list;
+    // }
+
+    // final public static function unique(&$list)
+    // {
+    //     self::ensureArray($list);
+    //     if (FALSE === shuffle($list))
+    //         throw new UserException('Shuffle failed.');
+    //     return $list;
+    // }
 
     // ================================================== //
     //                       Dict                         //
     // ================================================== //
 
-    public static function keys(&$dict)
+    final public static function keys(&$dict)
     {
         self::ensureDict($dict);
         return array_keys($dict);
     }
 
-    public static function values(&$dict)
+    final public static function values(&$dict)
     {
         self::ensureDict($dict);
         return array_values($dict);
     }
 
-    public static function items(&$dict)
+    final public static function items(&$dict)
     {
         self::ensureDict($dict);
         $result = [];
@@ -764,7 +818,7 @@ final class Kit
      * @param array $value_list
      * @return array
      */
-    public static function dict(&$key_list, &$value_list)
+    final public static function dict(&$key_list, &$value_list)
     {
         self::ensureListOfType($key_list, [ self::TYPE_STRING, self::TYPE_INT ]);
         self::ensureList($value_list);
@@ -774,17 +828,18 @@ final class Kit
         return array_combine($key_list, $value_list);
     }
 
-    // public static function popDict(&$dict, &$key)
-    // public static function popedDict(&$dict, &$key)
-    // public static function popItem(&$dict)
-    public static function update(&$dict1, &$dict2)
+    // final public static function popDict(&$dict, &$key)
+    // final public static function popedDict(&$dict, &$key)
+    // final public static function popItem(&$dict)
+    final public static function update(&$dict1, &$dict2)
     {
         self::ensureDict($dict1);
         self::ensureDict($dict2);
         $dict1 = array_merge($dict1, $dict2);
+        return $dict1;
     }
 
-    public static function updated(&$dict1, &$dict2)
+    final public static function updated(&$dict1, &$dict2)
     {
         self::ensureDict($dict1);
         self::ensureDict($dict2);
@@ -808,7 +863,7 @@ final class Kit
      * @throws UserException if field($column_name) is empty, or attempting return only values
      *                       when the length of $column_name_list is not 1.
      */
-    public static function columns(&$list_of_array, $column_name_list, $ensure_existence = TRUE
+    final public static function columns(&$list_of_array, $column_name_list, $ensure_existence = TRUE
         , $default = NULL, $return_only_values = FALSE)
     {
         self::ensureListOfArray($list_of_array);
@@ -840,7 +895,7 @@ final class Kit
      * @param boolean     $check_existence  whether it will check the existence of the to-be-excluded field
      * @return array
      */
-    public static function columnsExclude(&$list_of_array, $column_name_list, $check_existence = FALSE)
+    final public static function columnsExclude(&$list_of_array, $column_name_list, $check_existence = FALSE)
     {
         self::ensureListOfArray($list_of_array);
         self::ensureBoolean($check_existence);
@@ -858,11 +913,24 @@ final class Kit
     // ================================================== //
 
     /**
+     * Generates the string form of data.
+     * @param mixed $data
+     * @return string
+     */
+    final public static function toString($data)
+    {
+        if (TRUE === self::isNULL($data)) return 'NULL';
+        if (TRUE === self::isType($data, [ self::TYPE_INT, self::TYPE_FLOAT ])) return strval($data);
+        if (TRUE === self::isString($data, FALSE, TRUE)) return $data;
+        throw new UserException('Unknown type of $data.', $data);
+    }
+
+    /**
      * Prettily prints data.
      * @param mixed $data
      * @return string
      */
-    public static function j(&$data)
+    final public static function j(&$data)
     {
         return json_encode($data, JSON_PRETTY_PRINT);
     }
@@ -877,7 +945,7 @@ final class Kit
      * @param string   $format
      * @return string
      */
-    public static function time($time = NULL, $format = 'Y-m-d H:i:s')
+    final public static function time($time = NULL, $format = 'Y-m-d H:i:s')
     {
         if (TRUE === Kit::isNULL($time)) $time = time();
         return date($format, $time);
@@ -893,7 +961,7 @@ final class Kit
      * @param string $path
      * @return string
      */
-    public static function getRealPath($path)
+    final public static function getRealPath($path)
     {
         if (FALSE !== ($realpath = realpath($path)))
             $path = $realpath . '/';
@@ -905,20 +973,20 @@ final class Kit
     //                        Math                        //
     // ================================================== //
 
-    public static function abs($number)
+    final public static function abs($number)
     {
         self::ensureType($number, [ self::TYPE_INT, self::TYPE_FLOAT ]);
         return abs($number);
     }
 
-    public static function sign($number)
+    final public static function sign($number)
     {
         self::ensureType($number, [ self::TYPE_INT, self::TYPE_FLOAT ]);
         if (0 === $number) return 0;
         return (int)(self::abs($number) / $number);
     }
 
-    public static function min()
+    final public static function min()
     {
         $arg_list = func_get_args();
         if (0 === count($arg_list)) throw new UserException('Empty $arg_list.');
@@ -930,7 +998,7 @@ final class Kit
         }
     }
 
-    public static function max()
+    final public static function max()
     {
         $arg_list = func_get_args();
         if (0 === count($arg_list)) throw new UserException('Empty $arg_list.');
@@ -942,7 +1010,7 @@ final class Kit
         }
     }
 
-    public static function extremum($type, &$value_list)
+    final public static function extremum($type, &$value_list)
     {
         self::ensureIn($type, [ self::M_MIN, self::M_MAX ]);
         self::ensureListOfType($value_list, [ self::TYPE_INT, self::TYPE_FLOAT ]);
@@ -951,25 +1019,41 @@ final class Kit
         return call_user_func_array($type, $value_list);
     }
 
-    public static function round($number, $precision = 0)
+    final public static function round($number, $precision = 0)
     {
         self::ensureType($number, [ self::TYPE_INT, self::TYPE_FLOAT ]);
         if (TURE === self::isInt($number)) $number = (float)$number;
         return round($number, $precision);
     }
 
-    public static function randomInt($min = 0, $max = NULL)
+    final public static function intRange($min, $max, $step = 1)
+    {
+        self::ensureInt($min, FALSE, FALSE);
+        self::ensureInt($max, FALSE, FALSE);
+        self::ensureInt($step, FALSE, TRUE);
+        return range($min, $max, $step);
+    }
+
+    final public static function characterRange($min, $max, $step = 1)
+    {
+        self::ensureCharacter($min, FALSE, FALSE);
+        self::ensureCharacter($max, FALSE, FALSE);
+        self::ensureInt($step, FALSE, TRUE);
+        return range($min, $max, $step);
+    }
+
+    final public static function randomInt($min = 0, $max = NULL)
     {
         $randmax = mt_getrandmax();
         if (TRUE === is_null($max)) $max = $randmax;
-        self::ensureInt($min);
+        self::ensureInt($min, FALSE, FALSE);
         self::ensureInt($max);
         if ($min > $max) throw new UserException("Min($min) is larger than max($max).", [ $min, $max ]);
         return $min + self::round(1.0 * mt_rand() / $randmax * ($max - $min));
             
     }
 
-    public static function randomFloat($min = 0, $max = 1)
+    final public static function randomFloat($min = 0, $max = 1)
     {
         self::ensureType($min, [ self::TYPE_INT, self::TYPE_FLOAT ]);
         self::ensureType($max, [ self::TYPE_INT, self::TYPE_FLOAT ]);
@@ -977,15 +1061,16 @@ final class Kit
         return $min + 1.0 * mt_rand() / mt_getrandmax() * ($max - $min);
     }
 
-    public static function randomSelect($list, $num)
+    final public static function randomlySelect($list, $num)
     {
         self::ensureArray($list);
         self::ensureInt($num);
         if ($num > self::len($list)) $num = self::len($list);
-        $result = array_rand($list, $num);
-        if (1 === $num) $result = [ $result ];
-        $result = array_values(Kit::extract($list, $result));
-        return $result;
+        return self::slice(self::shuffle($list), 0, $num); // @TODO: check efficiency
+        // $result = array_rand($list, $num);
+        // if (1 === $num) $result = [ $result ];
+        // $result = array_values(Kit::extract($list, $result));
+        // return $result;
     }
 
     /**
@@ -1007,11 +1092,11 @@ final class Kit
      * @return array
      * @throws UserException if the sum of weights is 0.
      */
-    public static function randomSelectByWeight(&$list_of_dict)
+    final public static function randomlySelectByWeight(&$list_of_dict)
     {
         self::ensureListOfDict($list_of_dict);
         $weight_list = self::columns($list_of_dict, 'weight', TRUE, NULL, TRUE);
-        self::ensureAllSame(self::mapped([ self, 'sign' ], $weight_list), 1);
+        self::ensureAllSame(self::mapped([ 'self', 'sign' ], $weight_list), 1);
         $sum = self::sum($weight_list);
         if (0 === $sum) throw new UserException('The sum of weights is 0.', $list_of_dict);
         throw new UserException('randomByWeight TODO');
@@ -1022,81 +1107,5 @@ final class Kit
         //     $rand -= $object['weight'];
         //     if ($rand <= 0) return $object['item'];
         // }
-    }
-
-    // ================================================== //
-    //                        Log                         //
-    // ================================================== //
-
-    /**
-     * @todo: remove $env
-     * This mehtod logs debug info.
-     * @param mixed  $data
-     * @param boolean $quotation_mark_list indicates whether to include quotation marks
-     *                                     when dealing with strings
-     * @param string $env
-     */
-    public static function log($data, $quotation_mark_list = TRUE, $env = 'TESTILEX')
-    {
-        // @todo: use json_encode
-        if ($env === ENVIRONMENT) {
-            $result = '';
-            if (TRUE === is_array($data)) {
-                foreach ($data as $key => $value) {
-                    if (0 === $key) $result .= self::toString($value, FALSE) . ' : ';
-                    else $result .= self::toString($value, $quotation_mark_list) . "\t";
-                }
-                $result .= PHP_EOL.'<br>';
-            } else $result .= self::toString($data, FALSE) . PHP_EOL.'<br>';
-            echo $result;
-        }
-    }
-
-    /**
-     * Generates the string form of data.
-     * @param mixed   $data
-     * @param boolean $quotation_mark_list indicates whether to include quotation marks
-     *                                     when dealing with strings
-     * @return string
-     */
-    public static function toString(&$data, $quotation_mark_list = TRUE)
-    {
-        if (TRUE === is_array($data)) {
-            array_walk(
-                $data,
-                function(&$datum, $index, $quotation_mark_list) {
-                    $datum = self::toString($datum, $quotation_mark_list);
-                },
-                $quotation_mark_list
-            );
-        }
-        if (TRUE === self::isList($data)) {
-            if (0 === self::len($data)) return '[]';
-            return '[ ' . self::join(', ', $data) . ' ]';
-        }
-        else if (TRUE === self::isDict($data)) {
-            return '{ '
-                . self::join(', ',
-                    array_map(
-                        function($key, $value) {
-                            return self::toString($key, FALSE) . ' : ' . $value;
-                        },
-                        array_keys($data),
-                        array_values($data)
-                    )
-                ) . ' }';
-            
-        }
-        else if (TRUE === $data instanceof Closure)
-            return 'Closure';
-        else if (TRUE === is_object($data) AND FALSE === method_exists($data, '__toString'))
-            return 'Object' . '(' . get_class($data) . ')';
-        else if (TRUE === is_bool($data))
-            return TRUE === $data ? 'TRUE' : 'FALSE';
-        else if (TRUE === is_null($data))
-            return 'NULL';
-        else if (TRUE === self::isString($data))
-            return TRUE === $quotation_mark_list ? ('\'' . $data . '\'') : $data;
-        else return strval($data);
     }
 }

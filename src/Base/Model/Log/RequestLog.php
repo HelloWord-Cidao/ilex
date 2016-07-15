@@ -4,22 +4,18 @@ namespace Ilex\Base\Model\Log;
 
 use \Ilex\Core\Debug;
 use \Ilex\Base\Model\Log\BaseLog;
+
 /**
  * Class RequestLog
  * @package Ilex\Base\Model\Log
  */
 final class RequestLog extends BaseLog
 {
-    protected static $methodsVisibility = [
-        self::V_PUBLIC => [
-            'addRequestLog',
-        ],
-    ];
 
     /**
      * @TODO: check efficiency
      */
-    protected function addRequestLog($class_name, $method_name, $input, $code, $operation_status)
+    final public function addRequestLog($class_name, $method_name, $input, $code, $operation_status)
     {
         $content = [
             'Data' => [

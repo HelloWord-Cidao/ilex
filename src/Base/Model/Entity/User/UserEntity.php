@@ -2,6 +2,8 @@
 
 namespace Ilex\Base\Model\Entity\User;
 
+use \MongoDate;
+use \Ilex\Core\Context as c;
 use \Ilex\Lib\Kit;
 use \Ilex\Base\Model\Entity\BaseEntity;
 
@@ -19,7 +21,7 @@ class UserEntity extends BaseEntity
         return $this;
     }
 
-    public function getUsername()
+    final public function getUsername()
     {
         return $this->getInfo('Username');
     }
@@ -31,21 +33,26 @@ class UserEntity extends BaseEntity
         return $this;
     }
 
-    public function getPassword()
+    final public function getPassword()
     {
         return $this->getInfo('Password');
     }
 
-    public function setUserInfo($user_info)
+    final public function loginNow()
     {
-        Kit::ensureDict($user_info);
-        $this->setInfo('UserInfo', $user_info);
-        $this->setName($user_info['Name']);
+        return $this->setInfo('lastLoginTime', new MongoDate());
+    }
+
+    final public function isMe()
+    {
+        return $this->getId()->isEqualTo(c::user()->getId());
+    }
+
+    final public function ensureMe()
+    {
+        if (FALSE === $this->isMe())
+            throw new UserException('This user is not me.');
         return $this;
     }
 
-    public function getUserInfo()
-    {
-        return $this->getInfo('UserInfo');
-    }
 }

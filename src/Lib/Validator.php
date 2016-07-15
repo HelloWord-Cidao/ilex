@@ -13,14 +13,8 @@ use \Ilex\Lib\UserException;
  * 
  * @property public array $patternList
  *
- * @method public static boolean type(mixed &$value, array $rule)
- * @method public static boolean re(mixed $value, array $rule)
- * More methods ignored.
- * 
- * @method public static boolean isInt(mixed $value)
- * @method public static boolean isFloat(mixed $value)
- * @method public static boolean isDict(mixed $value)
- * @method public static boolean isList(mixed $value)
+ * @method final public static boolean isInt(mixed $value)
+ * @method final public static boolean isFloat(mixed $value)
  */
 final class Validator
 {
@@ -99,7 +93,7 @@ final class Validator
      * @return boolean
      * @throws UserException if there is unknown pattern tag found.
      */
-    public static function validate($pattern, $data)
+    final public static function validate($pattern, $data)
     {
         if (TRUE === is_null(self::$patternTagNameList))
             self::$patternTagNameList = array_keys((new ReflectionClass(get_class()))->getConstants());
@@ -110,17 +104,6 @@ final class Validator
             throw new UserException('Unknown pattern tag found.', $unknown_tag_list);
         return TRUE;
     }
-
- 
-
-
-
-
-
-
-
-
-
 
 
 
@@ -135,102 +118,12 @@ final class Validator
         'mobile'    => '/^1[3-9][0-9]{9}$/',
     ];
 
-    /*
-     * ----------------------- -----------------------
-     * Rules
-     * ----------------------- -----------------------
-     */
-
-    /**
-     * @param mixed $value
-     * @param array $rule
-     * @return boolean
-     */
-    public static function type(&$value, $rule)
-    {
-        switch ($rule['type']) {
-            case 'int':
-                if (TRUE === self::isInt($value)) {
-                    $value = intval($value); // Convert to int!
-                    return TRUE;
-                } else {
-                    return FALSE;
-                }
-            case 'float':
-                if (TRUE === self::isFloat($value)) {
-                    $value = floatval($value); // Convert to float!
-                    return TRUE;
-                } else {
-                    return FALSE;
-                }
-            case 'array':
-                return Kit::isArray($value);
-            default:
-                throw new \Exception('Unrecognizable type "' . $rule['type'] . '" for Validation.');
-        }
-    }
-
-    /**
-     * @param mixed $value
-     * @param array $rule
-     * @return boolean
-     */
-    public static function re($value, $rule)
-    {
-        return 1 === preg_match(
-            TRUE === isset($rule['pattern']) ? $rule['pattern'] : self::$patternList[$rule['type']],
-            $value
-        );
-    }
-
-    public static function           eq($value, $rule) { return           $value  ==  $rule['value']; }
-    public static function           ne($value, $rule) { return           $value  !=  $rule['value']; }
-    public static function         same($value, $rule) { return           $value  === $rule['value']; }
-    public static function         diff($value, $rule) { return           $value  !== $rule['value']; }
-
-    public static function           gt($value, $rule) { return           $value  >   $rule['value']; }
-    public static function           lt($value, $rule) { return           $value  <   $rule['value']; }
-    public static function           ge($value, $rule) { return           $value  >=  $rule['value']; }
-    public static function           le($value, $rule) { return           $value  <=  $rule['value']; }
-
-    public static function       int_gt($value, $rule) { return    intval($value) >   $rule['value']; }
-    public static function       int_lt($value, $rule) { return    intval($value) <   $rule['value']; }
-    public static function       int_ge($value, $rule) { return    intval($value) >=  $rule['value']; }
-    public static function       int_le($value, $rule) { return    intval($value) <=  $rule['value']; }
-
-    public static function     float_gt($value, $rule) { return  floatval($value) >   $rule['value']; }
-    public static function     float_lt($value, $rule) { return  floatval($value) <   $rule['value']; }
-    public static function     float_ge($value, $rule) { return  floatval($value) >=  $rule['value']; }
-    public static function     float_le($value, $rule) { return  floatval($value) <=  $rule['value']; }
-
-    public static function     count_gt($value, $rule) { return  Kit::len($value) >   $rule['value']; }
-    public static function     count_lt($value, $rule) { return  Kit::len($value) <   $rule['value']; }
-    public static function     count_ge($value, $rule) { return  Kit::len($value) >=  $rule['value']; }
-    public static function     count_le($value, $rule) { return  Kit::len($value) <=  $rule['value']; }
-
-    public static function    length_gt($value, $rule) { return    strlen($value) >   $rule['value']; }
-    public static function    length_lt($value, $rule) { return    strlen($value) <   $rule['value']; }
-    public static function    length_ge($value, $rule) { return    strlen($value) >=  $rule['value']; }
-    public static function    length_le($value, $rule) { return    strlen($value) <=  $rule['value']; }
-    public static function    length_eq($value, $rule) { return    strlen($value) === $rule['value']; }
-
-    public static function mb_length_gt($value, $rule) { return mb_strlen($value) >   $rule['value']; }
-    public static function mb_length_lt($value, $rule) { return mb_strlen($value) <   $rule['value']; }
-    public static function mb_length_ge($value, $rule) { return mb_strlen($value) >=  $rule['value']; }
-    public static function mb_length_le($value, $rule) { return mb_strlen($value) <=  $rule['value']; }
-    public static function mb_length_eq($value, $rule) { return mb_strlen($value) === $rule['value']; }
-
-    /*
-     * ----------------------- -----------------------
-     * Kit
-     * ----------------------- -----------------------
-     */
 
     /**
      * @param mixed $value
      * @return boolean
      */
-    public static function isInt($value)
+    final public static function isInt($value)
     {
         if (TRUE === Kit::isInt($value)) {
             return TRUE;
@@ -245,7 +138,7 @@ final class Validator
      * @param mixed $value
      * @return boolean
      */
-    public static function isFloat($value)
+    final public static function isFloat($value)
     {
         if (TRUE === Kit::isFloat($value) OR TRUE === Kit::isInt($value)) {
             return TRUE;

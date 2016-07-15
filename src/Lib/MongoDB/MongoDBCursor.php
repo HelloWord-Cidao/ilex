@@ -1,6 +1,6 @@
 <?php
 
-namespace Ilex\Base\Model\Collection;
+namespace Ilex\Lib\MongoDB;
 
 use \Exception;
 use \Iterator;
@@ -10,20 +10,19 @@ use \Ilex\Lib\UserException;
 /**
  * Class MongoDBCursor
  * Encapsulation of basic operations of MongoCursor class.
- * @package Ilex\Base\Model\Collection
+ * @package Ilex\Lib\MongoDB
  *
  * @property private MongoCursor $cursor
  * 
- * @method public         __construct(MongoCursor $mongo_cursor)
- * 
- * @method protected         rewind()
- * @method protected array   current()
- * @method protected int     key()
- * @method protected array   next()
- * @method protected boolean hasNext()
- * @method protected boolean valid()
- * @method protected int     count()
- * @method protected array   info()
+ * @method final public         __construct(MongoCursor $mongo_cursor)
+ * @method final public         rewind()
+ * @method final public array   current()
+ * @method final public int     key()
+ * @method final public array   next()
+ * @method final public boolean hasNext()
+ * @method final public boolean valid()
+ * @method final public int     count()
+ * @method final public array   info()
  */
 final class MongoDBCursor implements Iterator
 {
@@ -32,7 +31,7 @@ final class MongoDBCursor implements Iterator
     
     private $cursor;
 
-    public function __construct(MongoCursor $mongo_cursor)
+    final public function __construct(MongoCursor $mongo_cursor)
     {
         $this->cursor = $mongo_cursor;
         $this->cursor->rewind(); // @TODO: check this logic.
@@ -44,7 +43,7 @@ final class MongoDBCursor implements Iterator
      * @throws MongoCursorTimeoutException if the timeout is exceeded.
      * @throws UserException
      */
-    public function rewind()
+    final public function rewind()
     {
         try {
             $this->cursor->rewind();
@@ -58,7 +57,7 @@ final class MongoDBCursor implements Iterator
      * @return array The current result document as an associative array.
      * @throws UserException if there is no result.
      */
-    public function current()
+    final public function current()
     {
         $result = $this->cursor->current();
         if (TRUE === is_null($result))
@@ -69,7 +68,7 @@ final class MongoDBCursor implements Iterator
         return $result;
     }
 
-    public function key() {
+    final public function key() {
         // The current result's _id as a string. If the result has no _id, its numeric index within the result set will be returned as an integer.
         return $this->cursor->key();
     }
@@ -81,7 +80,7 @@ final class MongoDBCursor implements Iterator
      * @throws MongoCursorTimeoutException if the timeout is exceeded.
      * @throws UserException
      */
-    public function next()
+    final public function next()
     {
         try {
             return $this->cursor->next();
@@ -97,7 +96,7 @@ final class MongoDBCursor implements Iterator
      * @throws MongoCursorTimeoutException if the timeout is exceeded.
      * @throws UserException
      */
-    public function hasNext()
+    final public function hasNext()
     {
         try {
             return $this->cursor->hasNext();
@@ -106,7 +105,7 @@ final class MongoDBCursor implements Iterator
         }
     }
 
-    public function valid() {
+    final public function valid() {
         return $this->cursor->valid();
     }
 
@@ -118,7 +117,7 @@ final class MongoDBCursor implements Iterator
      * @return array Returns the namespace, batch size, limit, skip, flags,
      *               query, and projected fields for this cursor.
      */
-    public function info()
+    final public function info()
     {
         return $this->cursor->info();
     }
@@ -129,12 +128,12 @@ final class MongoDBCursor implements Iterator
      * if you haven't queried yet, you can still apply limits, skips, etc.
      * If you have started iterating through results,
      * it will not move the current position of the cursor.
-     * If you have exhasted the cursor, it will not reset it.
+     * If you have exhausted the cursor, it will not reset it.
      * @return int The number of documents returned by this cursor's query.
      * @throws MongoConnectionException if it cannot reach the database.
      * @throws UserException
      */
-    public function count()
+    final public function count()
     {
         try {
             return $this->cursor->count(TRUE);

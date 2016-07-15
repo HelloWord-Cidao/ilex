@@ -13,7 +13,7 @@ use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 use \Ilex\Base\Controller\BaseController;
 use \Ilex\Base\Model\Core\BaseCore;
-use \Ilex\Base\Model\Collection\MongoDBCollection;
+use \Ilex\Lib\MongoDB\MongoDBCollection as MDBC;
 
 /**
  * Class BaseService
@@ -22,24 +22,28 @@ use \Ilex\Base\Model\Collection\MongoDBCollection;
  *
  * @method final public __call(string $method_name, array $arg_list)
  * 
- * @method final private       fail(Exception $exception)
  * @method final private array prepareExecutionRecord(string $method_name)
- * @method final private       respond(array $result, int $status_code
- *                                 , boolean $close_cgi_only = FALSE)
+ * @method final private       fail(Exception $exception)
  * @method final private       succeed(mixed $computation_data, mixed $operation_status
+ *                                 , boolean $close_cgi_only = FALSE)
+ * @method final private       respond(array $result, int $status_code
  *                                 , boolean $close_cgi_only = FALSE)
  */
 abstract class BaseService extends BaseController
 {
 
     private $result   = [
-        'code'   => NULL,
-        'data'   => [ ],
-        'status' => [ ],
+        'code'          => NULL,
+        'database'      => [ ],
+        'mainException' => NULL,
+        'monitor'       => NULL,
+        'data'          => [ ],
+        'status'        => [ ],
+        'process'       => [ ],
     ];
 
     private $hasCalledCoreModel = FALSE;
-    private $isProcessed = FALSE;
+    private $isProcessed        = FALSE;
 
     public function __construct()
     {
@@ -48,7 +52,9 @@ abstract class BaseService extends BaseController
 
     final protected function ensureLogin()
     {
-        if (FALSE === c::isLogin())
+        $user_type_list = func_get_args();
+        if (TRUE === Kit::in('Administrator', $user_type_list)) return; // @TODO: CAUTION
+        if (FALSE === c::isLogin($user_type_list))
             throw new UserException('Login failed.');
     }
 
@@ -324,6 +330,7 @@ abstract class BaseService extends BaseController
         }
         // Now code must be 1 or 2 or 3.
         $execution_record['success'] = TRUE;
+        // unset($this->result['process']);
         $this->respond($execution_id, $execution_record, 200, $close_cgi_only);
     }
 
@@ -341,8 +348,10 @@ abstract class BaseService extends BaseController
         }
         // Now code must be NULL or 1 or 2.
         $this->setCode(0);
-        if (FALSE === Debug::isProduction())
-            $this->result['exception'] = Debug::extractException($exception);
+        if (FALSE === Debug::isProduction()) {
+            $this->result['exception']     = Debug::extractException($exception);
+            $this->result['mainException'] = Debug::extractMainException($this->result['exception']);
+        }
         $execution_record['success'] = FALSE;
         $this->respond($execution_id, $execution_record, 200); // @TODO: change code
     }
@@ -356,9 +365,11 @@ abstract class BaseService extends BaseController
     final private function respond($execution_id, $execution_record, $status_code, $close_cgi_only = FALSE)
     {
         if (FALSE === $close_cgi_only) {
+            $this->result['database'] = [];
             if (2 !== $this->getCode()) {
-                $this->result['rollback'] = MongoDBCollection::rollback();
-            } else $this->result['rollback'] = FALSE;
+                $this->result['database']['rollbacked'] = MDBC::rollback();
+            } else $this->result['database']['rollbacked'] = FALSE;
+            $this->result['database']['changed'] = MDBC::isChanged();
             Debug::updateExecutionRecord($execution_id, $execution_record);
             Debug::popExecutionId($execution_id);
         }
@@ -367,8 +378,17 @@ abstract class BaseService extends BaseController
         }
         header('Content-Type : application/json', TRUE, $status_code);
         if (FALSE === Debug::isProduction()) {
+            $this->result['monitor'] = Debug::getMonitor();
             $this->result += Debug::getDebugInfo();
+            $this->result += [ 'size' => sprintf('%.2fKB', Kit::len(json_encode($this->result)) / 1024) ];
+            if (TRUE === is_null($this->result['mainException']))
+                unset($this->result['mainException']);
+            if (TRUE === is_null($this->result['monitor']))
+                unset($this->result['monitor']);
         } else {
+            unset($this->result['mainException']);
+            unset($this->result['monitor']);
+            unset($this->result['database']);
             unset($this->result['process']);
         }
         Http::json($this->result);

@@ -10,7 +10,6 @@ use \Ilex\Lib\UserException;
  * Class UserTypeException
  * An user-defined type exception.
  * @package Ilex\Lib
- *
  */
 final class UserTypeException extends UserException
 {
@@ -24,7 +23,7 @@ final class UserTypeException extends UserException
      * @param Exception $previous
      * @param int       $code
      */
-    public function __construct($variable, $expected_type_list)
+    final public function __construct($variable, $expected_type_list)
     {
         if (FALSE === is_array($expected_type_list)) {
             $expected_type_list = [ $expected_type_list ];
@@ -46,17 +45,17 @@ final class UserTypeException extends UserException
         parent::__construct($message, $detail);
     }
 
-    public function getVariable()
+    final public function getVariable()
     {
         return $this->variable;
     }
 
-    public function getVariableType()
+    final public function getVariableType()
     {
         return $this->variableType;
     }
 
-    public function getExpectedType()
+    final public function getExpectedType()
     {
         return $this->expectedType;
     }
