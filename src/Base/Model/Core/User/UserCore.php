@@ -2,12 +2,11 @@
 
 namespace Ilex\Base\Model\Core\User;
 
-use \Firebase\JWT\JWT;
 use \Exception;
-use \Ilex\Lib\UserException;
 use \Ilex\Core\Loader;
-use \Ilex\Lib\Kit;
+use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\Core\BaseCore;
+use \Ilex\Base\Model\Entity\User\UserEntity;
 
 /**
  * Class UserCore
@@ -15,34 +14,28 @@ use \Ilex\Base\Model\Core\BaseCore;
  */
 abstract class UserCore extends BaseCore
 {
-    // protected static $methodsVisibility = [
-    //     self::V_PUBLIC => [
-    //     ],
-    // ];
+    const COLLECTION_NAME = 'User';
+    const ENTITY_PATH     = 'User/User';
 
-    public function __construct()
+    final public static function getCurrentUserEntity($token)
     {
-        $this->loadCollection('User/User');
-    }
-
-    abstract protected function generateJWT($username);
-
-    public static function getCurrentUserEntity($token)
-    {
-
         try {
             $user_info = static::parseToken($token);
         } catch (Exception $e) {
             throw new UserException('Invalid token.', $e);
         }
         try {
-            $user = Loader::loadCollection('User/User')->getTheOnlyOneEntityById($user_info['userId'])->setReadOnly();
+            $user = Loader::loadCore(self::ENTITY_PATH)
+                ->getTheOnlyOneEntityById($user_info['userId'])
+                ->setReadOnly();
             return $user;
         } catch (Exception $e) {
             throw new UserException('Token error or user not exist.', $e);
         }
     }
     
-    abstract protected static function parseToken($jwt);
+    abstract protected static function generateToken(UserEntity $user);
+
+    abstract protected static function parseToken($token);
 
 }
