@@ -273,8 +273,7 @@ class BaseQuery
     final public function skip($skip = NULL)
     {
         if (TRUE === is_null($skip)) return $this->skip;
-        Kit::ensureInt($skip, FALSE, FALSE);
-        if ($skip < 0) throw new UserException("\$skip($skip) is negative.");
+        Kit::ensureNonNegativeInt($skip);
         $this->skip = $skip;
         return $this;
     }

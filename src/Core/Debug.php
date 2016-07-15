@@ -167,7 +167,7 @@ final class Debug
     final public static function getDebugInfo()
     {
         return [
-            'trace'  => self::getExecutionRecordStack(),
+            // 'trace'  => self::getExecutionRecordStack(),
             'memory' => self::getMemoryUsed(),
             'time'   => self::getTimeUsed(),
         ];

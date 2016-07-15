@@ -343,6 +343,18 @@ final class Kit
             throw new UserTypeException($variable, self::TYPE_INT);
     }
 
+    final public static function isNonNegativeInt($variable, $can_be_null = FALSE)
+    {
+        return self::isType($variable, self::TYPE_INT, $can_be_null)
+            AND (TRUE === $can_be_null OR $variable >= 0);
+    }
+
+    final public static function ensureNonNegativeInt($variable, $can_be_null = FALSE)
+    {
+        if (FALSE === self::isNonNegativeInt($variable, $can_be_null))
+            throw new UserTypeException($variable, self::TYPE_INT);
+    }
+
     final public static function isFloat($variable, $can_be_null = FALSE)
     {
         return self::isType($variable, self::TYPE_FLOAT, $can_be_null);

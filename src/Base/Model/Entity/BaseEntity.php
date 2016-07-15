@@ -258,6 +258,7 @@ class BaseEntity
         return FALSE;
     }
 
+    // O(N)
     final public function ensureHasMultiReferenceTo(BaseEntity $entity, $reference_name = NULL)
     {
         if (FALSE === $this->hasMultiReferenceTo($entity, $reference_name)) {

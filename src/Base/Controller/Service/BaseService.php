@@ -33,9 +33,10 @@ abstract class BaseService extends BaseController
 {
 
     private $result   = [
-        'code'   => NULL,
-        'data'   => [ ],
-        'status' => [ ],
+        'code'    => NULL,
+        'data'    => [ ],
+        'status'  => [ ],
+        'process' => [ ],
     ];
 
     private $hasCalledCoreModel = FALSE;
@@ -326,6 +327,7 @@ abstract class BaseService extends BaseController
         }
         // Now code must be 1 or 2 or 3.
         $execution_record['success'] = TRUE;
+        unset($this->result['process']);
         $this->respond($execution_id, $execution_record, 200, $close_cgi_only);
     }
 
@@ -372,8 +374,9 @@ abstract class BaseService extends BaseController
         header('Content-Type : application/json', TRUE, $status_code);
         if (FALSE === Debug::isProduction()) {
             $this->result += Debug::getDebugInfo();
+            $this->result += [ 'size' => Kit::len(json_encode($this->result)) ];
         } else {
-            unset($this->result['process']);
+            // unset($this->result['process']);
         }
         Http::json($this->result);
         if (TRUE === $close_cgi_only) {
