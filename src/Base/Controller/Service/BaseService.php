@@ -5,7 +5,7 @@ namespace Ilex\Base\Controller\Service;
 use \Exception;
 use \ReflectionClass;
 use \ReflectionMethod;
-use \Ilex\Core\Context as c;
+use \Ilex\Core\Context;
 use \Ilex\Core\Debug;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Http;
@@ -13,7 +13,7 @@ use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 use \Ilex\Base\Controller\BaseController;
 use \Ilex\Base\Model\Core\BaseCore;
-use \Ilex\Lib\MongoDB\MongoDBCollection as MDBC;
+use \Ilex\Lib\MongoDB\MongoDBCollection;
 
 /**
  * Class BaseService
@@ -47,14 +47,14 @@ abstract class BaseService extends BaseController
 
     public function __construct()
     {
-        c::trySetCurrentUserEntity();
+        Context::trySetCurrentUserEntity();
     }
 
     final protected function ensureLogin()
     {
         $user_type_list = func_get_args();
         if (TRUE === Kit::in('Administrator', $user_type_list)) return; // @TODO: CAUTION
-        if (FALSE === c::isLogin($user_type_list))
+        if (FALSE === Context::isLogin($user_type_list))
             throw new UserException('Login failed.');
     }
 
@@ -369,9 +369,9 @@ abstract class BaseService extends BaseController
         if (FALSE === $close_cgi_only) {
             $this->result['database'] = [];
             if (2 !== $this->getCode()) {
-                $this->result['database']['rollbacked'] = MDBC::rollback();
+                $this->result['database']['rollbacked'] = MongoDBCollection::rollback();
             } else $this->result['database']['rollbacked'] = FALSE;
-            $this->result['database']['changed'] = MDBC::isChanged();
+            $this->result['database']['changed'] = MongoDBCollection::isChanged();
             Debug::updateExecutionRecord($execution_id, $execution_record);
             Debug::popExecutionId($execution_id);
         }

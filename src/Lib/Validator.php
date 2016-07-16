@@ -2,9 +2,7 @@
 
 namespace Ilex\Lib;
 
-use \ReflectionClass;
 use \Ilex\Lib\Kit;
-use \Ilex\Lib\UserException;
 
 /**
  * Class Validator

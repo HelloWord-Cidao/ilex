@@ -4,7 +4,6 @@ namespace Ilex\Core;
 
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
-use \Ilex\Lib\UserException;
 
 /**
  * Class Router

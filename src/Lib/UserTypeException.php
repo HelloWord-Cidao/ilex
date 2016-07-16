@@ -16,12 +16,6 @@ final class UserTypeException extends UserException
     private $variableType;
     private $expectedTypeList;
 
-    /**
-     * @param string    $message
-     * @param mixed     $detail
-     * @param Exception $previous
-     * @param int       $code
-     */
     final public function __construct($variable, $expected_type_list)
     {
         if (FALSE === is_array($expected_type_list)) {

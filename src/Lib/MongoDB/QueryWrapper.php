@@ -2,7 +2,6 @@
 
 namespace Ilex\Lib\MongoDB;
 
-use \Exception;
 use \MongoId;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Container;

@@ -3,7 +3,7 @@
 namespace Ilex\Base\Model\Entity\User;
 
 use \MongoDate;
-use \Ilex\Core\Context as c;
+use \Ilex\Core\Context;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\MongoDB\MongoDBDate;
 use \Ilex\Lib\UserException;
@@ -84,7 +84,7 @@ class UserEntity extends BaseEntity
 
     final public function isMe()
     {
-        return $this->getId()->isEqualTo(c::user()->getId());
+        return $this->getId()->isEqualTo(Context::user()->getId());
     }
 
     final public function ensureMe()

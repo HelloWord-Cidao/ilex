@@ -2,6 +2,7 @@
 
 namespace Ilex\Lib\MongoDB;
 
+use \Exception;
 use \MongoId;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;

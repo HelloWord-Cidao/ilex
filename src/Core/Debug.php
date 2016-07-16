@@ -9,7 +9,7 @@ use \Ilex\Core\Loader;
 use \Ilex\Lib\Http;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
-use \Ilex\Lib\MongoDB\MongoDBCollection as MDBC;
+use \Ilex\Lib\MongoDB\MongoDBCollection;
 
 /**
  * Class Debug
@@ -117,8 +117,8 @@ final class Debug
         Kit::ensureBoolean($is_error);
         $result = [
             'database' => [
-                'rollbacked' => MDBC::rollback(),
-                'changed'    => MDBC::isChanged(),
+                'rollbacked' => MongoDBCollection::rollback(),
+                'changed'    => MongoDBCollection::isChanged(),
             ],
             'code'     => 0,
         ];
