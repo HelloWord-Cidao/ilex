@@ -5,6 +5,7 @@ namespace Ilex\Base\Model\Entity\User;
 use \MongoDate;
 use \Ilex\Core\Context as c;
 use \Ilex\Lib\Kit;
+use \Ilex\Lib\MongoDB\MongoDBDate;
 use \Ilex\Base\Model\Entity\BaseEntity;
 
 /**
@@ -38,9 +39,46 @@ class UserEntity extends BaseEntity
         return $this->getInfo('Password');
     }
 
+    public function setEmail($email)
+    {
+        // @TODO: validate
+        Kit::ensureString($email);
+        $this->setInfo('Email', $email);
+        return $this;
+    }
+
+    final public function getEmail()
+    {
+        return $this->getInfo('Email');
+    }
+
     final public function loginNow()
     {
-        return $this->setInfo('lastLoginTime', new MongoDate());
+        return $this->setInfo('LastLoginTime', MongoDBDate::now());
+    }
+
+    final public function getLastLoginTimestamp()
+    {
+        return MongoDBDate::toTimestamp($this->getInfo('LastLoginTime'));
+    }
+
+    public function getAbstract()
+    {
+        return [
+            'Id'   => $this->getId(TRUE),
+            'Name' => $this->getName(),
+            'Type' => $this->getType(),
+        ];
+    }
+
+    final public function getDetail()
+    {
+        return $this->getAbstract() + [
+            'Username'              => $this->getUsername(),
+            'Email'                 => $this->getEmail(),
+            'RegistrationTimestamp' => $this->getCreationTimestamp() * 1000,
+            'LastLoginTimestamp'    => $this->getLastLoginTimestamp() * 1000,
+        ];
     }
 
     final public function isMe()
