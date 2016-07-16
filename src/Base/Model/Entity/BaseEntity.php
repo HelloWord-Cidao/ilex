@@ -505,7 +505,7 @@ class BaseEntity
         if (TRUE === is_null($field_name)) {
             if (TRUE === $ensure_dict) {
                 // Kit::ensureDict($field_value); // @CAUTION
-                Kit::ensureArray($field_value); // @CAUTION
+                Kit::ensureArray($field_value);
             }
             return $this->set($root_field_name, $field_value);
         } else {
@@ -542,66 +542,43 @@ class BaseEntity
     final private function set($path, $value, $ensure_existence = NULL)
     {
         $this->ensureNotReadOnly();
-        // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_LIST ]); // @CAUTION
-        // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_ARRAY ]);
         Kit::ensureString($path);
-        // Kit::ensureDict($this->document); // @CAUTION
-        // Kit::ensureArray($this->document);
-        // if (TRUE === Kit::isString($path)) {
-            if (TRUE === $ensure_existence) $this->ensureHas($path);
-            if (FALSE === $ensure_existence) $this->ensureHasNo($path);
-            $this->document[$path] = $value;
-            $this->notSameAsCollection();
-            return $value;
-        // } else throw new UserException('Can not support list-type $path yet.', [ $path, $value ]);
+        Kit::ensureBoolean($ensure_existence, TRUE);
+        if (TRUE === $ensure_existence) $this->ensureHas($path);
+        if (FALSE === $ensure_existence) $this->ensureHasNo($path);
+        $this->document[$path] = $value;
+        $this->notSameAsCollection();
+        return $value;
     }
 
     final private function get($path, $ensure_existence = TRUE, $default = NULL)
     {
-        // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_LIST ]); // @CAUTION
-        // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_ARRAY ]);
         Kit::ensureString($path);
-        // Kit::ensureDict($this->document); // @CAUTION
-        // Kit::ensureArray($this->document);
         Kit::ensureBoolean($ensure_existence);
-        // if (TRUE === Kit::isString($path)) {
-            if (TRUE === $ensure_existence) $this->ensureHas($path);
-            if (FALSE === $ensure_existence AND TRUE === is_null($this->document[$path]))
-                return $default;
-            return $this->document[$path];
-        // } else throw new UserException('Can not support list-type $path yet.', $path);
+        if (TRUE === $ensure_existence) $this->ensureHas($path);
+        if (FALSE === $ensure_existence AND TRUE === is_null($this->document[$path]))
+            return $default;
+        return $this->document[$path];
     }
 
     final private function delete($path, $ensure_existence = TRUE)
     {
         $this->ensureNotReadOnly();
-        // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_LIST ]); // @CAUTION
-        // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_ARRAY ]);
         Kit::ensureString($path);
-        // Kit::ensureDict($this->document); // @CAUTION
-        // Kit::ensureArray($this->document);
         Kit::ensureBoolean($ensure_existence);
-        // if (TRUE === Kit::isString($path)) {
-            if (TRUE === $ensure_existence) $this->ensureHas($path);
-            if (FALSE === $ensure_existence AND TRUE === is_null($this->document[$path]))
-                return NULL;
-            $value = $this->document[$path];
-            unset($this->document[$path]);
-            $this->notSameAsCollection();
-            return $value;
-        // } else throw new UserException('Can not support list-type $path yet.', $path);
+        if (TRUE === $ensure_existence) $this->ensureHas($path);
+        if (FALSE === $ensure_existence AND TRUE === is_null($this->document[$path]))
+            return NULL;
+        $value = $this->document[$path];
+        unset($this->document[$path]);
+        $this->notSameAsCollection();
+        return $value;
     }
 
     final private function has($path)
     {
-        // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_LIST ]); // @CAUTION
-        // Kit::ensureType($path, [ Kit::TYPE_STRING, Kit::TYPE_ARRAY ]);
         Kit::ensureString($path);
-        // Kit::ensureDict($this->document); // @CAUTION
-        // Kit::ensureArray($this->document);
-        // if (TRUE === Kit::isString($path)) {
-            return FALSE === is_null($this->document[$path]);
-        // } else throw new UserException('Can not support list-type $path yet.', $path);
+        return FALSE === is_null($this->document[$path]);
     }
 
     final private function hasNo($path)

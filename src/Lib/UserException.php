@@ -3,6 +3,7 @@
 namespace Ilex\Lib;
 
 use \Exception;
+use \Ilex\Lib\Kit;
 
 /**
  * @todo: method arg type validate
@@ -42,8 +43,10 @@ class UserException extends Exception
      * @param Exception $previous
      * @param int       $code
      */
-    public function __construct($message, $detail = Kit::TYPE_VACANCY, $previous = NULL, $code = 0)
+    public function __construct($message, $detail = Kit::TYPE_VACANCY, Exception $previous = NULL, $code = 0)
     {
+        Kit::ensureString($message);
+        Kit::ensureNonNegativeInt($code);
         parent::__construct($message, $code, $previous);
         $this->detail = $detail;
     }

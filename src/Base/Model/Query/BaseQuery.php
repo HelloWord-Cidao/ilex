@@ -79,7 +79,6 @@ class BaseQuery
         return $this->in('_id', $id_list);
     }
 
-    // @TODO: move it into ContentQuery
     final public function signatureIs($signature)
     {
         return $this->isEqualTo('Signature', $signature);
@@ -151,29 +150,29 @@ class BaseQuery
         return $this->in('Meta.State', $state_list);
     }
 
-    final public function isCreatedBefore($timestamp)
-    {
-        // @TODO: $timestamp
-        return $this->isLessThan('Meta.CreationTime', $timestamp);
-    }
+    // final public function isCreatedBefore($timestamp)
+    // {
+    //     // @TODO: $timestamp
+    //     return $this->isLessThan('Meta.CreationTime', $timestamp);
+    // }
 
-    final public function isCreatedAfter($timestamp)
-    {
-        // @TODO: $timestamp
-        return $this->isGreaterThan('Meta.CreationTime', $timestamp);
-    }
+    // final public function isCreatedAfter($timestamp)
+    // {
+    //     // @TODO: $timestamp
+    //     return $this->isGreaterThan('Meta.CreationTime', $timestamp);
+    // }
 
-    final public function isUpdatedBefore($timestamp)
-    {
-        // @TODO: $timestamp
-        return $this->isLessThan('Meta.ModificationTime', $timestamp);
-    }
+    // final public function isUpdatedBefore($timestamp)
+    // {
+    //     // @TODO: $timestamp
+    //     return $this->isLessThan('Meta.ModificationTime', $timestamp);
+    // }
 
-    final public function isUpdatedAfter($timestamp)
-    {
-        // @TODO: $timestamp
-        return $this->isGreaterThan('Meta.ModificationTime', $timestamp);
-    }
+    // final public function isUpdatedAfter($timestamp)
+    // {
+    //     // @TODO: $timestamp
+    //     return $this->isGreaterThan('Meta.ModificationTime', $timestamp);
+    // }
 
 
     //==============================================================================

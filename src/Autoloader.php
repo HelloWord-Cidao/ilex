@@ -28,7 +28,6 @@ final class Autoloader
     public static function run($APPPATH, $RUNTIMEPATH, $APPNAME)
     {
         self::initialize($APPPATH, $RUNTIMEPATH, $APPNAME);
-        // @todo: how to handle the return value? check other project.
         // If a service controller is called, then it will respond the HTTP request and exit before return anything. Other cases unknown.
         return self::resolve(
             $_SERVER['REQUEST_METHOD'], // i.e.  'GET' | 'POST' | 'PUT' | 'DELETE'

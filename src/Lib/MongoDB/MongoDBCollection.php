@@ -333,7 +333,6 @@ class MongoDBCollection
     }
 
     /**
-     * @TODO: support upsert
      * Update the only one document based on a given criterion.
      * @param array   $criterion   Associative array with fields to match.
      * @param array   $update      The object used to update the matched documents.
@@ -356,7 +355,7 @@ class MongoDBCollection
         $new_document = $update; // @CAUTION
         // Kit::ensureDict($criterion); // @CAUTION
         Kit::ensureArray($criterion);
-        // Kit::ensureDict($update); // @CAUTION
+        // Kit::ensureDict($new_document); // @CAUTION
         Kit::ensureArray($new_document);
         // Kit::ensureBoolean($is_document);
         $this->ensureCriterionHasProperId($criterion);
@@ -587,7 +586,6 @@ class MongoDBCollection
     }
 
     /**
-     * @TODO: support upsert
      * Update documents based on a given criterion.
      * @param array   $criterion Associative array with fields to match.
      * @param array   $update    The object used to update the matched documents.

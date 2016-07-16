@@ -6,6 +6,7 @@ use \MongoDate;
 use \Ilex\Core\Context as c;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\MongoDB\MongoDBDate;
+use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\Entity\BaseEntity;
 
 /**

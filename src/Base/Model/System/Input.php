@@ -7,7 +7,6 @@ use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 
 /**
- * @todo: method arg type validate
  * Class Input
  * Encapsulation of system input, such as $_GET, $_POST.
  * @package Ilex\Base\Model\System
@@ -90,6 +89,7 @@ final class Input
      */
     final public static function hasInput($key_list)
     {
+        Kit::ensureArray($key_list); // @CAUTION
         return call_user_func_array([self::$inputData, 'has'], $key_list);
     }
     
@@ -99,6 +99,7 @@ final class Input
      */
     final public static function hasGet($key_list)
     {
+        Kit::ensureArray($key_list); // @CAUTION
         return call_user_func_array([self::$getData, 'has'], $key_list);
     }
 
@@ -108,6 +109,7 @@ final class Input
      */
     final public static function hasPost($key_list)
     {
+        Kit::ensureArray($key_list); // @CAUTION
         return call_user_func_array([self::$postData, 'has'], $key_list);
     }
 
@@ -168,31 +170,30 @@ final class Input
      */
     final public static function merge($name, $data)
     {
-        if (TRUE === Kit::in($name, ['get', 'post', 'input'])) {
-            $name .= 'Data';
-            self::$$name->merge($data);
-            /* 
-            CAUTION: 
-                The + operator returns the right-hand array appended to the left-hand array;
-                for keys that exist in both arrays, the elements from the left-hand array will be used,
-                and the matching elements from the right-hand array will be ignored.
-            
-                array_merge — Merge one or more arrays
-                array array_merge ( array $array1 [, array $... ] )
-                Merges the elements of one or more arrays together so that the values of one
-                are appended to the end of the previous one. It returns the resulting array.
-                If the input arrays have the same string keys, then the later value for that key will 
-                overwrite the previous one. If, however, the arrays contain numeric keys,
-                the later value will not overwrite the original value, but will be appended.
-                Values in the input array with numeric keys will be renumbered with
-                incrementing keys starting from zero in the result array.
-            */
-            if ($name !== 'input') {
-                self::$inputData->merge(self::get());
-                self::$inputData->merge(self::post());
-            }
-            return TRUE;
-        } else throw new UserException("Invalid \$name($name).");
+        Kit::ensureIn($name, ['get', 'post', 'input']);
+        $name .= 'Data';
+        self::$$name->merge($data);
+        /* 
+        CAUTION: 
+            The + operator returns the right-hand array appended to the left-hand array;
+            for keys that exist in both arrays, the elements from the left-hand array will be used,
+            and the matching elements from the right-hand array will be ignored.
+        
+            array_merge — Merge one or more arrays
+            array array_merge ( array $array1 [, array $... ] )
+            Merges the elements of one or more arrays together so that the values of one
+            are appended to the end of the previous one. It returns the resulting array.
+            If the input arrays have the same string keys, then the later value for that key will 
+            overwrite the previous one. If, however, the arrays contain numeric keys,
+            the later value will not overwrite the original value, but will be appended.
+            Values in the input array with numeric keys will be renumbered with
+            incrementing keys starting from zero in the result array.
+        */
+        if ($name !== 'input') {
+            self::$inputData->merge(self::get());
+            self::$inputData->merge(self::post());
+        }
+        return TRUE;
     }
 
     /**

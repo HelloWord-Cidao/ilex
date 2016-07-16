@@ -6,7 +6,6 @@ use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 
 /**
- * @todo: method arg type validate
  * Class UserTypeException
  * An user-defined type exception.
  * @package Ilex\Lib
@@ -32,11 +31,11 @@ final class UserTypeException extends UserException
             if (FALSE === Kit::isValidType($expected_type))
                 throw new UserException('Invalid type.', $expected_type);
         }
-        $this->variable = $variable;
-        $variable_type = $this->variableType = Kit::type($variable, TRUE);
+        $this->variable         = $variable;
+        $variable_type          = $this->variableType = Kit::type($variable, TRUE);
         $this->expectedTypeList = $expected_type_list;
-        $expected_type_string = Kit::join(' or ', $expected_type_list);
-        $message = "Invalid type(${variable_type}), ${expected_type_string} is expected.";
+        $expected_type_string   = Kit::join(' or ', $expected_type_list);
+        $message                = "Invalid type(${variable_type}), ${expected_type_string} is expected.";
         $detail = [
             'variable'           => $variable,
             'variable_type'      => $variable_type,

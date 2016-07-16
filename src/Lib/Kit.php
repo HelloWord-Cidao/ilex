@@ -7,7 +7,6 @@ use \Ilex\Lib\UserException;
 use \Ilex\Lib\UserTypeException;
 
 /**
- * @todo: method arg type validate
  * Class Kit
  * A kit class.
  * @package Ilex\Lib
@@ -62,6 +61,8 @@ final class Kit
      */
     final public static function type(&$variable, $distinguish_array = FALSE, $empty_array = self::TYPE_LIST)
     {
+        if (FALSE === is_bool($distinguish_array))
+            throw new UserTypeException($distinguish_array, self::TYPE_BOOLEAN);
         if (self::TYPE_LIST !== $empty_array AND self::TYPE_DICT !== $empty_array)
             throw new UserException('Invalid $empty_array.', $empty_array);
         if (FALSE === $distinguish_array) {
@@ -486,7 +487,8 @@ final class Kit
         if (self::len($match_list) > 0) {
             $result = [];
             // @todo: add comment to this logic?
-            if ($match_list[0][1] > 0) $result[] = substr($string, 0, $match_list[0][1]);
+            if ($match_list[0][1] > 0)
+                $result[] = substr($string, 0, $match_list[0][1]);
             foreach ($match_list as $match) $result[] = $match[0];
             return $result;
         } else return [ $string ];
@@ -596,6 +598,7 @@ final class Kit
         if (FALSE === is_array($key_list))
             $key_list = [ $key_list ];
         self::ensureListOfType($key_list, [ self::TYPE_STRING, self::TYPE_INT ]);
+        self::ensureBoolean($ensure_existence);
         $result = [];
         foreach ($key_list as $key) {
             if (TRUE === isset($array[$key])) {
@@ -623,6 +626,7 @@ final class Kit
         if (FALSE === is_array($key_list))
             $key_list = [ $key_list ];
         self::ensureListOfType($key_list, [ self::TYPE_STRING, self::TYPE_INT ]);
+        self::ensureBoolean($check_existence);
         $result = $array;
         foreach ($key_list as $key) {
             if (FALSE === isset($array[$key]) AND TRUE === $check_existence) {
@@ -963,6 +967,7 @@ final class Kit
      */
     final public static function getRealPath($path)
     {
+        self::ensureString($path);
         if (FALSE !== ($realpath = realpath($path)))
             $path = $realpath . '/';
         else $path = rtrim($path, '/') . '/'; // @todo: change function to Kit::rstrip()
@@ -1022,6 +1027,7 @@ final class Kit
     final public static function round($number, $precision = 0)
     {
         self::ensureType($number, [ self::TYPE_INT, self::TYPE_FLOAT ]);
+        self::ensureNonNegativeInt($precision);
         if (TURE === self::isInt($number)) $number = (float)$number;
         return round($number, $precision);
     }

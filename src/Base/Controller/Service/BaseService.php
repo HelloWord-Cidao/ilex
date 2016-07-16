@@ -191,7 +191,8 @@ abstract class BaseService extends BaseController
         $this->setCode(2);
     }
 
-    final private function fail() // @CAUTION can not be invoked from XService
+    // @CAUTION can not be invoked from XService
+    final private function fail()
     {
         $this->setCode(1);
     }
