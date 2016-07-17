@@ -1048,6 +1048,7 @@ final class Kit
         return range($min, $max, $step);
     }
 
+    // 
     final public static function randomInt($min = 0, $max = NULL)
     {
         $randmax = mt_getrandmax();
@@ -1056,7 +1057,6 @@ final class Kit
         self::ensureInt($max);
         if ($min > $max) throw new UserException("Min($min) is larger than max($max).", [ $min, $max ]);
         return $min + self::round(1.0 * mt_rand() / $randmax * ($max - $min));
-            
     }
 
     final public static function randomFloat($min = 0, $max = 1)
@@ -1072,7 +1072,8 @@ final class Kit
         self::ensureArray($list);
         self::ensureInt($num);
         if ($num > self::len($list)) $num = self::len($list);
-        return self::slice(self::shuffle($list), 0, $num); // @TODO: check efficiency
+        if (1 === $num) return [ $list[self::randomInt(0, self::len($list) - 1)] ];
+        else return self::slice(self::shuffle($list), 0, $num); // @TODO: check efficiency
         // $result = array_rand($list, $num);
         // if (1 === $num) $result = [ $result ];
         // $result = array_values(Kit::extract($list, $result));

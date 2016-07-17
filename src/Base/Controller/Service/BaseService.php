@@ -47,7 +47,7 @@ abstract class BaseService extends BaseController
 
     public function __construct()
     {
-        Context::trySetCurrentUserEntity();
+        Context::trySetCurrentUser();
     }
 
     final protected function ensureLogin()

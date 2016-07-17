@@ -19,14 +19,15 @@ final class Context
     private static $currentUser            = NULL;
     private static $currentInstitution     = NULL;
     private static $currentMemorizeMission = NULL;
+    private static $hasSetMemorizeMission  = FALSE;
     
-    final public static function trySetCurrentUserEntity()
+    final public static function trySetCurrentUser()
     {
         $token = Loader::loadInput()->input('token');
         if (TRUE === Kit::isString($token) AND '' !== $token) {
             $class_name = Loader::includeCore('User/User');
             try {
-                self::$currentUser        = $class_name::getCurrentUserEntity($token);
+                self::$currentUser        = $class_name::getCurrentUser($token);
                 self::$currentInstitution = self::$currentUser->getInstitution()->setReadOnly();
             } catch (Exception $e) {
                 self::$currentUser        = NULL;
@@ -55,6 +56,27 @@ final class Context
     final public static function institution()
     {
         return self::$currentInstitution;
+    }
+
+    final public static function mission()
+    {
+        if (TRUE === is_null(self::$currentMemorizeMission)) {
+
+        }
+    }
+
+    final private static function trySetCurrentMemorizeMission()
+    {
+        if (FALSE === self::$hasSetMemorizeMission) {
+            $class_name = Loader::includeCore('Memorize/MemorizeMission');
+            try {
+                self::$currentUser        = $class_name::getCurrentUser($token);
+                self::$currentInstitution = self::$currentUser->getInstitution()->setReadOnly();
+            } catch (Exception $e) {
+                self::$currentUser        = NULL;
+                self::$currentInstitution = NULL;
+            }
+        }
     }
 
 }

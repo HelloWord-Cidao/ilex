@@ -17,7 +17,7 @@ abstract class UserCore extends BaseCore
     const COLLECTION_NAME = 'User';
     const ENTITY_PATH     = 'User/User';
 
-    final public static function getCurrentUserEntity($token)
+    final public static function getCurrentUser($token)
     {
         try {
             $user_info = static::parseToken($token);

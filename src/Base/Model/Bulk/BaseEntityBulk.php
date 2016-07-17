@@ -137,6 +137,11 @@ class BaseEntityBulk extends Bulk
         return $this->setEntityList(Kit::randomlySelect($this->getEntityList(), $num));
     }
 
+    final public function getOneEntityRandomly()
+    {
+        return Kit::randomlySelect($this->getEntityList(), 1)[0];
+    }
+
     final public function shuffle()
     {
         return $this->setEntityList(Kit::shuffled($this->getEntityList()));
