@@ -154,6 +154,7 @@ final class Kit
     {
         if (FALSE === self::isType($variable, $type_list, $can_be_null))
             throw new UserTypeException($variable, $type_list);
+        return $variable;
     }
 
     final public static function isList(&$variable, $can_be_null = FALSE)
@@ -163,7 +164,7 @@ final class Kit
 
     final public static function ensureList(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_LIST, $can_be_null);
+        return self::ensureType($variable, self::TYPE_LIST, $can_be_null);
     }
 
     final public static function isListOfType(&$list, $type_list)
@@ -179,6 +180,7 @@ final class Kit
     {
         if (FALSE === self::isListOfType($list, $type_list))
             throw new UserException('Values in $list is not of $type_list.', [ $list, $type_list ]);
+        return $list;
     }
 
     final public static function isListOfList(&$list)
@@ -222,6 +224,7 @@ final class Kit
     {
         if (FALSE === self::isMatrix($list))
             throw new UserException('$matrix is not a matrix.', $matrix);
+        return $matrix;
     }
 
     final public static function isDict(&$variable, $can_be_null = FALSE)
@@ -231,7 +234,7 @@ final class Kit
 
     final public static function ensureDict(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_DICT, $can_be_null);
+        return self::ensureType($variable, self::TYPE_DICT, $can_be_null);
     }
 
     final public static function isDictOfType(&$dict, $type_list)
@@ -247,6 +250,7 @@ final class Kit
     {
         if (FALSE === self::isDictOfType($dict, $type_list))
             throw new UserException('Values in $dict is not of $type_list.', [ $dict, $type_list ]);
+        return $dict;
     }
 
     final public static function isDictOfList(&$dict)
@@ -286,7 +290,7 @@ final class Kit
 
     final public static function ensureArray(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_ARRAY, $can_be_null);
+        return self::ensureType($variable, self::TYPE_ARRAY, $can_be_null);
     }
 
     final public static function isString($variable, $can_be_null = FALSE, $can_be_empty = FALSE)
@@ -300,6 +304,7 @@ final class Kit
     {
         if (FALSE === self::isString($variable, $can_be_null, $can_be_empty))
             throw new UserTypeException($variable, self::TYPE_STRING);
+        return $variable;
     }
 
     final public static function isCharacter($variable, $can_be_null = FALSE)
@@ -311,6 +316,7 @@ final class Kit
     {
         if (FALSE === self::isCharacter($variable, $can_be_null))
             throw new UserTypeException($variable, self::TYPE_CHARACTER);
+        return $variable;
     }
 
     final public static function isMatchRegex($variable, $regex, $can_be_null = FALSE)
@@ -329,6 +335,7 @@ final class Kit
     {
         if (FALSE === self::isMatchRegex($variable, $regex, $can_be_null))
             throw new UserException("\$variable($variable) match \$regex($regex) failed.", $can_be_null);
+        return $variable;
     }
 
     final public static function isInt($variable, $can_be_null = FALSE, $should_be_positive = TRUE)
@@ -342,6 +349,7 @@ final class Kit
     {
         if (FALSE === self::isInt($variable, $can_be_null, $should_be_positive))
             throw new UserTypeException($variable, self::TYPE_INT);
+        return $variable;
     }
 
     final public static function isNonNegativeInt($variable, $can_be_null = FALSE)
@@ -354,6 +362,7 @@ final class Kit
     {
         if (FALSE === self::isNonNegativeInt($variable, $can_be_null))
             throw new UserTypeException($variable, self::TYPE_INT);
+        return $variable;
     }
 
     final public static function isFloat($variable, $can_be_null = FALSE)
@@ -363,7 +372,7 @@ final class Kit
 
     final public static function ensureFloat($variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_FLOAT, $can_be_null);
+        return self::ensureType($variable, self::TYPE_FLOAT, $can_be_null);
     }
 
     final public static function isBoolean($variable, $can_be_null = FALSE)
@@ -373,7 +382,7 @@ final class Kit
 
     final public static function ensureBoolean($variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_BOOLEAN, $can_be_null);
+        return self::ensureType($variable, self::TYPE_BOOLEAN, $can_be_null);
     }
 
     final public static function isObject(&$variable, $can_be_null = FALSE)
@@ -383,7 +392,7 @@ final class Kit
 
     final public static function ensureObject(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_OBJECT, $can_be_null);
+        return self::ensureType($variable, self::TYPE_OBJECT, $can_be_null);
     }
 
     final public static function isResource(&$variable, $can_be_null = FALSE)
@@ -393,7 +402,7 @@ final class Kit
 
     final public static function ensureResource(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_RESOURCE, $can_be_null);
+        return self::ensureType($variable, self::TYPE_RESOURCE, $can_be_null);
     }
 
     final public static function isNULL($variable)
@@ -403,7 +412,7 @@ final class Kit
 
     final public static function ensureNULL($variable)
     {
-        self::ensureType($variable, self::TYPE_NULL);
+        return self::ensureType($variable, self::TYPE_NULL);
     }
 
     final public static function isVacancy(&$variable)
@@ -415,7 +424,7 @@ final class Kit
     {
         if (FALSE === self::isVacancy($variable))
             throw new UserException('$variable is not vacancy.', $variable);
-            
+        return $variable;
     }
 
     // ================================================== //
@@ -512,6 +521,10 @@ final class Kit
 
     final public static function in($value, $array)
     {
+        // array_flip
+        // I find this function very useful when you have a big array and you want to know 
+        // if a given value is in the array. in_array in fact becomes quite slow in such a case, 
+        // but you can flip the big array and then use isset to obtain the same result in a much faster way.
         self::ensureArray($array);
         return TRUE === in_array($value, $array, TRUE);
     }
@@ -652,6 +665,7 @@ final class Kit
     {
         if (FALSE === self::isAllSame($array, $value))
             throw new UserException('Values in $array are not same (or $value).', [ $array, $value ]);
+        return $array;
     }
 
     final public static function sum(&$array)
@@ -696,8 +710,8 @@ final class Kit
         if (count($arg_list) > 2) $arg_list = Kit::slice($arg_list, 2); else $arg_list = [];
         $result = [];
         foreach ($list as $index => $item) {
-            $result_item = call_user_func_array($function, array_merge([ $item ], $arg_list, [ $index ]));
-            if (FALSE === self::isVacancy($result_item)) $result[] = $result_item;
+            $result[] = call_user_func_array($function, array_merge([ $item ], $arg_list, [ $index ]));
+            // if (FALSE === self::isVacancy($result_item)) $result[] = $result_item;
         }
         return $result;
     }
@@ -705,6 +719,25 @@ final class Kit
     final public static function map($function, &$list)
     {
         $list = call_user_func_array([ 'self', 'mapped' ], func_get_args());
+        return $list;
+    }
+
+    final public static function filtered($function, &$list)
+    {
+        self::ensureArray($list);
+        $arg_list = func_get_args();
+        if (count($arg_list) > 2) $arg_list = Kit::slice($arg_list, 2); else $arg_list = [];
+        $result = [];
+        foreach ($list as $index => $item) {
+            if (TRUE === call_user_func_array($function, array_merge([ $item ], $arg_list, [ $index ])))
+                $result[] = $item;
+        }
+        return $result;
+    }
+
+    final public static function filter($function, &$list)
+    {
+        $list = call_user_func_array([ 'self', 'filtered' ], func_get_args());
         return $list;
     }
 
@@ -774,22 +807,18 @@ final class Kit
         return $list;
     }
 
+    final public static function uniqued(&$list)
+    {
+        self::ensureArray($list);
+        return array_unique($list, SORT_REGULAR);
+    }
 
-    // final public static function uniqued($list)
-    // {
-    //     self::ensureArray($list);
-    //     if (FALSE === shuffle($list))
-    //         throw new UserException('Shuffle failed.');
-    //     return $list;
-    // }
-
-    // final public static function unique(&$list)
-    // {
-    //     self::ensureArray($list);
-    //     if (FALSE === shuffle($list))
-    //         throw new UserException('Shuffle failed.');
-    //     return $list;
-    // }
+    final public static function unique(&$list)
+    {
+        self::ensureArray($list);
+        $list = array_unique($list, SORT_REGULAR);
+        return $list;
+    }
 
     // ================================================== //
     //                       Dict                         //
@@ -1072,7 +1101,8 @@ final class Kit
         self::ensureArray($list);
         self::ensureInt($num);
         if ($num > self::len($list)) $num = self::len($list);
-        if (1 === $num) return [ $list[self::randomInt(0, self::len($list) - 1)] ];
+        if (0 === $num) return [ ];
+        elseif (1 === $num) return [ $list[self::randomInt(0, self::len($list) - 1)] ];
         else return self::slice(self::shuffle($list), 0, $num); // @TODO: check efficiency
         // $result = array_rand($list, $num);
         // if (1 === $num) $result = [ $result ];
