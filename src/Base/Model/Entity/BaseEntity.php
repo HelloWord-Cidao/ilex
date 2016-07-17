@@ -79,6 +79,16 @@ class BaseEntity
         return $this;
     }
 
+    final public function getCollectionName()
+    {
+        return $this->collectionName;
+    }
+
+    final public function getEntityPath()
+    {
+        return $this->entityPath;
+    }
+
     final public function getEntityName()
     {
         return $this->name;
