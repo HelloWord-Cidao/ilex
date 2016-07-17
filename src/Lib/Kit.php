@@ -1048,13 +1048,13 @@ final class Kit
         return range($min, $max, $step);
     }
 
-    // 
+    // return $min <= result <= $max
     final public static function randomInt($min = 0, $max = NULL)
     {
         $randmax = mt_getrandmax();
         if (TRUE === is_null($max)) $max = $randmax;
         self::ensureInt($min, FALSE, FALSE);
-        self::ensureInt($max);
+        self::ensureInt($max, FALSE, FALSE);
         if ($min > $max) throw new UserException("Min($min) is larger than max($max).", [ $min, $max ]);
         return $min + self::round(1.0 * mt_rand() / $randmax * ($max - $min));
     }

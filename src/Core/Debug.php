@@ -133,12 +133,9 @@ final class Debug
                 $result['mainException'] = self::extractMainException($exception);
                 $result['monitor']       = self::getMonitor();
                 $result['exception']     = $exception;
-                if (TRUE === $result['mainException'])
-                    unset($result['mainException']);
-                if (TRUE === $result['monitor'])
-                    unset($result['monitor']);
             } else {
-                $result['error'] = $exception_or_error;
+                $result['error']   = $exception_or_error;
+                $result['monitor'] = self::getMonitor();
             }
             $result += self::getDebugInfo();
         } else {
@@ -146,6 +143,10 @@ final class Debug
             unset($result['mainException']);
             unset($result['monitor']);
         }
+        if (TRUE === is_null($result['mainException']))
+            unset($result['mainException']);
+        if (TRUE === is_null($result['monitor']))
+            unset($result['monitor']);
         Http::json($result);
     }
 
