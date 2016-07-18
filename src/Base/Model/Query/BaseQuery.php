@@ -249,18 +249,15 @@ class BaseQuery
 
     //==============================================================================
 
-    final public function sortByCreationTime($direction = TRUE)
+    final public function sortByCreationTime($direction = -1)
     {
-        return $this->mergeSortBy([ 'Meta.CreationTime' => $this->convertReverse($reverse) ]);
+        return $this->sortBy('Meta.CreationTime', $direction);
     }
 
-    // final protected function sortBy($field_name, $reverse)
-
-    final private function convertReverse($reverse)
+    final protected function sortBy($field_name, $direction)
     {
-        Kit::ensureBoolean($reverse);
-        if (TRUE === $reverse) return -1;
-        else return 1;
+        Kit::ensureIn($direction, [ -1, 1 ]);
+        return $this->mergeSortBy([ $field_name => $direction ]);
     }
 
     final private function mergeSortBy($sort_by)
