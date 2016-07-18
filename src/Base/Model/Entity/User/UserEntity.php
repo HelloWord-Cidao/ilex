@@ -50,7 +50,7 @@ class UserEntity extends BaseEntity
 
     final public function getEmail()
     {
-        return $this->getInfo('Email');
+        return $this->getInfo('Email', FALSE, '');
     }
 
     final public function loginNow()

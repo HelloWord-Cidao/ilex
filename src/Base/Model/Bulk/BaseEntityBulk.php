@@ -87,6 +87,16 @@ class BaseEntityBulk extends Bulk
         else return $result;
     }
 
+    final public function getTheOnlyOneEntity()
+    {
+        return $this->getTheOnlyOne();
+    }
+
+    final public function getOneEntityRandomly()
+    {
+        return $this->getOneRandomly();
+    }
+
     final public function getTheOnlyOneEntityById($id)
     {
         $detail = $this->batch('getName');
