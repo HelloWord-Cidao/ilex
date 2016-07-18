@@ -254,7 +254,7 @@ class BaseQuery
         return $this->mergeSortBy([ 'Meta.CreationTime' => $this->convertReverse($reverse) ]);
     }
 
-    final protected function sortBy($field_name, $reverse)
+    // final protected function sortBy($field_name, $reverse)
 
     final private function convertReverse($reverse)
     {
