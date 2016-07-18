@@ -241,24 +241,34 @@ class BaseQuery
     final private function mergeCriterion($criterion)
     {
         Kit::ensureDict($criterion);
-        if (TRUE === is_null($this->criterion)) $this->criterion = [ ];
-        $this->criterion = array_merge_recursive($this->criterion, $criterion);
+        if (TRUE === is_null($this->criterion))
+            $this->criterion = [ ];
+        $this->criterion = array_merge_recursive($this->criterion, $criterion); // @CAUTION
         return $this;
     }
 
     //==============================================================================
 
-    // final public function sortBy()
-    // {
-    //     return $this->sortBy;
-    // }
+    final public function sortByCreationTime($reverse = TRUE)
+    {
+        return $this->mergeSortBy([ 'Meta.CreationTime' => $this->convertReverse($reverse) ]);
+    }
 
-    // final private function mergeSortBy($sort_by)
-    // {
-    //     Kit::ensureDict($sort_by);
-    //     Kit::update($this->sortBy, $sort_by);
-    //     return $this;
-    // }
+    final private function convertReverse($reverse)
+    {
+        Kit::ensureBoolean($reverse);
+        if (TRUE === $reverse) return -1;
+        else return 1;
+    }
+
+    final private function mergeSortBy($sort_by)
+    {
+        Kit::ensureDict($sort_by);
+        if (TRUE === is_null($this->sortBy))
+            $this->sortBy = [ ];
+        $this->sortBy = array_merge_recursive($this->sortBy, $sort_by); // @CAUTION
+        return $this;
+    }
 
     final public function skip($skip = NULL)
     {
