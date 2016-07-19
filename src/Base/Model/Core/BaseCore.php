@@ -76,10 +76,11 @@ abstract class BaseCore
         return $this->createQuery()->idIs($id)->checkExistsOnlyOneEntity();
     }
 
-    final public function checkExistsSignature($signature)
+    final public function checkExistsSignature($signature) // @TODO: move to HelloWord?
     {
         return $this->createQuery()->signatureIs($signature)->checkExistsOnlyOneEntity();
     }
+
     final public function countAll()
     {
         return $this->createQuery()->all()->countEntities();

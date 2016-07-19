@@ -343,7 +343,7 @@ class BaseEntity
         $field_value = $this->getDocument('Reference', $field_name, FALSE);
         if (TRUE === $ensure_no_existence AND FALSE === is_null($field_value)) {
             $msg = "Can not build reference($field_name) as " . $entity_id->toString()
-                . ", old value is " . $field_value->toString() . ".";
+                . ", old value is " . $field_value->__toString() . ".";
             throw new UserException($msg);
         }
         $this->setDocument('Reference', $field_name, $entity_id->toMongoId());
