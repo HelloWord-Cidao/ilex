@@ -382,7 +382,7 @@ class BaseEntity
 
     final private function getReference($reference_name, $ensure_existence = TRUE, $default = NULL)
     {
-        return $this->handleGet('Reference', $reference_name, TRUE, NULL);
+        return $this->handleGet('Reference', $reference_name, $ensure_existence, $default);
     }
 
     final private function setReference($reference_name, $reference_value)
