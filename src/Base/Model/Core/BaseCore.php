@@ -2,6 +2,7 @@
 
 namespace Ilex\Base\Model\Core;
 
+use \Ilex\Core\Context;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Base\Model\Entity\BaseEntity;
@@ -52,6 +53,14 @@ abstract class BaseCore
         return new $entity_class_name(static::COLLECTION_NAME, static::ENTITY_PATH, FALSE);
     }
 
+    final protected function ensureLogin()
+    {
+        $user_type_list = func_get_args();
+        if (TRUE === Kit::in('Administrator', $user_type_list)) return; // @TODO: CAUTION
+        if (FALSE === Context::isLogin($user_type_list))
+            throw new UserException('Login failed.');
+    }
+
     final protected function loadCore($path)
     {
         $handler_name = Loader::getHandlerFromPath($path) . 'Core';
@@ -83,6 +92,7 @@ abstract class BaseCore
         return $this->createQuery()->idIs($id)->getTheOnlyOneEntity();
     }
 
+    // If $id_list is empty, returns empty bulk.
     final public function getAllEntitiesByIdList($id_list)
     {
         return $this->createQuery()->idIn($id_list)->getMultiEntities();

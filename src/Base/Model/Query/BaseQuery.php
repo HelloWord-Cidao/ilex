@@ -223,6 +223,7 @@ class BaseQuery
         return $this->mergeCriterion($criterion);
     }
 
+    // If $field_value_list is empty, returns no result.
     final protected function in($field_name, $field_value_list)
     {
         Kit::ensureString($field_name);

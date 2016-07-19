@@ -221,7 +221,7 @@ class BaseEntity
 
 
     // ======================================= Reference =============================================
-    // ======================================= one =============================================
+    // ======================================= multi =============================================
     
     final public function hasMultiReference($reference_name)
     {
@@ -251,21 +251,23 @@ class BaseEntity
     }
 
     // @TODO: check efficiency
-    final public function getEntitiesByMultiReference($reference_name, $entity_path)
+    final public function getEntitiesByMultiReference($reference_name, $entity_path, $ensure_existence = FALSE)
     {
         Kit::ensureString($entity_path);
         return $this->loadCore($entity_path)
-            ->getAllEntitiesByIdList($this->getMultiReference($reference_name));
+            ->getAllEntitiesByIdList($this->getMultiReference($reference_name, FALSE, $ensure_existence));
     }
 
     // O(N)
-    final public function hasMultiReferenceTo(BaseEntity $entity, $reference_name = NULL)
+    final public function hasMultiReferenceTo(BaseEntity $entity, $reference_name = NULL,
+        $ensure_existence = FALSE) // @CAUTION
     {
         if (TRUE === is_null($reference_name))
             $reference_name = $entity->getEntityName();
-        foreach ($this->getMultiReference($reference_name) as $id) {
+        $reference = $this->getMultiReference($reference_name, FALSE, $ensure_existence); // List
+        foreach ($reference as $id) {
             if ($entity->getId()->isEqualTo($id)) return TRUE;
-        };
+        }
         return FALSE;
     }
 
@@ -283,18 +285,27 @@ class BaseEntity
      * O(N) when $to_mongoDB_id is TRUE
      * @param string $reference_name
      * @param boolean $to_mongoDB_id
+     * @param boolean $ensure_existence
      * @return List of MongoId or MongoDBId when $to_mongoDB_id is TRUE
      */
-    final public function getMultiReference($reference_name, $to_mongoDB_id = FALSE)//, $ensure_existence = TRUE, $default = NULL)
+    final public function getMultiReference($reference_name, $to_mongoDB_id = FALSE, $ensure_existence = TRUE)
     {
         Kit::ensureString($reference_name);
+        Kit::ensureBoolean($ensure_existence);
+        $reference = $this->getReference($reference_name . 'IdList', $ensure_existence);
+        if (TRUE === is_null($reference)) {
+            if (FALSE === $ensure_existence)
+                $reference = [ ]; // @CAUTION
+            else throw new UserException('Invalid case.');
+        }
+        Kit::ensureArray($reference);
         if (TRUE === $to_mongoDB_id) {
             $result = [ ];
-            foreach ($this->getReference($reference_name . 'IdList') as $id) {
+            foreach ($reference as $id) {
                 $result[] = new MongoDBId($id);
             }
             return $result;
-        } else return $this->getReference($reference_name . 'IdList');
+        } else return $reference;
     }
 
     // ======================================= one =============================================
@@ -305,7 +316,7 @@ class BaseEntity
         return $this->handleHas('Reference', $reference_name . 'Id');
     }
 
-    final public function buildOneReferenceTo(BaseEntity $entity, $reference_name = NULL, $ensure_no_existence = FALSE)
+    final public function buildOneReferenceTo(BaseEntity $entity, $reference_name = NULL, $ensure_no_existence = TRUE)
     {
         Kit::ensureString($reference_name, TRUE);
         Kit::ensureBoolean($ensure_no_existence);
@@ -323,18 +334,23 @@ class BaseEntity
         return $this;
     }
 
-    final public function getEntityByOneReference($reference_name, $entity_path)
+    final public function getEntityByOneReference($reference_name, $entity_path, $ensure_existence = TRUE)
     {
         Kit::ensureString($entity_path);
-        return $this->loadCore($entity_path)
-            ->getTheOnlyOneEntityById($this->getOneReference($reference_name));
+        $reference = $this->getOneReference($reference_name, $ensure_existence);
+        if (TRUE === is_null($reference))
+            return NULL; // @CAUTION
+        else return $this->loadCore($entity_path)->getTheOnlyOneEntityById($reference);
     }
 
-    final public function hasOneReferenceTo(BaseEntity $entity, $reference_name = NULL)
+    final public function hasOneReferenceTo(BaseEntity $entity, $reference_name = NULL, $ensure_existence = TRUE)
     {
         if (TRUE === is_null($reference_name))
             $reference_name = $entity->getEntityName();
-        return $entity->getId()->isEqualTo($this->getOneReference($reference_name));
+        $reference = $this->getOneReference($reference_name, $ensure_existence);
+        if (TRUE === is_null($reference))
+            return FALSE; // @CAUTION
+        else return $entity->getId()->isEqualTo($reference);
     }
 
     final public function ensureHasOneReferenceTo(BaseEntity $entity, $reference_name = NULL)
@@ -348,17 +364,23 @@ class BaseEntity
 
     /**
      * @param string $reference_name
-     * @return MongoDBId
+     * @return MongoDBId|NULL
      */
-    final public function getOneReference($reference_name)//, $ensure_existence = TRUE, $default = NULL)
+    final public function getOneReference($reference_name, $ensure_existence = TRUE)
     {
         Kit::ensureString($reference_name);
-        return new MongoDBId($this->getReference($reference_name . 'Id'));//, $ensure_existence, $default);
+        Kit::ensureBoolean($ensure_existence);
+        $reference = $this->getReference($reference_name . 'Id', $ensure_existence);
+        if (TRUE === is_null($reference)) {
+            if (FALSE === $ensure_existence)
+                return NULL; // @CAUTION
+            else throw new UserException('Invalid case.');
+        } else return new MongoDBId($reference);
     }
 
     // ======================================= basic =============================================
 
-    final private function getReference($reference_name)// = NULL, $ensure_existence = TRUE, $default = NULL)
+    final private function getReference($reference_name, $ensure_existence = TRUE, $default = NULL)
     {
         return $this->handleGet('Reference', $reference_name, TRUE, NULL);
     }
