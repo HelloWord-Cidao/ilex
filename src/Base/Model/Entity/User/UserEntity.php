@@ -84,7 +84,7 @@ class UserEntity extends BaseEntity
 
     final public function isMe()
     {
-        return $this->getId()->isEqualTo(Context::user()->getId());
+        return $this->getId()->isEqualTo(Context::me()->getId());
     }
 
     final public function ensureMe()

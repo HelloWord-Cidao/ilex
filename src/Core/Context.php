@@ -48,12 +48,12 @@ final class Context
         return FALSE;
     }
 
-    final public static function user()
+    final public static function me()
     {
         return self::$currentUser;
     }
 
-    final public static function institution()
+    final public static function myInstitution()
     {
         return self::$currentInstitution;
     }

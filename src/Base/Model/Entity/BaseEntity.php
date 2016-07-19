@@ -144,6 +144,13 @@ class BaseEntity
         return $this->isIdEqualTo($entity->getId());
     }
 
+    final public function ensureIs(BaseEntity $entity)
+    {
+        if (FALSE === $this->is($entity))
+            throw new UserException('This entity is not same as $entity', [ $this->document(), $entity->document() ]);
+        return $this;
+    }
+
     final public function getId($to_string = FALSE)
     {
         $id = $this->ensureInCollection()->get('_id');
