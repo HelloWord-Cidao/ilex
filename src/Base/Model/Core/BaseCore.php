@@ -53,6 +53,8 @@ abstract class BaseCore
         return new $entity_class_name(static::COLLECTION_NAME, static::ENTITY_PATH, FALSE);
     }
 
+    // ====================================================================================
+
     final protected function ensureLogin()
     {
         $user_type_list = func_get_args();
