@@ -229,6 +229,12 @@ class BaseEntity
         return $this->handleHas('Reference', $reference_name . 'IdList');
     }
 
+    final public function countMultiReference($reference_name, $ensure_existence = FALSE)
+    {
+        Kit::ensureString($reference_name);
+        return Kit::len($this->getMultiReference($reference_name, FALSE, $ensure_existence));
+    }
+
     // O(N) when $check_duplicate is TRUE
     final public function buildMultiReferenceTo(BaseEntity $entity, $reference_name = NULL, $check_duplicate = FALSE)
     {
@@ -276,6 +282,16 @@ class BaseEntity
     {
         if (FALSE === $this->hasMultiReferenceTo($entity, $reference_name)) {
             $msg = 'This entity does not have multi reference to the entity.';
+            throw new UserException($msg, [ $entity->getName(), $reference_name ]);
+        }
+        return $this;
+    }
+
+    // O(N)
+    final public function ensureNotHasMultiReferenceTo(BaseEntity $entity, $reference_name = NULL)
+    {
+        if (TRUE === $this->hasMultiReferenceTo($entity, $reference_name)) {
+            $msg = 'This entity does have multi reference to the entity.';
             throw new UserException($msg, [ $entity->getName(), $reference_name ]);
         }
         return $this;
@@ -357,6 +373,15 @@ class BaseEntity
     {
         if (FALSE === $this->hasOneReferenceTo($entity, $reference_name)) {
             $msg = 'This entity does not have one reference to the entity.';
+            throw new UserException($msg, [ $entity->getName(), $reference_name ]);
+        }
+        return $this;
+    }
+
+    final public function ensureNotHasOneReferenceTo(BaseEntity $entity, $reference_name = NULL)
+    {
+        if (TRUE === $this->hasOneReferenceTo($entity, $reference_name)) {
+            $msg = 'This entity does have one reference to the entity.';
             throw new UserException($msg, [ $entity->getName(), $reference_name ]);
         }
         return $this;
