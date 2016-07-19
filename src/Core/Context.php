@@ -50,7 +50,7 @@ final class Context
 
     final public static function me()
     {
-        return self::$currentUser;
+        return self::$currentUser->toProperEntity();
     }
 
     final public static function myInstitution()

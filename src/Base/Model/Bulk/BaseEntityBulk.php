@@ -67,7 +67,7 @@ class BaseEntityBulk extends Bulk
         return parent::append($entity);
     }
 
-    final public function batch($method_name)
+    final public function batch($method_name, $to_bulk = FALSE)
     {
         Kit::ensureString($method_name);
         $arg_list = func_get_args();
@@ -83,7 +83,8 @@ class BaseEntityBulk extends Bulk
         }
         if (TRUE === $is_return_entity) {
             return $this->setEntityList($result);
-        }
+        } elseif (TRUE === $to_bulk)
+            return new Bulk($result);
         else return $result;
     }
 
