@@ -93,5 +93,4 @@ class UserEntity extends BaseEntity
             throw new UserException('This user is not me.');
         return $this;
     }
-
 }

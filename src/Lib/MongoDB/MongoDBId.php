@@ -60,5 +60,4 @@ final class MongoDBId
     {
         return $this->toString() === (new MongoDBId($id))->toString();
     }
-
 }

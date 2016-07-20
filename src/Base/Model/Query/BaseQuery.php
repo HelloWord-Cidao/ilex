@@ -366,5 +366,4 @@ class BaseQuery
         $this->clear();
         return $result;
     }
-
 }

@@ -109,5 +109,4 @@ class BaseEntityBulk extends Bulk
             throw new UserException('$id not found in this bulk.', $detail);
         else return $result->getTheOnlyOneEntity();
     }
-
 }

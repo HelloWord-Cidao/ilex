@@ -11,5 +11,4 @@ use \Ilex\Base\Model\BaseModel;
 abstract class BaseLog extends BaseModel
 {
 
-
 }

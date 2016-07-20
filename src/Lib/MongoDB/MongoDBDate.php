@@ -49,5 +49,4 @@ final class MongoDBDate
             (new DateTime())->add(new DateInterval("P${days}D"))->getTimestamp()
         );
     }
-
 }

@@ -18,8 +18,6 @@ final class Context
 
     private static $currentUser            = NULL;
     private static $currentInstitution     = NULL;
-    private static $currentMemorizeMission = NULL;
-    private static $hasSetMemorizeMission  = FALSE;
     
     final public static function trySetCurrentUser()
     {
@@ -58,25 +56,11 @@ final class Context
         return self::$currentInstitution;
     }
 
-    final public static function mission()
+    final public static function myMemorizeMission($ensure_existence = TRUE)
     {
-        if (TRUE === is_null(self::$currentMemorizeMission)) {
-
-        }
+        $active_memorize_mission = self::me()->ensureStudent()->getActiveMemorizeMission();
+        if (TRUE === $ensure_existence AND TRUE === is_null($active_memorize_mission))
+            throw new UserException('Active memorize mission not set.');
+        return $active_memorize_mission;
     }
-
-    final private static function trySetCurrentMemorizeMission()
-    {
-        if (FALSE === self::$hasSetMemorizeMission) {
-            $class_name = Loader::includeCore('Memorize/MemorizeMission');
-            try {
-                self::$currentUser        = $class_name::getCurrentUser($token);
-                self::$currentInstitution = self::$currentUser->getInstitution()->setReadOnly();
-            } catch (Exception $e) {
-                self::$currentUser        = NULL;
-                self::$currentInstitution = NULL;
-            }
-        }
-    }
-
 }

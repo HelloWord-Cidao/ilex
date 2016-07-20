@@ -54,5 +54,4 @@ final class EntityWrapper extends MongoDBCollection
         $document['_id'] = $id;
         return $document;
     }
-    
 }
