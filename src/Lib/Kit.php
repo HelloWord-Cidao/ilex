@@ -682,7 +682,9 @@ final class Kit
     {
         self::ensureList($list);
         self::ensureInt($offset, FALSE, FALSE);
-        self::ensureInt($length, TRUE);
+        self::ensureNonNegativeInt($length, TRUE);
+        if (0 === $length) return [ ];
+        if ($offset >= self::len($list)) return [ ];
         // @TODO: check corner cases
         return array_slice($list, $offset, $length);
     }

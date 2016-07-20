@@ -256,6 +256,23 @@ class BaseEntity
         return $this;
     }
 
+    // O(N)
+    final public function deleteMultiReferenceTo(BaseEntity $entity, $reference_name)
+    {
+        Kit::ensureString($reference_name);
+        $field_name  = $reference_name . 'IdList';
+        $entity_id   = $entity->getId();
+        $field_value = $this->getDocument('Reference', $field_name);
+        foreach ($field_value as $index => $id) {
+            if ($entity->getId()->isEqualTo($id)) {
+                $reference = array_merge(Kit::slice($field_value, 0, $index), Kit::slice($field_value, $index + 1));
+                $this->setDocument('Reference', $field_name, $reference);
+                return $this;
+            }
+        }
+        throw new UserException('$entity id not found in multi reference.', [ $entity->document(), $field_value ]);
+    }
+
     // @TODO: check efficiency
     final public function getEntitiesByMultiReference($reference_name, $entity_path, $ensure_existence = FALSE)
     {
@@ -348,6 +365,20 @@ class BaseEntity
         }
         $this->setDocument('Reference', $field_name, $entity_id->toMongoId());
         return $this;
+    }
+
+    final public function deleteOneReferenceTo(BaseEntity $entity, $reference_name)
+    {
+        Kit::ensureString($reference_name);
+        $field_name  = $reference_name . 'Id';
+        $entity_id   = $entity->getId();
+        $field_value = $this->getDocument('Reference', $field_name);
+        if (FALSE === $entity_id->isEqualTo($field_value))
+            throw new UserException('$entity id is not the same as the old reference.',
+                [ $entity->document(), $field_value ]);
+        $reference = $this->getDocument('Reference');
+        unset($reference[$field_name]);
+        return $this->setDocument('Reference', NULL, $reference, FALSE);
     }
 
     final public function getEntityByOneReference($reference_name, $entity_path, $ensure_existence = TRUE)
