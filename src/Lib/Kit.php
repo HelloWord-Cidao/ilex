@@ -994,7 +994,7 @@ final class Kit
     final public static function toFormat($timestamp = NULL, $format = 'Y-m-d H:i:s')
     {
         if (TRUE === is_null($timestamp)) $timestamp = time();
-        return gmdate($format, $timestamp);
+        return date($format, $timestamp);
     }
 
     final public static function toTimestamp(MongoDate $mongo_date)
@@ -1128,6 +1128,7 @@ final class Kit
         self::ensureInt($min, FALSE, FALSE);
         self::ensureInt($max, FALSE, FALSE);
         if ($min > $max) throw new UserException("Min($min) is larger than max($max).", [ $min, $max ]);
+        mt_srand();
         return (int)($min + self::round(1.0 * mt_rand() / $randmax * ($max - $min)));
     }
 
@@ -1136,6 +1137,7 @@ final class Kit
         self::ensureType($min, [ self::TYPE_INT, self::TYPE_FLOAT ]);
         self::ensureType($max, [ self::TYPE_INT, self::TYPE_FLOAT ]);
         if ($min > $max) throw new UserException("Min($min) is larger than max($max).", [ $min, $max ]);
+        mt_srand();
         return $min + 1.0 * mt_rand() / mt_getrandmax() * ($max - $min);
     }
 
