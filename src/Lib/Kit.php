@@ -1087,7 +1087,7 @@ final class Kit
         self::ensureInt($min, FALSE, FALSE);
         self::ensureInt($max, FALSE, FALSE);
         if ($min > $max) throw new UserException("Min($min) is larger than max($max).", [ $min, $max ]);
-        return $min + self::round(1.0 * mt_rand() / $randmax * ($max - $min));
+        return (int)($min + self::round(1.0 * mt_rand() / $randmax * ($max - $min)));
     }
 
     final public static function randomFloat($min = 0, $max = 1)
