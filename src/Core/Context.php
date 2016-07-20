@@ -6,6 +6,7 @@ use \Exception;
 use \Ilex\Core\Debug;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
+use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\Entity\User\UserEntity;
 
 /**

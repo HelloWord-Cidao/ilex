@@ -5,6 +5,7 @@ namespace Ilex\Base\Model\Core;
 use \Ilex\Core\Context;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
+use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\Entity\BaseEntity;
 
 /**
