@@ -3,6 +3,9 @@
 namespace Ilex\Lib;
 
 use \Closure;
+use \DateTime;
+use \DateInterval;
+use \MongoDate;
 use \Ilex\Lib\UserException;
 use \Ilex\Lib\UserTypeException;
 
@@ -375,6 +378,19 @@ final class Kit
         return self::ensureType($variable, self::TYPE_FLOAT, $can_be_null);
     }
 
+    final public static function isNonNegativeFloat($variable, $can_be_null = FALSE)
+    {
+        return self::isType($variable, self::TYPE_FLOAT, $can_be_null)
+            AND (TRUE === $can_be_null OR $variable >= 0);
+    }
+
+    final public static function ensureNonNegativeFloat($variable, $can_be_null = FALSE)
+    {
+        if (FALSE === self::isNonNegativeFloat($variable, $can_be_null))
+            throw new UserTypeException($variable, self::TYPE_FLOAT);
+        return $variable;
+    }
+
     final public static function isBoolean($variable, $can_be_null = FALSE)
     {
         return self::isType($variable, self::TYPE_BOOLEAN, $can_be_null);
@@ -535,6 +551,7 @@ final class Kit
             $msg = "\$value(" . self::toString($value) . ") is not in \$array(" . self::toString($array) . ").";
             throw new UserException($msg, [ $value, $array ]);
         }
+        return $value;
     }
 
     final public static function hasKey()
@@ -971,19 +988,43 @@ final class Kit
     }
 
     // ================================================== //
-    //                     Date & Time                    //
+    //                       DateTime                     //
     // ================================================== //
 
-    /**
-     * Converts time to date string and returns it.
-     * @param int|NULL $time
-     * @param string   $format
-     * @return string
-     */
-    final public static function time($time = NULL, $format = 'Y-m-d H:i:s')
+    final public static function toFormat($timestamp = NULL, $format = 'Y-m-d H:i:s')
     {
-        if (TRUE === Kit::isNULL($time)) $time = time();
-        return date($format, $time);
+        if (TRUE === is_null($timestamp)) $timestamp = time();
+        return gmdate($format, $timestamp);
+    }
+
+    final public static function toTimestamp(MongoDate $mongo_date)
+    {
+        $result = self::split(' ', $mongo_date->__toString());
+        return (int)$result[1] + (float)$result[0];
+    }
+
+    final public static function fromTimestamp($timestamp)
+    {
+        self::ensureType($timestamp, [ Kit::TYPE_INT, Kit::TYPE_FLOAT ]);
+        return new MongoDate($timestamp);
+    }
+
+    final public static function now()
+    {
+        return new MongoDate();
+    }
+
+    final public static function timestampAtNow()
+    {
+        return time();
+    }
+
+    final public static function daysAfterNow($days)
+    {
+        self::ensureInt($days);
+        return new MongoDate(
+            (new DateTime())->add(new DateInterval("P${days}D"))->getTimestamp()
+        );
     }
 
     // ================================================== //

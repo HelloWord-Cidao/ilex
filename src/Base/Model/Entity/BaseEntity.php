@@ -7,7 +7,6 @@ use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 use \Ilex\Lib\MongoDB\MongoDBId;
-use \Ilex\Lib\MongoDB\MongoDBDate;
 use \Ilex\Lib\MongoDB\EntityWrapper;
 
 /**
@@ -256,6 +255,15 @@ class BaseEntity
         return $this;
     }
 
+    final public function copyMultiReferenceFrom(BaseEntity $entity, $reference_name)
+    {
+        Kit::ensureString($reference_name);
+        if (TRUE === $this->hasMultiReference($reference_name))
+            throw new UserException('Can not overwrite existing multi reference.', $this->document());
+        $reference = $entity->getMultiReference($reference_name);
+        return $this->setDocument('Reference', $reference_name . 'IdList', $reference);
+    }
+
     // O(N)
     final public function deleteMultiReferenceTo(BaseEntity $entity, $reference_name)
     {
@@ -469,12 +477,12 @@ class BaseEntity
 
     final public function getCreationTimestamp()
     {
-        return MongoDBDate::toTimestamp($this->getMeta('CreationTime'));
+        return Kit::toTimestamp($this->getMeta('CreationTime'));
     }
 
     final public function getModificationTimestamp()
     {
-        return MongoDBDate::toTimestamp($this->getMeta('ModificationTime'));
+        return Kit::toTimestamp($this->getMeta('ModificationTime'));
     }
     
     final public function setMeta($arg1 = NULL, $arg2 = Kit::TYPE_VACANCY)
@@ -643,7 +651,7 @@ class BaseEntity
         if (FALSE === $ensure_existence) $this->ensureHasNo($path);
         $this->document[$path] = $value;
         $this->notSameAsCollection();
-        return $value;
+        return $this;
     }
 
     final private function get($path, $ensure_existence = TRUE, $default = NULL)
@@ -667,7 +675,7 @@ class BaseEntity
         $value = $this->document[$path];
         unset($this->document[$path]);
         $this->notSameAsCollection();
-        return $value;
+        return $this;
     }
 
     final private function has($path)

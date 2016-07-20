@@ -5,7 +5,6 @@ namespace Ilex\Base\Model\Entity\User;
 use \MongoDate;
 use \Ilex\Core\Context;
 use \Ilex\Lib\Kit;
-use \Ilex\Lib\MongoDB\MongoDBDate;
 use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\Entity\BaseEntity;
 
@@ -55,12 +54,12 @@ class UserEntity extends BaseEntity
 
     final public function loginNow()
     {
-        return $this->setInfo('LastLoginTime', MongoDBDate::now());
+        return $this->setInfo('LastLoginTime', Kit::now());
     }
 
     final public function getLastLoginTimestamp()
     {
-        return MongoDBDate::toTimestamp($this->getInfo('LastLoginTime'));
+        return Kit::toTimestamp($this->getInfo('LastLoginTime'));
     }
 
     public function getAbstract()
