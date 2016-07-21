@@ -2,6 +2,7 @@
 
 namespace Ilex\Base\Model\Query;
 
+use \MongoDate;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
@@ -156,11 +157,10 @@ class BaseQuery
     //     return $this->isLessThan('Meta.CreationTime', $timestamp);
     // }
 
-    // final public function isCreatedAfter($timestamp)
-    // {
-    //     // @TODO: $timestamp
-    //     return $this->isGreaterThan('Meta.CreationTime', $timestamp);
-    // }
+    final public function isCreatedAfter(MongoDate $date)
+    {
+        return $this->isGreaterThan('Meta.CreationTime', $date);
+    }
 
     // final public function isUpdatedBefore($timestamp)
     // {

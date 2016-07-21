@@ -368,26 +368,30 @@ final class Kit
         return $variable;
     }
 
-    final public static function isFloat($variable, $can_be_null = FALSE)
+    final public static function isFloat($variable, $can_be_null = FALSE, $should_be_positive = TRUE)
     {
-        return self::isType($variable, self::TYPE_FLOAT, $can_be_null);
+        self::ensureBoolean($should_be_positive);
+        return self::isType($variable, [ self::TYPE_FLOAT, self::TYPE_INT ], $can_be_null)
+            AND (TRUE === $can_be_null OR FALSE === $should_be_positive OR $variable > 0);
     }
 
-    final public static function ensureFloat($variable, $can_be_null = FALSE)
+    final public static function ensureFloat($variable, $can_be_null = FALSE, $should_be_positive = TRUE)
     {
-        return self::ensureType($variable, self::TYPE_FLOAT, $can_be_null);
+        if (FALSE === self::isFloat($variable, $can_be_null, $should_be_positive))
+            throw new UserTypeException($variable, [ self::TYPE_FLOAT, self::TYPE_INT ]);
+        return $variable;
     }
 
     final public static function isNonNegativeFloat($variable, $can_be_null = FALSE)
     {
-        return self::isType($variable, self::TYPE_FLOAT, $can_be_null)
+        return self::isType($variable, [ self::TYPE_FLOAT, self::TYPE_INT ], $can_be_null)
             AND (TRUE === $can_be_null OR $variable >= 0);
     }
 
     final public static function ensureNonNegativeFloat($variable, $can_be_null = FALSE)
     {
         if (FALSE === self::isNonNegativeFloat($variable, $can_be_null))
-            throw new UserTypeException($variable, self::TYPE_FLOAT);
+            throw new UserTypeException($variable, [ self::TYPE_FLOAT, self::TYPE_INT ]);
         return $variable;
     }
 
@@ -688,7 +692,8 @@ final class Kit
     final public static function sum(&$array)
     {
         self::ensureListOfType($array, [ self::TYPE_INT, self::TYPE_FLOAT, self::TYPE_BOOLEAN ]);
-        return array_sum($array);
+        if (0 === self::len($array)) return 0;
+        else return array_sum($array);
     }
 
     // ================================================== //
@@ -1003,6 +1008,7 @@ final class Kit
         return (int)$result[1] + (float)$result[0];
     }
 
+    // @TODO: validate range
     final public static function fromTimestamp($timestamp)
     {
         self::ensureType($timestamp, [ Kit::TYPE_INT, Kit::TYPE_FLOAT ]);
@@ -1024,6 +1030,14 @@ final class Kit
         self::ensureInt($days);
         return new MongoDate(
             (new DateTime())->add(new DateInterval("P${days}D"))->getTimestamp()
+        );
+    }
+
+    final public static function daysBeforeNow($days)
+    {
+        self::ensureInt($days);
+        return new MongoDate(
+            (new DateTime())->sub(new DateInterval("P${days}D"))->getTimestamp()
         );
     }
 
