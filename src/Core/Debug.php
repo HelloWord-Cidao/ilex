@@ -176,12 +176,16 @@ final class Debug
         exit();
     }
 
-    final public static function monitor($field_name, $field_value)
+    final public static function monitor($field_name, $field_value, $is_list = FALSE)
     {
         Kit::ensureString($field_name);
         if (TRUE === is_null(self::$monitor))
             self::$monitor = [ ];
-        self::$monitor[$field_name] = $field_value;
+        if (TRUE === $is_list) {
+            if (FALSE === isset(self::$monitor[$field_name]))
+                self::$monitor[$field_name] = [ $field_value ];
+            else self::$monitor[$field_name][] = $field_value;
+        } else self::$monitor[$field_name] = $field_value;
     }
 
     final public static function getMonitor()
