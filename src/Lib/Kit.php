@@ -6,6 +6,7 @@ use \Closure;
 use \DateTime;
 use \DateInterval;
 use \MongoDate;
+use \Ilex\Core\Debug;
 use \Ilex\Lib\UserException;
 use \Ilex\Lib\UserTypeException;
 
@@ -1197,18 +1198,17 @@ final class Kit
      */
     final public static function randomlySelectByWeight(&$list_of_dict)
     {
-        self::ensureListOfDict($list_of_dict);
+        // self::ensureListOfDict($list_of_dict);
         $weight_list = self::columns($list_of_dict, 'weight', TRUE, NULL, TRUE);
-        self::ensureAllSame(self::mapped([ 'self', 'sign' ], $weight_list), 1);
+        // self::ensureAllSame(self::mapped([ 'self', 'sign' ], $weight_list), 1);
         $sum = self::sum($weight_list);
         if (0 === $sum) throw new UserException('The sum of weights is 0.', $list_of_dict);
-        throw new UserException('randomByWeight TODO');
-        // $randmax = getrandmax();
-        // $rand = mt_rand(1, (int)$randmax);
+        $rand = self::randomInt(1, $sum);
         // // @todo: use bisection method when length of $list_of_dict > 50!
-        // foreach ($list_of_dict as $object) {
-        //     $rand -= $object['weight'];
-        //     if ($rand <= 0) return $object['item'];
-        // }
+        foreach ($list_of_dict as $object) {
+            $rand -= $object['weight'];
+            if ($rand <= 0) return $object['item'];
+        }
+        return $list_of_dict[0]['item'];
     }
 }
