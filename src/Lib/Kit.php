@@ -435,6 +435,13 @@ final class Kit
         return self::ensureType($variable, self::TYPE_NULL);
     }
 
+    final public static function ensureNotNULL($variable)
+    {
+        if (TRUE === is_null($variable))
+            throw new UserException('$variable should not be NULL.', $variable);
+        return $variable;
+    }
+
     final public static function isVacancy(&$variable)
     {
         return self::TYPE_VACANCY === $variable;
