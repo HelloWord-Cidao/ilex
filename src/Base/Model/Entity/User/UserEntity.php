@@ -15,6 +15,25 @@ use \Ilex\Base\Model\Entity\BaseEntity;
 class UserEntity extends BaseEntity
 {
 
+    final public function getAbstract()
+    {
+        return [
+            'Id'       => $this->getId(TRUE),
+            'Name'     => $this->getName(),
+            'Username' => $this->getUsername(),
+            'Type'     => $this->getType(),
+        ];
+    }
+
+    final public function getDetail()
+    {
+        return $this->getAbstract() + [
+            'Email'                 => $this->getEmail(),
+            'RegistrationTimestamp' => $this->getCreationTimestamp() * 1000,
+            'LastLoginTimestamp'    => $this->getLastLoginTimestamp() * 1000,
+        ];
+    }
+
     public function setUsername($username)
     {
         Kit::ensureString($username);
@@ -60,25 +79,6 @@ class UserEntity extends BaseEntity
     final public function getLastLoginTimestamp()
     {
         return Kit::toTimestamp($this->getInfo('LastLoginTime'));
-    }
-
-    public function getAbstract()
-    {
-        return [
-            'Id'   => $this->getId(TRUE),
-            'Name' => $this->getName(),
-            'Type' => $this->getType(),
-        ];
-    }
-
-    final public function getDetail()
-    {
-        return $this->getAbstract() + [
-            'Username'              => $this->getUsername(),
-            'Email'                 => $this->getEmail(),
-            'RegistrationTimestamp' => $this->getCreationTimestamp() * 1000,
-            'LastLoginTimestamp'    => $this->getLastLoginTimestamp() * 1000,
-        ];
     }
 
     final public function isMe()
