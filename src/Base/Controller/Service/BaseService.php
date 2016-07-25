@@ -151,14 +151,6 @@ abstract class BaseService extends BaseController
             $this->result['data'] = $computation_data = $service_result_sanitization_result['data'];
             $this->result['status'] = $operation_status = $service_result_sanitization_result['status'];
             
-            // $this->loadLog('Request');
-            // $this->RequestLog->addRequestLog(
-            //     $execution_record['class'],
-            //     $execution_record['method'],
-            //     $input,
-            //     $code,
-            //     $operation_status
-            // );
             $this->succeedRequest($execution_id, $execution_record);
         } catch (Exception $e) {
             $this->failRequest(
@@ -387,7 +379,13 @@ abstract class BaseService extends BaseController
                 unset($this->result['mainException']);
             if (TRUE === is_null($this->result['monitor']))
                 unset($this->result['monitor']);
-        } else {
+        }
+        // $this->loadCore('Log/Log')->addRequestLog(
+        //     $execution_record['class'],
+        //     $execution_record['method'],
+        //     $this->result
+        // );
+        if (TRUE === Debug::isProduction()) {
             unset($this->result['mainException']);
             unset($this->result['monitor']);
             unset($this->result['database']);

@@ -133,7 +133,7 @@ class Bulk implements Iterator
         return $this->setItemList($result);
     }
 
-    final public function filterByRandomlySelect($num)
+    final public function randomlySelect($num)
     {
         return $this->setItemList(Kit::randomlySelect($this->getItemList(), $num));
     }
@@ -146,6 +146,11 @@ class Bulk implements Iterator
     final public function sort(Closure $function)
     {
         return $this;
+    }
+
+    final public function slice($start, $length)
+    {
+        return $this->setItemList(Kit::slice($this->getItemList(), $start, $length));
     }
 
     final public function getItemList()

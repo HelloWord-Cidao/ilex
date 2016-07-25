@@ -112,7 +112,7 @@ class BaseQuery
     final public function infoIs($field_value)
     {
         Kit::ensureArray($field_value);
-        return $this->isEqualTo("Info", $field_value);
+        return $this->isEqualTo('Info', $field_value);
     }
 
     final public function hasMultiReferenceTo(BaseEntity $entity, $name = NULL)
