@@ -35,7 +35,7 @@ final class EntityWrapper extends MongoDBCollection
     final public function addOneEntity(BaseEntity $entity)
     {
         $document = $entity->document();
-        $document = $this->addOne($document)['document'];
+        $document = $this->addOne($document, FALSE, $entity->canBeRollbacked())['document'];
         if (FALSE === isset($document['_id']) OR FALSE === $document['_id'] instanceof MongoId)
             throw new UserException('_id is not set or proper in $document.', $document);
         $document['_id'] = new MongoDBId($document['_id']);
@@ -50,7 +50,7 @@ final class EntityWrapper extends MongoDBCollection
         $criterion = [ '_id' => $id->toMongoId() ];
         $document = $entity->document();
         unset($document['_id']);
-        $document = $this->updateTheOnlyOne($criterion, $document);
+        $document = $this->updateTheOnlyOne($criterion, $document, FALSE, $entity->canBeRollbacked());
         $document['_id'] = $id;
         return $document;
     }

@@ -77,7 +77,12 @@ class MongoDBCollection
     final public static function rollback()
     {
         if (0 === Kit::len(self::$history)) return FALSE;
+        $exists_document_not_rollbacked = FALSE;
         foreach (Kit::reversed(self::$history) as $operation) {
+            if (FALSE === $operation['CanBeRollbacked']) {
+                $exists_document_not_rollbacked = TRUE;
+                continue;
+            }
             if (self::OP_INSERT === $operation['Type']) {
                 $operation['Collection']->deleteTheOnlyOne([ '_id' => $operation['Id'] ], TRUE);
             } elseif (self::OP_UPDATE === $operation['Type']) {
@@ -87,7 +92,7 @@ class MongoDBCollection
                 $operation['Collection']->addOne($operation['Document'], TRUE);
             }
         }
-        self::$isChanged = FALSE;
+        if (FALSE === $exists_document_not_rollbacked) self::$isChanged = FALSE;
         return TRUE;
     }
 
@@ -144,7 +149,7 @@ class MongoDBCollection
      *                                     The operation in MongoCollection::$wtimeout
      *                                     is milliseconds.
      */
-    final protected function addOne($document, $is_rollback = FALSE)
+    final protected function addOne($document, $is_rollback = FALSE, $can_be_rollbacked = TRUE)
     {
         $collection_name = $this->collectionName;
         // Kit::ensureDict($document); // @CAUTION
@@ -166,9 +171,10 @@ class MongoDBCollection
                 $result);
         }
         self::$history[] = [
-            'Collection' => $this,
-            'Type'       => self::OP_INSERT,
-            'Id'         => $result['document']['_id'],
+            'Collection'      => $this,
+            'Type'            => self::OP_INSERT,
+            'Id'              => $result['document']['_id'],
+            'CanBeRollbacked' => $can_be_rollbacked,
         ];
         return [
             'document' => $result['document'],
@@ -349,7 +355,7 @@ class MongoDBCollection
      *                                     The operation in MongoCollection::$wtimeout
      *                                     is milliseconds.
      */
-    final protected function updateTheOnlyOne($criterion, $update, $is_rollback = FALSE/*, $is_document*/)
+    final protected function updateTheOnlyOne($criterion, $update, $is_rollback = FALSE, $can_be_rollbacked = TRUE)
     {
         $collection_name = $this->collectionName;
         $new_document = $update; // @CAUTION
@@ -378,13 +384,18 @@ class MongoDBCollection
         // }
         $status = $this->mongoUpdate($criterion, $new_document, FALSE);
         if (FALSE === $this->validateOperationStatus($status)) {
-            $msg = "<${collection_name}>MongoDBCollection update operation failed.";
-            throw new UserException($msg, [ $status, $criterion, $new_document ]);
+            if (FALSE === $is_rollback) {
+                $msg = "<${collection_name}>MongoDBCollection update operation failed.";
+                throw new UserException($msg, [ $status, $criterion, $new_document ]);
+            } else {
+                // @TODO
+            }
         }
         self::$history[] = [
-            'Collection' => $this,
-            'Type'       => self::OP_UPDATE,
-            'Document'   => $document,
+            'Collection'      => $this,
+            'Type'            => self::OP_UPDATE,
+            'Document'        => $document,
+            'CanBeRollbacked' => $can_be_rollbacked
         ];
         // return $status;
         return $new_document; // @CAUTION
@@ -417,9 +428,10 @@ class MongoDBCollection
             throw new UserException($msg, [ $status, $criterion ]);
         }
         self::$history[] = [
-            'Collection' => $this,
-            'Type'       => self::OP_REMOVE,
-            'Document'   => $document,
+            'Collection'      => $this,
+            'Type'            => self::OP_REMOVE,
+            'Document'        => $document,
+            'CanBeRollbacked' => TRUE, // @CAUTION
         ];
         return $status;
     }
@@ -497,7 +509,11 @@ class MongoDBCollection
         // if it does not already exist in the supplied array.
         // Even if no new document was inserted,
         // the supplied array will still have a new MongoId key.
-        $status = $this->collection->insert($document, ['w' => 1]);
+        try {
+            $status = $this->collection->insert($document, ['w' => 1]);
+        } catch (Exception $e) {
+            throw new UserException($e->getMessage(), [ 'Document' => $document ], $e);
+        }
         self::$isChanged = TRUE;
         return [
             'document' => $document,
@@ -526,7 +542,14 @@ class MongoDBCollection
         if (FALSE === is_null($skip))  $options['skip']  = $skip;
         if (FALSE === is_null($limit)) $options['limit'] = $limit;
         // @TODO: add $hint: Index to use for the query.
-        return $this->collection->count($criterion, $options);
+        try {
+            return $this->collection->count($criterion, $options);
+        } catch (Exception $e) {
+            throw new UserException($e->getMessage(), [
+                'Criterion' => $criterion,
+                'Options'   => $options,
+            ], $e);
+        }
     }
 
     /**
@@ -559,7 +582,14 @@ class MongoDBCollection
         Kit::ensureInt($skip, TRUE);
         Kit::ensureInt($limit, TRUE);
         Kit::ensureBoolean($to_array);
-        $cursor = $this->collection->find($criterion, $projection);
+        try {
+            $cursor = $this->collection->find($criterion, $projection);
+        } catch (Exception $e) {
+            throw new UserException($e->getMessage(), [
+                'Criterion'  => $criterion,
+                'Projection' => $projection,
+            ], $e);
+        }
         if (FALSE === is_null($sort_by)) $cursor = $cursor->sort($sort_by);
         if (FALSE === is_null($skip))    $cursor = $cursor->skip($skip);
         if (FALSE === is_null($limit))   $cursor = $cursor->limit($limit);
@@ -582,7 +612,14 @@ class MongoDBCollection
         Kit::ensureArray($criterion);
         // Kit::ensureDict($projection); // @CAUTION
         Kit::ensureArray($projection);
-        return $this->collection->findOne($criterion, $projection);
+        try {
+            return $this->collection->findOne($criterion, $projection);
+        } catch (Exception $e) {
+            throw new UserException($e->getMessage(), [
+                'Criterion'  => $criterion,
+                'Projection' => $projection,
+            ], $e);
+        }
     }
 
     /**
@@ -629,7 +666,15 @@ class MongoDBCollection
             'multiple' => $multiple,
         ];
         // @TODO: check returns n, upserted, updatedExisting
-        $status = $this->collection->update($criterion, $update, $options);
+        try {
+            $status = $this->collection->update($criterion, $update, $options);
+        } catch (Exception $e) {
+            throw new UserException($e->getMessage(), [
+                'Criterion' => $criterion,
+                'Update'    => $update,
+                'Options'   => $options,
+            ], $e);
+        }
         self::$isChanged = TRUE;
         return $status;
     }
@@ -658,7 +703,14 @@ class MongoDBCollection
             'w'       => 1,
             'justOne' => (FALSE === $multiple),
         ];
-        $status = $this->collection->remove($criterion, $options);
+        try {
+            $status = $this->collection->remove($criterion, $options);
+        } catch (Exception $e) {
+            throw new UserException($e->getMessage(), [
+                'Criterion' => $criterion,
+                'Options'   => $options,
+            ], $e);
+        }
         self::$isChanged = TRUE;
         return $status;
     }

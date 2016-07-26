@@ -19,9 +19,13 @@ class BaseEntity
 
     private $collectionName     = NULL;
     private $entityPath         = NULL;
+    private $entityWrapper      = NULL;
     private $name               = NULL;
+    private $document           = NULL;
     private $isInCollection     = FALSE;
     private $isSameAsCollection = FALSE;
+    private $isReadOnly         = FALSE;
+    private $canBeRollbacked    = TRUE;
 
     private static $rootFieldNameList = [
         'Signature',
@@ -30,9 +34,6 @@ class BaseEntity
         'Reference',
         'Meta',
     ];
-    private $entityWrapper = NULL;
-    private $document      = NULL;
-    private $isReadOnly    = FALSE;
 
     final public function __construct($collection_name, $entity_path, $is_in_collection, $document = NULL)
     {
@@ -127,6 +128,17 @@ class BaseEntity
         if (TRUE === $this->isReadOnly())
             throw new UserException("This entity({$this->name}) is read-only.");
         return $this;
+    }
+
+    final public function doNotRollback()
+    {
+        $this->canBeRollbacked = FALSE;
+        return $this;
+    }
+
+    final public function canBeRollbacked()
+    {
+        return $this->canBeRollbacked;
     }
 
     //=======================================================================================

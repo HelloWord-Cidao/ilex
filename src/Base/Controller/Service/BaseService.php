@@ -197,13 +197,13 @@ abstract class BaseService extends BaseController
         if (FALSE === is_null($current_code) 
             AND FALSE === Kit::in($current_code, [ 0, 1, 2, 3 ]))
             throw new UserException('Invalid $current_code.', $current_code);
-        if (TRUE === Kit::in($current_code, [ 0, 3 ]))
+        if (0 === $current_code)
             throw new UserException("Can not change code(${current_code}) to $code after the request has finished.", $current_code);
-        // current_code = NULL/1/2; code = 0/1/2/3
         if ((TRUE === is_null($current_code) AND TRUE === Kit::in($code, [ 0, 1, 2, 3 ]))
             OR (1 === $current_code AND TRUE === Kit::in($code, [ 0, 1 ]))
             OR (2 === $current_code AND TRUE === Kit::in($code, [ 0, 1, 2 ]))
-            ) {
+            OR (3 === $current_code AND TRUE === Kit::in($code, [ 0, 1, 2 ]))
+        ) {
             $this->result['code'] = $code;
             return $code;
         } elseif (1 === $current_code AND 2 === $code) {
@@ -371,25 +371,25 @@ abstract class BaseService extends BaseController
             Debug::handleFatalError($error);
         }
         header('Content-Type : application/json', TRUE, $status_code);
-        if (FALSE === Debug::isProduction()) {
-            $this->result['monitor'] = Debug::getMonitor();
-            $this->result += Debug::getDebugInfo();
-            $this->result += [ 'size' => sprintf('%.2fKB', Kit::len(json_encode($this->result)) / 1024) ];
-            if (TRUE === is_null($this->result['mainException']))
-                unset($this->result['mainException']);
-            if (TRUE === is_null($this->result['monitor']))
-                unset($this->result['monitor']);
-        }
-        // $this->loadCore('Log/Log')->addRequestLog(
-        //     $execution_record['class'],
-        //     $execution_record['method'],
-        //     $this->result
-        // );
+        $this->result['monitor'] = Debug::getMonitor();
+        $this->result += Debug::getDebugInfo();
+        $this->result += [ 'size' => sprintf('%.2fKB', Kit::len(json_encode($this->result)) / 1024) ];
+        if (TRUE === is_null($this->result['mainException'])) unset($this->result['mainException']);
+        if (TRUE === is_null($this->result['monitor'])) unset($this->result['monitor']);
+        $this->loadCore('Log/RequestLog')->addRequestLog(
+            $execution_record['class'],
+            $execution_record['method'],
+            $this->result,
+            $this->getCode()
+        );
         if (TRUE === Debug::isProduction()) {
             unset($this->result['mainException']);
             unset($this->result['monitor']);
             unset($this->result['database']);
             unset($this->result['process']);
+            unset($this->result['time']);
+            unset($this->result['memory']);
+            unset($this->result['size']);
         }
         Http::json($this->result);
         if (TRUE === $close_cgi_only) {

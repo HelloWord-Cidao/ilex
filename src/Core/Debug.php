@@ -122,31 +122,37 @@ final class Debug
             ],
             'code'     => 0,
         ];
-        if (FALSE === self::isProduction()) {
-            if (FALSE === $is_error) {
-                try {
-                    $exception = self::extractException($exception_or_error);
-                } catch (Exception $e) {
-                    $exception = self::extractException($e);
-                    $result['last_exception'] = $exception_or_error;
-                }
-                $result['mainException'] = self::extractMainException($exception);
-                $result['monitor']       = self::getMonitor();
-                $result['exception']     = $exception;
-            } else {
-                $result['error']   = $exception_or_error;
-                $result['monitor'] = self::getMonitor();
+        if (FALSE === $is_error) {
+            try {
+                $exception = self::extractException($exception_or_error);
+            } catch (Exception $e) {
+                $exception = self::extractException($e);
+                $result['lastException'] = $exception_or_error;
             }
-            $result += self::getDebugInfo();
+            $result['mainException'] = self::extractMainException($exception);
+            $result['exception']     = $exception[0];
+            $result['monitor']       = self::getMonitor();
         } else {
-            unset($result['database']);
-            unset($result['mainException']);
-            unset($result['monitor']);
+            $result['error']   = $exception_or_error;
+            if (TRUE === $exception_or_error instanceof UserException)
+                $result['detail'] = $exception_or_error->getDetail();
+            $result['monitor'] = self::getMonitor();
         }
-        if (TRUE === is_null($result['mainException']))
+        $result += self::getDebugInfo();
+        if (TRUE === is_null($result['mainException'])) unset($result['mainException']);
+        if (TRUE === is_null($result['monitor'])) unset($result['monitor']);
+        Loader::loadCore('Log/RequestLog')->addRequestLog(NULL, NULL, $result, 0);
+        if (TRUE === self::isProduction()) {
+            unset($result['error']);
+            unset($result['exception']);
+            unset($result['lastException']);
             unset($result['mainException']);
-        if (TRUE === is_null($result['monitor']))
+            unset($result['database']);
             unset($result['monitor']);
+            unset($result['time']);
+            unset($result['memory']);
+            unset($result['size']);
+        }
         Http::json($result);
     }
 
@@ -161,7 +167,8 @@ final class Debug
         if (TRUE === is_null($error)) $error = error_get_last();
         if (FALSE === self::$isErrorHandled
             AND FALSE === is_null($error)
-            AND (TRUE === self::isErrorCared($error))) {
+            // AND (TRUE === self::isErrorCared($error))
+        ) {
             $error['type'] = self::polishErrorType($error['type']);
             self::respondOnFail($error, TRUE);
         }
