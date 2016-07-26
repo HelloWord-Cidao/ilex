@@ -167,7 +167,7 @@ final class Debug
         if (TRUE === is_null($error)) $error = error_get_last();
         if (FALSE === self::$isErrorHandled
             AND FALSE === is_null($error)
-            // AND (TRUE === self::isErrorCared($error))
+            AND (TRUE === self::isErrorCared($error))
         ) {
             $error['type'] = self::polishErrorType($error['type']);
             self::respondOnFail($error, TRUE);
