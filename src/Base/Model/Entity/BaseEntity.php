@@ -164,7 +164,7 @@ class BaseEntity
 
     final public function getId($to_string = FALSE)
     {
-        $id = $this->ensureInCollection()->get('_id');
+        $id = $this->ensureInCollection()->getPath('_id');
         if (TRUE === $to_string) return $id->toString();
         else return $id;
     }
@@ -573,19 +573,19 @@ class BaseEntity
     {
         if (FALSE === $id instanceof MongoDBId)
             throw new UserException('$id is not a MongoDBId.', [ $id, $this ]);
-        $this->set('_id', $id, FALSE);
+        $this->setPath('_id', $id, FALSE);
         return $this;
     }
 
     final private function deleteId()
     {
-        $this->delete('_id');
+        $this->deletePath('_id');
         return $this;
     }
 
     final private function hasId()
     {
-        return $this->has('_id');
+        return $this->hasPath('_id');
     }
 
     final private function handleSet($root_field_name, $arg1, $arg2)
@@ -622,11 +622,11 @@ class BaseEntity
                 // Kit::ensureDict($field_value); // @CAUTION
                 Kit::ensureArray($field_value);
             }
-            return $this->set($root_field_name, $field_value);
+            return $this->setPath($root_field_name, $field_value);
         } else {
-            $root_field_value = $this->get($root_field_name);
+            $root_field_value = $this->getPath($root_field_name);
             $root_field_value[$field_name] = $field_value;
-            return $this->set($root_field_name, $root_field_value);
+            return $this->setPath($root_field_name, $root_field_value);
         }
     }
 
@@ -635,7 +635,7 @@ class BaseEntity
         if (FALSE === Kit::in($root_field_name, self::$rootFieldNameList))
             throw new UserException('Invalid $root_field_name.', $root_field_name);
         Kit::ensureString($field_name);
-        $root_field_value = $this->get($root_field_name);
+        $root_field_value = $this->getPath($root_field_name);
         return TRUE === isset($root_field_value[$field_name]);
     }
 
@@ -644,7 +644,7 @@ class BaseEntity
         if (FALSE === Kit::in($root_field_name, self::$rootFieldNameList))
             throw new UserException('Invalid $root_field_name.', $root_field_name);
         Kit::ensureString($field_name, TRUE);
-        $root_field_value = $this->get($root_field_name);
+        $root_field_value = $this->getPath($root_field_name);
         if (TRUE === is_null($field_name)) return $root_field_value;
         if (FALSE === isset($root_field_value[$field_name])) {
             if (TRUE === $ensure_existence) {
@@ -654,7 +654,7 @@ class BaseEntity
         } else return $root_field_value[$field_name];
     }
 
-    final private function set($path, $value, $ensure_existence = NULL)
+    final private function setPath($path, $value, $ensure_existence = NULL)
     {
         $this->ensureNotReadOnly();
         Kit::ensureString($path);
@@ -666,7 +666,7 @@ class BaseEntity
         return $this;
     }
 
-    final private function get($path, $ensure_existence = TRUE, $default = NULL)
+    final private function getPath($path, $ensure_existence = TRUE, $default = NULL)
     {
         Kit::ensureString($path);
         Kit::ensureBoolean($ensure_existence);
@@ -676,7 +676,7 @@ class BaseEntity
         return $this->document[$path];
     }
 
-    final private function delete($path, $ensure_existence = TRUE)
+    final private function deletePath($path, $ensure_existence = TRUE)
     {
         $this->ensureNotReadOnly();
         Kit::ensureString($path);
@@ -690,7 +690,7 @@ class BaseEntity
         return $this;
     }
 
-    final private function has($path)
+    final private function hasPath($path)
     {
         Kit::ensureString($path);
         return FALSE === is_null($this->document[$path]);
@@ -698,12 +698,12 @@ class BaseEntity
 
     final private function hasNo($path)
     {
-        return FALSE === $this->has($path);
+        return FALSE === $this->hasPath($path);
     }
 
     final private function ensureHas($path)
     {
-        if (FALSE === $this->has($path))
+        if (FALSE === $this->hasPath($path))
             throw new UserException("\$path($path) does not exist.", $this->document);
         return $this;
     }

@@ -132,7 +132,7 @@ class BaseQuery
     final public function typeIs($type)
     {
         Kit::ensureString($type);
-        return $this->isEqualTo('Meta.Type', $type);
+        return $this->metaFieldIs('Type', $type);
     }
 
     final public function typeIn($type_list)
@@ -143,7 +143,7 @@ class BaseQuery
     final public function stateIs($state)
     {
         Kit::ensureType($state, [ Kit::TYPE_INT, Kit::TYPE_STRING ]);
-        return $this->isEqualTo('Meta.State', $state);
+        return $this->metaFieldIs('State', $state);
     }
 
     final public function stateIn($state_list)
@@ -174,6 +174,11 @@ class BaseQuery
     //     return $this->isGreaterThan('Meta.ModificationTime', $timestamp);
     // }
 
+    final public function metaFieldIs($field_name, $field_value)
+    {
+        Kit::ensureString($field_name);
+        return $this->isEqualTo("Meta.${field_name}", $field_value);
+    }
 
     //==============================================================================
     
@@ -183,6 +188,15 @@ class BaseQuery
         Kit::ensureString($field_name);
         $criterion = [
             $field_name => $field_value,
+        ];
+        return $this->mergeCriterion($criterion);
+    }
+
+    final protected function isNotEqualTo($field_name, $field_value)
+    {
+        Kit::ensureString($field_name);
+        $criterion = [
+            $field_name => [ '$ne' => $field_value ],
         ];
         return $this->mergeCriterion($criterion);
     }
