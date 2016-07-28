@@ -22,6 +22,7 @@ final class RequestLogCore extends BaseCore
      */
     final public function addRequestLog($class_name, $method_name, $response, $code)
     {
+        return $this->ok;
         Kit::ensureIn($code, [ 0, 1, 2, 3 ]);
         $input = Loader::loadInput()->input();
         $uri = $input[0];

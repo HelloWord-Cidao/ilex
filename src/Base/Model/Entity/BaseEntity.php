@@ -267,7 +267,7 @@ class BaseEntity
         return $this;
     }
 
-    final public function copyMultiReferenceFrom(BaseEntity $entity, $reference_name)
+    final protected function copyMultiReferenceFrom(BaseEntity $entity, $reference_name)
     {
         Kit::ensureString($reference_name);
         if (TRUE === $this->hasMultiReference($reference_name))
@@ -341,7 +341,7 @@ class BaseEntity
      * @param boolean $ensure_existence
      * @return List of MongoId or MongoDBId when $to_mongoDB_id is TRUE
      */
-    final public function getMultiReference($reference_name, $to_mongoDB_id = FALSE, $ensure_existence = TRUE)
+    final protected function getMultiReference($reference_name, $to_mongoDB_id = FALSE, $ensure_existence = TRUE)
     {
         Kit::ensureString($reference_name);
         Kit::ensureBoolean($ensure_existence);
@@ -442,7 +442,7 @@ class BaseEntity
      * @param string $reference_name
      * @return MongoDBId|NULL
      */
-    final public function getOneReference($reference_name, $ensure_existence = TRUE)
+    final protected function getOneReference($reference_name, $ensure_existence = TRUE)
     {
         Kit::ensureString($reference_name);
         Kit::ensureBoolean($ensure_existence);
