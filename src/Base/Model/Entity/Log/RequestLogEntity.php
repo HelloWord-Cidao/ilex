@@ -4,6 +4,7 @@ namespace Ilex\Base\Model\Entity\Log;
 
 use \Ilex\Core\Context;
 use \Ilex\Core\Debug;
+use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Base\Model\Entity\BaseEntity;
 
@@ -19,23 +20,14 @@ final class RequestLogEntity extends BaseEntity
         return $this->setMeta('Code', Kit::ensureIn($code, [ 0, 1, 2, 3 ]));
     }
 
-    final public function setRequest($uri)
+    final public function setRequest($request)
     {
-        return $this->setData('Request', [
-            'RequestMethod'    => $_SERVER['REQUEST_METHOD'],
-            'RequestURI'       => Kit::ensureString($uri),
-            'RequestTimestamp' => $_SERVER['REQUEST_TIME'],
-            'RequestTime'      => Kit::fromTimestamp($_SERVER['REQUEST_TIME']),
-            // 'QueryString'      => $_SERVER['QUERY_STRING'],
-            'RemoteIP'         => $_SERVER['REMOTE_ADDR'],
-            'RemotePort'       => $_SERVER['REMOTE_PORT'],
-            // 'ServerPort'       => $_SERVER['SERVER_PORT'],
-        ]);
+        return $this->setData('Request', Kit::ensureArray($request_info));
     }
 
-    final public function setInput($input)
+    final public function setInput()
     {
-        return $this->setData('Input', Kit::ensureArray($input));
+        return $this->setData('Input', Loader::loadInput()->cleanInput());
     }
 
     final public function setHandlerInfo($class_name, $method_name)
@@ -65,5 +57,4 @@ final class RequestLogEntity extends BaseEntity
     {
         return $this->setInfo('UserInfo', Context::me()->getAbstract());
     }
-
 }

@@ -84,7 +84,7 @@ class MongoDBCollection
                 continue;
             }
             if (self::OP_INSERT === $operation['Type']) {
-                $operation['Collection']->deleteTheOnlyOne([ '_id' => $operation['Id'] ], TRUE);
+                $operation['Collection']->removeTheOnlyOne([ '_id' => $operation['Id'] ], TRUE);
             } elseif (self::OP_UPDATE === $operation['Type']) {
                 $operation['Collection']->updateTheOnlyOne([ '_id' => $operation['Document']['_id'] ],
                     $operation['Document'], TRUE);
@@ -94,6 +94,11 @@ class MongoDBCollection
         }
         if (FALSE === $exists_document_not_rollbacked) self::$isChanged = FALSE;
         return TRUE;
+    }
+
+    final public static function getHistory()
+    {
+        return self::$history;
     }
 
     final public static function isChanged()
@@ -158,7 +163,7 @@ class MongoDBCollection
             $this->ensureDocumentHasNoId($document);
         if (FALSE === isset($document['Meta']))
             $document['Meta'] = [];
-        $document['Meta']['CreationTime'] = new MongoDate();
+        $document['Meta']['CreationTime'] = Kit::now();
         
         $result = $this->mongoInsert($document);
         if (FALSE === (bool)$result['status']['ok'] OR TRUE === isset($result['status']['err']))
@@ -172,8 +177,10 @@ class MongoDBCollection
         }
         self::$history[] = [
             'Collection'      => $this,
+            'CollectionName'  => $this->getCollectionName(),
             'Type'            => self::OP_INSERT,
             'Id'              => $result['document']['_id'],
+            'Document'        => $result['document'],
             'CanBeRollbacked' => $can_be_rollbacked,
         ];
         return [
@@ -375,10 +382,10 @@ class MongoDBCollection
                 throw new UserException($msg, $new_document);
             }
             if (FALSE === $is_rollback)
-                $new_document['Meta']['ModificationTime'] = new MongoDate();
+                $new_document['Meta']['ModificationTime'] = Kit::now();
         // } else {
             // if (FALSE === isset($update['$set'])) $update['$set'] = [];
-            // $update['$set']['Meta.ModificationTime'] = new MongoDate();
+            // $update['$set']['Meta.ModificationTime'] = Kit::now();
             // if (TRUE === isset($update['$set']['_id']))
                 // throw new UserException("<${collection_name}>\$update should not set the _id field.", $update);
         // }
@@ -393,8 +400,11 @@ class MongoDBCollection
         }
         self::$history[] = [
             'Collection'      => $this,
+            'CollectionName'  => $this->getCollectionName(),
             'Type'            => self::OP_UPDATE,
+            'Criterion'       => $criterion,
             'Document'        => $document,
+            'Update'          => $new_document,
             'CanBeRollbacked' => $can_be_rollbacked
         ];
         // return $status;
@@ -414,7 +424,7 @@ class MongoDBCollection
      *                                     The operation in MongoCollection::$wtimeout
      *                                     is milliseconds.
      */
-    final protected function deleteTheOnlyOne($criterion, $is_rollback = FALSE)
+    final protected function removeTheOnlyOne($criterion, $is_rollback = FALSE, $can_be_rollbacked = TRUE)
     {
         $collection_name = $this->collectionName;
         $this->ensureInitialized();
@@ -429,9 +439,11 @@ class MongoDBCollection
         }
         self::$history[] = [
             'Collection'      => $this,
+            'CollectionName'  => $this->getCollectionName(),
             'Type'            => self::OP_REMOVE,
+            'Criterion'       => $criterion,
             'Document'        => $document,
-            'CanBeRollbacked' => TRUE, // @CAUTION
+            'CanBeRollbacked' => $can_be_rollbacked,
         ];
         return $status;
     }
@@ -454,7 +466,12 @@ class MongoDBCollection
         Kit::ensureArray($criterion);
         if (TRUE === isset($criterion['_id']) AND (
             (TRUE === Kit::isArray($criterion['_id']) AND
+                TRUE === isset($criterion['_id']['$in']) AND
                 FALSE === Kit::isArray($criterion['_id']['$in'])) 
+            OR
+            (TRUE === Kit::isArray($criterion['_id']) AND
+                TRUE === isset($criterion['_id']['$ne']) AND
+                FALSE === $criterion['_id']['$ne'] instanceof MongoId) 
             OR
             (FALSE === Kit::isArray($criterion['_id']) AND
                 FALSE === $criterion['_id'] instanceof MongoId)

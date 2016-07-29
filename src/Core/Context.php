@@ -22,16 +22,11 @@ final class Context
     
     final public static function trySetCurrentUser()
     {
-        $token = Loader::loadInput()->input('token');
-        if (TRUE === Kit::isString($token) AND '' !== $token) {
-            $class_name = Loader::includeCore('User/User');
-            try {
-                self::$currentUser        = $class_name::getCurrentUser($token);
-                self::$currentInstitution = self::$currentUser->getInstitution()->setReadOnly();
-            } catch (Exception $e) {
-                self::$currentUser        = NULL;
-                self::$currentInstitution = NULL;
-            }
+        try {
+            self::refresh();
+        } catch (Exception $e) {
+            self::$currentUser        = NULL;
+            self::$currentInstitution = NULL;
         }
     }
 
@@ -49,12 +44,20 @@ final class Context
 
     final public static function me()
     {
-        return self::$currentUser->toProperEntity();
+        return self::$currentUser;
     }
 
     final public static function myInstitution()
     {
         return self::$currentInstitution;
+    }
+
+    final public static function refresh()
+    {
+        $token                    = Loader::loadInput()->token();
+        $class_name               = Loader::includeCore('User/User');
+        self::$currentUser        = $class_name::getCurrentUser(Kit::ensureString($token));
+        self::$currentInstitution = self::$currentUser->getInstitution()->setReadOnly();
     }
 
     final public static function myMemorizeMission($ensure_existence = TRUE)

@@ -13,6 +13,7 @@ use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 use \Ilex\Base\Controller\BaseController;
 use \Ilex\Base\Model\Core\BaseCore;
+use \Ilex\Base\Model\Core\Queue\QueueCore;
 use \Ilex\Lib\MongoDB\MongoDBCollection;
 
 /**
@@ -48,14 +49,25 @@ abstract class BaseService extends BaseController
     public function __construct()
     {
         Context::trySetCurrentUser();
+        $this->loadCore('Queue/Queue');
     }
 
     final protected function ensureLogin()
     {
         $user_type_list = func_get_args();
-        if (TRUE === Kit::in('Administrator', $user_type_list)) return; // @TODO: CAUTION
+        if (TRUE === Kit::in('Administrator', $user_type_list)
+            AND 1 === Kit::len($user_type_list)
+            AND FALSE === Context::isLogin([ ])) // Administrator专属API 且当前无用户登录 待删除此逻辑
+            return; // @TODO: CAUTION
         if (FALSE === Context::isLogin($user_type_list))
             throw new UserException('Login failed.');
+        if (0 < Kit::len($user_type_list)) { // 非游客、已登录情形
+            $this->QueueCore->push();
+            while (TRUE === $this->QueueCore->isLocked()) {
+                usleep(QueueCore::T_SLEEP); // sleep 0.1 second 
+            }
+            Context::refresh();
+        }
     }
 
     final protected function loadInput()
@@ -166,11 +178,9 @@ abstract class BaseService extends BaseController
      */
     final private function prepareExecutionRecord($method_name)
     {
-        $input      = $this->loadInput()->input();
+        $input      = $this->loadInput()->cleanInput();
         $class_name = get_called_class();
-        
-        $execution_record = $this->generateExecutionRecord($class_name, $method_name);
-        $execution_record += [
+        $execution_record = $this->generateExecutionRecord($class_name, $method_name) + [
             'input' => $input,
         ];
         return $execution_record;
@@ -395,6 +405,9 @@ abstract class BaseService extends BaseController
         if (TRUE === $close_cgi_only) {
             fastcgi_finish_request();
             // DO NOT exit in order to run the subsequent scripts.
-        } else exit();
+        } else {
+            $this->QueueCore->pop();
+            exit();
+        }
     }
 }

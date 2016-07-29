@@ -1033,6 +1033,11 @@ final class Kit
         return time();
     }
 
+    final public static function microTimestampAtNow()
+    {
+        return microtime(TRUE);
+    }
+
     final public static function daysAfterNow($days)
     {
         self::ensureInt($days);

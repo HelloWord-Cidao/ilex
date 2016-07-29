@@ -81,7 +81,9 @@ class BaseEntityBulk extends Bulk
             if ($is_return_entity !== $item instanceof BaseEntity)
                 throw new UserException('Inconsistent behavior of method.');
         }
-        if (TRUE === $is_return_entity) {
+        if (0 === Kit::len($result)) {
+            return $this;
+        } elseif (TRUE === $is_return_entity) {
             return $this->setEntityList($result);
         } elseif (TRUE === $to_bulk)
             return new Bulk($result);

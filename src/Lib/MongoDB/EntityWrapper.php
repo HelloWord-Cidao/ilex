@@ -54,4 +54,14 @@ final class EntityWrapper extends MongoDBCollection
         $document['_id'] = $id;
         return $document;
     }
+
+    final public function removeTheOnlyOneEntity(BaseEntity $entity)
+    {
+        $id = $entity->getId();
+        if (FALSE === $id instanceof MongoDBId)
+            throw new UserException('$id is not proper in $entity.', $entity);
+        $criterion = [ '_id' => $id->toMongoId() ];
+        $status = $this->removeTheOnlyOne($criterion, FALSE, $entity->canBeRollbacked());
+        return $status;
+    }
 }

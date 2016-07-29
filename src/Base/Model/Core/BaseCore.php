@@ -107,14 +107,14 @@ abstract class BaseCore
         return $this->createQuery()->signatureIs($signature)->getTheOnlyOneEntity();
     }
     
-    final public function getAllEntitiesByMultiReference(BaseEntity $entity, $name = NULL)
+    final public function getAllEntitiesByMultiReference(BaseEntity $entity, $reference_name = NULL)
     {
-        return $this->createQuery()->hasMultiReferenceTo($entity)->getMultiEntities();
+        return $this->createQuery()->hasMultiReferenceTo($entity, $reference_name)->getMultiEntities();
     }
 
-    final public function getAllEntitiesByOneReference(BaseEntity $entity, $name = NULL)
+    final public function getAllEntitiesByOneReference(BaseEntity $entity, $reference_name = NULL)
     {
-        return $this->createQuery()->hasOneReferenceTo($entity)->getMultiEntities();
+        return $this->createQuery()->hasOneReferenceTo($entity, $reference_name)->getMultiEntities();
     }
 
     final public function getAllEntitiesByType($type)

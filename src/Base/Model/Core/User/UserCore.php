@@ -27,6 +27,7 @@ abstract class UserCore extends BaseCore
         try {
             $user = Loader::loadCore(self::ENTITY_PATH)
                 ->getTheOnlyOneEntityById($user_info['userId'])
+                ->toProperEntity()
                 ->setReadOnly();
             return $user;
         } catch (Exception $e) {

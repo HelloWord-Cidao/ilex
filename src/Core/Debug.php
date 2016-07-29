@@ -81,7 +81,6 @@ final class Debug
 
     final public static function initialize()
     {
-        $Input = Loader::loadInput();
         self::$config = [
             'trace' => [
                 '@-1' => self::D_NONE,
@@ -90,7 +89,7 @@ final class Debug
                 '@-1' => self::D_NONE,
             ],
         ];
-        $raw_config = $Input->input('Debug', NULL);
+        $raw_config = Loader::loadInput()->input('Debug', NULL);
         if (TRUE === Kit::isDict($raw_config)) $config = $raw_config;
         elseif (TRUE === is_null($raw_config)) $config = [ ];
         elseif (TRUE === Kit::isString($raw_config, FALSE, TRUE)) {
@@ -106,7 +105,6 @@ final class Debug
             Kit::update(self::$config['trace'], $config['t']);
         if (TRUE === isset($config['e']))
             Kit::update(self::$config['exception'], $config['e']);
-        $Input->deleteInput('Debug');
         self::$executionIdStack     = [];
         self::$executionRecordStack = [];
         self::$startTime            = $_SERVER['REQUEST_TIME_FLOAT'];
@@ -154,6 +152,7 @@ final class Debug
             unset($result['size']);
         }
         Http::json($result);
+        Loader::loadCore('Queue/Queue')->pop();
     }
 
     final public static function isErrorCared($error)
@@ -234,7 +233,7 @@ final class Debug
     {
         Kit::ensureIn($unit, [ self::T_MICROSECOND, self::T_MILLISECOND, self::T_SECOND, self::T_MINUTE ]);
         Kit::ensureBoolean($to_string);
-        $result = microtime(TRUE) - self::$startTime;
+        $result = Kit::microTimestampAtNow() - self::$startTime;
         $result *= [
             self::T_MICROSECOND => 1000 * 1000,
             self::T_MILLISECOND => 1000,

@@ -28,7 +28,6 @@ use \Ilex\Lib\UserException;
  * @method final public static array   missPost(array $key_list)
  * @method final public static mixed   post(string $key = NULL, mixed $default = NULL)
  * @method final public static mixed   setInput(mixed $key, mixed $value)
- * @method final public static boolean deleteInput(mixed $key)
  */
 final class Input
 {
@@ -58,7 +57,27 @@ final class Input
         $limit = 100000;
         if (Kit::len(json_encode(self::input())) > $limit) 
             throw new UserException("Input size exceeds limit($limit).");
-        self::deleteInput('_url');
+    }
+
+    final public static function uri()
+    {
+        return Kit::ensureString(self::input()[0]);
+    }
+
+    final public static function token()
+    {
+        return self::input('token');
+    }
+
+    final public static function cleanInput()
+    {
+        $result = self::input();
+        unset($result[0]);
+        unset($result['_url']);
+        unset($result['token']);
+        unset($result['error']);
+        unset($result['Debug']);
+        return $result;
     }
 
     /**
@@ -121,7 +140,6 @@ final class Input
     final public static function input($key = NULL, $default = NULL)
     {
         return self::$inputData->get($key, $default);
-
     }
 
     /**
@@ -152,15 +170,6 @@ final class Input
     final public static function setInput($key, $value)
     {
         return self::$inputData->set($key, $value);
-    }
-
-    /**
-     * @param string $key
-     * @return boolean
-     */
-    final public static function deleteInput($key)
-    {
-        return self::$inputData->delete($key);
     }
 
     /**

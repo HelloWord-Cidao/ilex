@@ -496,6 +496,18 @@ class BaseEntity
     {
         return Kit::toTimestamp($this->getMeta('ModificationTime'));
     }
+
+    final public function remove()
+    {
+        return $this
+            ->setMeta('IsRemoved', TRUE)
+            ->setMeta('RemovalTime', Kit::now());
+    }
+
+    final public function isRemoved()
+    {
+        return $this->getMeta('IsRemoved');
+    }
     
     final public function setMeta($arg1 = NULL, $arg2 = Kit::TYPE_VACANCY)
     {
@@ -530,7 +542,6 @@ class BaseEntity
     {
         $this->ensureNotReadOnly();
         if (FALSE === $this->isInCollection) {
-            // var_dump([$this->isInCollection, $this->name, $this->document]);
             $msg = 'Can not update to collection, because the entity is not in the collection.';
             throw new UserException($msg, $this);
         }
@@ -538,6 +549,23 @@ class BaseEntity
         $this->setMeta('ModificationTime', $document['Meta']['ModificationTime']);
         $this->sameAsCollection();
         return $this;
+    }
+
+    final public function removeFromCollection()
+    {
+        $this->ensureNotReadOnly();
+        if (FALSE === $this->isInCollection) {
+            $msg = 'Can not remove from collection, because the entity is not in the collection.';
+            throw new UserException($msg, $this);
+        }
+        $status = $this->entityWrapper->removeTheOnlyOneEntity($this);
+        $meta = $this->getMeta();
+        unset($meta['CreationTime']);
+        unset($meta['ModificationTime']);
+        return $this
+            ->deleteId()
+            ->setMeta($meta)
+            ->notInCollection();
     }
 
     // ====================================================================================
@@ -581,11 +609,6 @@ class BaseEntity
     {
         $this->deletePath('_id');
         return $this;
-    }
-
-    final private function hasId()
-    {
-        return $this->hasPath('_id');
     }
 
     final private function handleSet($root_field_name, $arg1, $arg2)

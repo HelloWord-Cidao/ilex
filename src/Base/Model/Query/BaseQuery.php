@@ -67,6 +67,12 @@ class BaseQuery
         return $this->isEqualTo('_id', $id->toMongoId());
     }
 
+    final public function idIsNot($id)
+    {
+        $id = new MongoDBId($id);
+        return $this->isNotEqualTo('_id', $id->toMongoId());
+    }
+
     // O(N) when $to_mongo_id is TRUE
     final public function idIn($id_list, $to_mongo_id = FALSE)
     {
@@ -115,18 +121,20 @@ class BaseQuery
         return $this->isEqualTo('Info', $field_value);
     }
 
-    final public function hasMultiReferenceTo(BaseEntity $entity, $name = NULL)
+    final public function hasMultiReferenceTo(BaseEntity $entity, $reference_name = NULL)
     {
-        if (TRUE === is_null($name)) $name = $entity->getEntityName();
-        else Kit::ensureString($name);
-        return $this->isEqualTo("Reference.${name}IdList", $entity->getId()->toMongoId());
+        if (TRUE === is_null($reference_name))
+            $reference_name = $entity->getEntityName();
+        else Kit::ensureString($reference_name);
+        return $this->isEqualTo("Reference.${reference_name}IdList", $entity->getId()->toMongoId());
     }
     
-    final public function hasOneReferenceTo(BaseEntity $entity, $name = NULL)
+    final public function hasOneReferenceTo(BaseEntity $entity, $reference_name = NULL)
     {
-        if (TRUE === is_null($name)) $name = $entity->getEntityName();
-        else Kit::ensureString($name);
-        return $this->isEqualTo("Reference.${name}Id", $entity->getId()->toMongoId());
+        if (TRUE === is_null($reference_name))
+            $reference_name = $entity->getEntityName();
+        else Kit::ensureString($reference_name);
+        return $this->isEqualTo("Reference.${reference_name}Id", $entity->getId()->toMongoId());
     }
 
     final public function typeIs($type)
@@ -173,6 +181,16 @@ class BaseQuery
     //     // @TODO: $timestamp
     //     return $this->isGreaterThan('Meta.ModificationTime', $timestamp);
     // }
+
+    final public function isNotRemoved()
+    {
+        return $this->isNotEqualTo('Meta.IsRemoved', TRUE);
+    }
+    
+    final public function isRemoved()
+    {
+        return $this->metaFieldIs('IsRemoved', TRUE);
+    }
 
     final public function metaFieldIs($field_name, $field_value)
     {
