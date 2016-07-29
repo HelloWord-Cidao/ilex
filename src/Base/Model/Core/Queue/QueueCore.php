@@ -41,16 +41,27 @@ final class QueueCore extends BaseCore
         self::$isPushed = TRUE;
     }
 
-    final public function popExpiredItems()
+    final public function getPushingTimestamp()
     {
-        $this->createQuery()
-            ->isNotInQueue()
-            ->getMultiEntities()
-            ->batch('doNotRollback')
-            ->batch('removeFromCollection');
+        $this->ensurePushed();
+        return self::$pushingTimestamp;
     }
 
-    final public function isLocked()
+    final public function hasItemsAhead()
+    {
+        return $this
+            ->queryItemsAhead()
+            ->checkExistEntities();
+    }
+
+    final public function getItemsAhead()
+    {
+        return $this
+            ->queryItemsAhead()
+            ->getMultiEntities();
+    }
+
+    final private function queryItemsAhead()
     {
         return $this
             ->ensurePushed()
@@ -60,7 +71,7 @@ final class QueueCore extends BaseCore
             ->idIsNot(self::$queueId)
             ->isInLock()
             ->pushedBefore(self::$pushingTimestamp)
-            ->checkExistEntities();
+            ->sortByPushingTime();
     }
 
     final public function pop()
@@ -74,6 +85,15 @@ final class QueueCore extends BaseCore
             ->updateToCollection();
         self::$isPopped = TRUE;
         $this->popExpiredItems();
+    }
+
+    final private function popExpiredItems()
+    {
+        $this->createQuery()
+            ->isNotInQueue()
+            ->getMultiEntities()
+            ->batch('doNotRollback')
+            ->batch('removeFromCollection');
     }
 
     final public function ensurePushed()

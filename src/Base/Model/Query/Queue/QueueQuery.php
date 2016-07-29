@@ -42,4 +42,9 @@ final class QueueQuery extends BaseQuery
     {
         return $this->metaFieldIs('IsInQueue', FALSE);
     }
+
+    final public function sortByPushingTime($direction = 1)
+    {
+        return $this->sortBy('Info.PushingTimestamp', $direction);
+    }
 }

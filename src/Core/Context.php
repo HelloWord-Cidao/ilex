@@ -59,12 +59,4 @@ final class Context
         self::$currentUser        = $class_name::getCurrentUser(Kit::ensureString($token));
         self::$currentInstitution = self::$currentUser->getInstitution()->setReadOnly();
     }
-
-    final public static function myMemorizeMission($ensure_existence = TRUE)
-    {
-        $active_memorize_mission = self::me()->ensureStudent()->getActiveMemorizeMission();
-        if (TRUE === $ensure_existence AND TRUE === is_null($active_memorize_mission))
-            throw new UserException('Active memorize mission not set.');
-        return $active_memorize_mission;
-    }
 }

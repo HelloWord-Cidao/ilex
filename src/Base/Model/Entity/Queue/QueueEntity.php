@@ -13,6 +13,14 @@ use \Ilex\Base\Model\Entity\BaseEntity;
  */
 final class QueueEntity extends BaseEntity
 {
+    final public function getAbstract()
+    {
+        return [
+            'RequestURI'       => $this->getData('RequestInfo')['RequestURI'],
+            'PushingTimestamp' => $this->getInfo('PushingTimestamp'),
+        ];
+    }
+
     final public function setRequestInfo()
     {
         return $this->setData('RequestInfo', RequestLogCore::generateRequestInfo());

@@ -63,7 +63,12 @@ abstract class BaseService extends BaseController
             throw new UserException('Login failed.');
         if (0 < Kit::len($user_type_list)) { // 非游客、已登录情形
             $this->QueueCore->push();
-            while (TRUE === $this->QueueCore->isLocked()) {
+            while (TRUE === $this->QueueCore->hasItemsAhead()) {
+                // Debug::monitor('Waited', [
+                //     'now'   => Kit::microTimestampAtNow(),
+                //     'me'    => $this->QueueCore->getPushingTimestamp(),
+                //     'ahead' => $this->QueueCore->getItemsAhead()->batch('getAbstract'),
+                // ], TRUE);
                 usleep(QueueCore::T_SLEEP); // sleep 0.1 second 
             }
             Context::refresh();
