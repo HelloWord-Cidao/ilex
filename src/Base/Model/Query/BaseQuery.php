@@ -123,17 +123,17 @@ class BaseQuery
 
     final public function hasMultiReferenceTo(BaseEntity $entity, $reference_name = NULL)
     {
+        Kit::ensureString($reference_name, TRUE);
         if (TRUE === is_null($reference_name))
             $reference_name = $entity->getEntityName();
-        else Kit::ensureString($reference_name);
         return $this->isEqualTo("Reference.${reference_name}IdList", $entity->getId()->toMongoId());
     }
     
     final public function hasOneReferenceTo(BaseEntity $entity, $reference_name = NULL)
     {
+        Kit::ensureString($reference_name, TRUE);
         if (TRUE === is_null($reference_name))
             $reference_name = $entity->getEntityName();
-        else Kit::ensureString($reference_name);
         return $this->isEqualTo("Reference.${reference_name}Id", $entity->getId()->toMongoId());
     }
 
@@ -304,16 +304,16 @@ class BaseQuery
 
     final public function skip($skip = NULL)
     {
+        Kit::ensureNonNegativeInt($skip, TRUE);
         if (TRUE === is_null($skip)) return $this->skip;
-        Kit::ensureNonNegativeInt($skip);
         $this->skip = $skip;
         return $this;
     }
 
     final public function limit($limit = NULL)
     {
+        Kit::ensureInt($limit, TRUE);
         if (TRUE === is_null($limit)) return $this->limit;
-        Kit::ensureInt($limit);
         $this->limit = $limit;
         return $this;
     }

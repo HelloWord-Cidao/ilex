@@ -275,9 +275,9 @@ abstract class BaseService extends BaseController
 
     final private function setResult($type, $name, $value, $is_list)
     {
-        if (FALSE === Kit::in($type, [ 'data', 'status', 'process' ]))
-            throw new UserException('Invalid $type.', $type);
+        Kit::ensureIn($type, [ 'data', 'status', 'process' ]);
         Kit::ensureString($name);
+        Kit::ensureBoolean($is_list);
         if ('' === $name)
             throw new UserException('$name is an empty string.', $type);
         if (TRUE === isset($this->result[$type][$name])) {

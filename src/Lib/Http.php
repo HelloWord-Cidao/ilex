@@ -56,9 +56,9 @@ final class Http
         curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
         curl_setopt_array($curl, $opts);
 
-        $data = curl_exec($curl);
+        $result = curl_exec($curl);
         curl_close($curl);
 
-        return $data;
+        return $result;
     }
 }

@@ -24,9 +24,7 @@ abstract class BaseCore
 
     final private function includeQuery()
     {
-        Kit::ensureString(static::ENTITY_PATH);
-        $this->queryClassName = Loader::includeQuery(static::ENTITY_PATH);
-        Kit::ensureString($this->queryClassName);
+        $this->queryClassName = Kit::ensureString(Loader::includeQuery(Kit::ensureString(static::ENTITY_PATH)));
     }
 
     final public function createQuery()
@@ -34,15 +32,13 @@ abstract class BaseCore
         if (TRUE === is_null($this->queryClassName))
             $this->includeQuery();
         $query_class_name = $this->queryClassName;
-        Kit::ensureString(static::COLLECTION_NAME, TRUE);
-        return new $query_class_name(static::COLLECTION_NAME, static::ENTITY_PATH);
+        return new $query_class_name(Kit::ensureString(static::COLLECTION_NAME, TRUE),
+            Kit::ensureString(static::ENTITY_PATH));
     }
 
     final private function includeEntity()
     {
-        Kit::ensureString(static::ENTITY_PATH);
-        $this->entityClassName = Loader::includeEntity(static::ENTITY_PATH);
-        Kit::ensureString($this->entityClassName);
+        $this->entityClassName = Kit::ensureString(Loader::includeEntity(Kit::ensureString(static::ENTITY_PATH)));
     }
 
     final public function createEntity()
@@ -50,8 +46,8 @@ abstract class BaseCore
         if (TRUE === is_null($this->entityClassName))
             $this->includeEntity();
         $entity_class_name = $this->entityClassName;
-        Kit::ensureString(static::COLLECTION_NAME, TRUE);
-        return new $entity_class_name(static::COLLECTION_NAME, static::ENTITY_PATH, FALSE);
+        return new $entity_class_name(Kit::ensureString(static::COLLECTION_NAME, TRUE),
+            Kit::ensureString(static::ENTITY_PATH), FALSE);
     }
 
     // ====================================================================================

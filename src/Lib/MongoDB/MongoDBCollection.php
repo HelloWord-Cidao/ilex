@@ -159,6 +159,8 @@ class MongoDBCollection
         $collection_name = $this->collectionName;
         // Kit::ensureDict($document); // @CAUTION
         Kit::ensureArray($document);
+        Kit::ensureBoolean($is_rollback);
+        Kit::ensureBoolean($can_be_rollbacked);
         if (FALSE === $is_rollback)
             $this->ensureDocumentHasNoId($document);
         if (FALSE === isset($document['Meta']))
@@ -365,12 +367,13 @@ class MongoDBCollection
     final protected function updateTheOnlyOne($criterion, $update, $is_rollback = FALSE, $can_be_rollbacked = TRUE)
     {
         $collection_name = $this->collectionName;
-        $new_document = $update; // @CAUTION
+        // Kit::ensureDict($new_document); // @CAUTION
+        $new_document = Kit::ensureArray($update); // @CAUTION
         // Kit::ensureDict($criterion); // @CAUTION
         Kit::ensureArray($criterion);
-        // Kit::ensureDict($new_document); // @CAUTION
-        Kit::ensureArray($new_document);
         // Kit::ensureBoolean($is_document);
+        Kit::ensureBoolean($is_rollback);
+        Kit::ensureBoolean($can_be_rollbacked);
         $this->ensureCriterionHasProperId($criterion);
         $document = $this->getTheOnlyOne($criterion);
         // if (TRUE === $is_document) {
@@ -430,6 +433,8 @@ class MongoDBCollection
         $this->ensureInitialized();
         // Kit::ensureDict($criterion); // @CAUTION
         Kit::ensureArray($criterion);
+        Kit::ensureBoolean($is_rollback);
+        Kit::ensureBoolean($can_be_rollbacked);
         $this->ensureCriterionHasProperId($criterion);
         $document = $this->getTheOnlyOne($criterion);
         $status = $this->mongoRemove($criterion, FALSE);

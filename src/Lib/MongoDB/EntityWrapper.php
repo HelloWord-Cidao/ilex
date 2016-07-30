@@ -19,6 +19,7 @@ final class EntityWrapper extends MongoDBCollection
 
     final public static function getInstance($collection_name, $entity_path)
     {
+        Kit::ensureString($collection_name);
         Kit::ensureString($entity_path);
         if (FALSE === isset(self::$entityWrapperContainer))
             self::$entityWrapperContainer = new Container();
