@@ -262,14 +262,11 @@ abstract class BaseService extends BaseController
                 return $this->getResult($type, $name);
             // (valid, valid/NULL)
             return $this->setResult($type, $name, $value, $is_list);
-        } elseif (TRUE === is_null($name)) {
+        } else {
             if (TRUE === Kit::isVacancy($value)) // (NULL) / ()
                 return $this->getResult($type, NULL);
             // (NULL, valid/NULL)
             throw new UserException('Invalid $value when $name is NULL.', $value);
-        } else {
-            // (invalid, valid/NULL/empty)
-            throw new UserException('Invalid $name.', $name);
         }
     }
 

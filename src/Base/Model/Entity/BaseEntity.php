@@ -294,7 +294,7 @@ class BaseEntity
     {
         Kit::ensureString($reference_name);
         Kit::ensureString($entity_path);
-        Kit::ensureString($ensure_existence);
+        Kit::ensureBoolean($ensure_existence);
         return $this->loadCore($entity_path)
             ->getAllEntitiesByIdList($this->getMultiReference($reference_name, FALSE, $ensure_existence));
     }
@@ -303,7 +303,7 @@ class BaseEntity
     final public function hasMultiReferenceTo(BaseEntity $entity, $reference_name = NULL, $ensure_existence = FALSE) // @CAUTION
     {
         Kit::ensureString($reference_name, TRUE);
-        Kit::ensureString($ensure_existence);
+        Kit::ensureBoolean($ensure_existence);
         if (TRUE === is_null($reference_name))
             $reference_name = $entity->getEntityName();
         $reference = $this->getMultiReference($reference_name, FALSE, $ensure_existence); // List
@@ -427,7 +427,7 @@ class BaseEntity
 
     final public function ensureHasOneReferenceTo(BaseEntity $entity, $reference_name = NULL)
     {
-        Kit::ensureString($reference_name, TRUE)
+        Kit::ensureString($reference_name, TRUE);
         if (FALSE === $this->hasOneReferenceTo($entity, $reference_name)) {
             $msg = 'This entity does not have one reference to the entity.';
             throw new UserException($msg, [ $entity->getName(), $reference_name ]);
@@ -649,8 +649,7 @@ class BaseEntity
 
     final private function setDocument($root_field_name, $field_name, $field_value, $ensure_dict = TRUE)
     {
-        if (FALSE === Kit::in($root_field_name, self::$rootFieldNameList))
-            throw new UserException('Invalid $root_field_name.', $root_field_name);
+        Kit::ensureIn($root_field_name, self::$rootFieldNameList);
         Kit::ensureString($field_name, TRUE);
         Kit::ensureBoolean($ensure_dict);
         if ('' === $field_name)
@@ -670,8 +669,7 @@ class BaseEntity
 
     final private function hasDocument($root_field_name, $field_name)
     {
-        if (FALSE === Kit::in($root_field_name, self::$rootFieldNameList))
-            throw new UserException('Invalid $root_field_name.', $root_field_name);
+        Kit::ensureIn($root_field_name, self::$rootFieldNameList);
         Kit::ensureString($field_name);
         $root_field_value = $this->getPath($root_field_name);
         return TRUE === isset($root_field_value[$field_name]);
@@ -679,8 +677,7 @@ class BaseEntity
 
     final private function getDocument($root_field_name, $field_name, $ensure_existence = TRUE, $default = NULL)
     {
-        if (FALSE === Kit::in($root_field_name, self::$rootFieldNameList))
-            throw new UserException('Invalid $root_field_name.', $root_field_name);
+        Kit::ensureIn($root_field_name, self::$rootFieldNameList);
         Kit::ensureString($field_name, TRUE);
         Kit::ensureBoolean($ensure_existence);
         $root_field_value = $this->getPath($root_field_name);

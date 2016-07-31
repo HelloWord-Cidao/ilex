@@ -89,11 +89,10 @@ final class Input
     {
         Kit::ensureString($name, TRUE);
         if (FALSE === is_null($name)) {
-            if (TRUE === Kit::in($name, ['get', 'post', 'input'])) {
-                $name .= 'Data';
-                self::$$name->clear();
-                return TRUE;
-            } else throw new UserException("Invalid \$name($name).");
+            Kit::ensureIn($name, ['get', 'post', 'input']);
+            $name .= 'Data';
+            self::$$name->clear();
+            return TRUE;
         } else {
             self::$getData->clear();
             self::$postData->clear();
