@@ -91,10 +91,10 @@ class BaseQuery
         return $this->isEqualTo('Signature', $signature);
     }
 
-    final public function dataIs($field_value)
+    final public function hasDataField($field_name)
     {
-        Kit::ensureArray($field_value);
-        return $this->isEqualTo("Data", $field_value);
+        Kit::ensureString($field_name);
+        return $this->hasField("Data.${field_name}");
     }
 
     final public function dataFieldIs($field_name, $field_value)
@@ -103,10 +103,22 @@ class BaseQuery
         return $this->isEqualTo("Data.${field_name}", $field_value);
     }
 
+    final public function dataIs($field_value)
+    {
+        Kit::ensureArray($field_value);
+        return $this->isEqualTo("Data", $field_value);
+    }
+
     final public function nameIs($name)
     {
         Kit::ensureString($name);
         return $this->infoFieldIs('Name', $name);
+    }
+
+    final public function hasInfoField($field_name)
+    {
+        Kit::ensureString($field_name);
+        return $this->hasField("Info.${field_name}");
     }
 
     final public function infoFieldIs($field_name, $field_value)
@@ -192,6 +204,12 @@ class BaseQuery
         return $this->metaFieldIs('IsRemoved', TRUE);
     }
 
+    final public function hasMetaField($field_name)
+    {
+        Kit::ensureString($field_name);
+        return $this->hasField("Meta.${field_name}");
+    }
+
     final public function metaFieldIs($field_name, $field_value)
     {
         Kit::ensureString($field_name);
@@ -200,6 +218,14 @@ class BaseQuery
 
     //==============================================================================
     
+    final protected function hasField($field_name)
+    {
+        Kit::ensureString($field_name);
+        $criterion = [
+            $field_name => [ '$exists' => TRUE ],
+        ];
+        return $this->mergeCriterion($criterion);
+    }
 
     final protected function isEqualTo($field_name, $field_value)
     {
