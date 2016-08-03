@@ -91,12 +91,12 @@ class MongoDBCollection
                 continue;
             }
             if (self::OP_INSERT === $operation['Type']) {
-                $operation['Collection']->removeTheOnlyOne([ '_id' => $operation['Id'] ], TRUE);
+                $operation['Collection']->removeTheOnlyOne([ '_id' => $operation['Id'] ], TRUE, FALSE);
             } elseif (self::OP_UPDATE === $operation['Type']) {
                 $operation['Collection']->updateTheOnlyOne([ '_id' => $operation['Document']['_id'] ],
-                    $operation['Document'], TRUE);
+                    $operation['Document'], TRUE, FALSE);
             } elseif (self::OP_REMOVE === $operation['Type']) {
-                $operation['Collection']->addOne($operation['Document'], TRUE);
+                $operation['Collection']->addOne($operation['Document'], TRUE, FALSE);
             }
         }
         if (FALSE === $exists_document_not_rollbacked) self::$isChanged = FALSE;
@@ -184,7 +184,9 @@ class MongoDBCollection
         Kit::ensureBoolean($is_rollback);
         Kit::ensureBoolean($can_be_rollbacked);
         if (FALSE === $is_rollback) {
-            self::ensureCanBeChanged();
+            // if (TRUE === $can_be_rollbacked) { // @CAUTION: RequestLogEntity
+                self::ensureCanBeChanged();
+            // }
             $this->ensureDocumentHasNoId($document);
         }
         if (FALSE === isset($document['Meta']))
@@ -399,7 +401,9 @@ class MongoDBCollection
         Kit::ensureBoolean($is_rollback);
         Kit::ensureBoolean($can_be_rollbacked);
         if (FALSE === $is_rollback) {
-            self::ensureCanBeChanged();
+            // if (TRUE === $can_be_rollbacked) { // @CAUTION: 
+                self::ensureCanBeChanged();
+            // }
             $this->ensureDocumentHasNoId($new_document);
         }
         $this->ensureCriterionHasProperId($criterion);
@@ -454,7 +458,8 @@ class MongoDBCollection
         Kit::ensureArray($criterion);
         Kit::ensureBoolean($is_rollback);
         Kit::ensureBoolean($can_be_rollbacked);
-        if (FALSE === $is_rollback) {
+        if (FALSE === $is_rollback
+            AND TRUE === $can_be_rollbacked) { // @CAUTION: pop QueueEntity when code != 2, RequestLogEntity
             self::ensureCanBeChanged();
         }
         $this->ensureCriterionHasProperId($criterion);
