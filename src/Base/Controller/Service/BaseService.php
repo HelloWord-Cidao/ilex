@@ -374,7 +374,7 @@ abstract class BaseService extends BaseController
             $this->result['database'] = [];
             if (2 !== $this->getCode()) {
                 $this->result['database']['rollbacked'] = MongoDBCollection::rollback();
-            } else $this->result['database']['rollbacked'] = FALSE;
+            } else $this->result['database']['rollbacked'] = MongoDBCollection::isRollbacked();
             $this->result['database']['changed'] = MongoDBCollection::isChanged();
             Debug::updateExecutionRecord($execution_id, $execution_record);
             Debug::popExecutionId($execution_id);

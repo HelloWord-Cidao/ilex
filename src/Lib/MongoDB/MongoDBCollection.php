@@ -70,13 +70,20 @@ class MongoDBCollection
 
     protected $collectionName = NULL;
 
-    private        $collection = NULL;
-    private static $isChanged  = FALSE;
-    private static $history    = [];
+    private        $collection   = NULL;
+    private static $isRollbacked = NULL;
+    private static $canBeChanged = TRUE;
+    private static $isChanged    = FALSE;
+    private static $history      = [];
 
     final public static function rollback()
     {
-        if (0 === Kit::len(self::$history)) return FALSE;
+        self::$canBeChanged = FALSE;
+        if (FALSE === is_null(self::$isRollbacked)) return self::$isRollbacked;
+        if (0 === Kit::len(self::$history)) {
+            self::$isRollbacked = FALSE;
+            return FALSE;
+        }
         $exists_document_not_rollbacked = FALSE;
         foreach (Kit::reversed(self::$history) as $operation) {
             if (FALSE === $operation['CanBeRollbacked']) {
@@ -93,6 +100,7 @@ class MongoDBCollection
             }
         }
         if (FALSE === $exists_document_not_rollbacked) self::$isChanged = FALSE;
+        self::$isRollbacked = TRUE;
         return TRUE;
     }
 
@@ -101,9 +109,23 @@ class MongoDBCollection
         return self::$history;
     }
 
+    final public static function isRollbacked()
+    {
+        if (TRUE === is_null(self::$isRollbacked))
+            return FALSE;
+        return self::$isRollbacked;
+    }
+
     final public static function isChanged()
     {
         return self::$isChanged;
+    }
+
+
+    final private static function ensureCanBeChanged()
+    {
+        if (FALSE === self::$canBeChanged)
+            throw new UserException('MongoDB can not be changed.');
     }
 
     protected function __construct($collection_name)
@@ -161,8 +183,10 @@ class MongoDBCollection
         Kit::ensureArray($document);
         Kit::ensureBoolean($is_rollback);
         Kit::ensureBoolean($can_be_rollbacked);
-        if (FALSE === $is_rollback)
+        if (FALSE === $is_rollback) {
+            self::ensureCanBeChanged();
             $this->ensureDocumentHasNoId($document);
+        }
         if (FALSE === isset($document['Meta']))
             $document['Meta'] = [];
         $document['Meta']['CreationTime'] = Kit::now();
@@ -374,31 +398,26 @@ class MongoDBCollection
         // Kit::ensureBoolean($is_document);
         Kit::ensureBoolean($is_rollback);
         Kit::ensureBoolean($can_be_rollbacked);
+        if (FALSE === $is_rollback) {
+            self::ensureCanBeChanged();
+            $this->ensureDocumentHasNoId($new_document);
+        }
         $this->ensureCriterionHasProperId($criterion);
         $document = $this->getTheOnlyOne($criterion);
-        // if (TRUE === $is_document) {
-            if (FALSE === $is_rollback)
-                $this->ensureDocumentHasNoId($new_document);
-            if (FALSE === isset($new_document['Meta']) 
-                OR FALSE === isset($new_document['Meta']['CreationTime'])){
-                $msg = "<${collection_name}>\$new_document has no Meta or Meta.CreationTime field as a document.";
-                throw new UserException($msg, $new_document);
-            }
-            if (FALSE === $is_rollback)
-                $new_document['Meta']['ModificationTime'] = Kit::now();
-        // } else {
-            // if (FALSE === isset($update['$set'])) $update['$set'] = [];
-            // $update['$set']['Meta.ModificationTime'] = Kit::now();
-            // if (TRUE === isset($update['$set']['_id']))
-                // throw new UserException("<${collection_name}>\$update should not set the _id field.", $update);
-        // }
+        if (FALSE === isset($new_document['Meta']) 
+            OR FALSE === isset($new_document['Meta']['CreationTime'])){
+            $msg = "<${collection_name}>\$new_document has no Meta or Meta.CreationTime field as a document.";
+            throw new UserException($msg, $new_document);
+        }
+        if (FALSE === $is_rollback)
+            $new_document['Meta']['ModificationTime'] = Kit::now();
         $status = $this->mongoUpdate($criterion, $new_document, FALSE);
         if (FALSE === $this->validateOperationStatus($status)) {
             if (FALSE === $is_rollback) {
                 $msg = "<${collection_name}>MongoDBCollection update operation failed.";
                 throw new UserException($msg, [ $status, $criterion, $new_document ]);
             } else {
-                // @TODO
+                // @TODO!!
             }
         }
         self::$history[] = [
@@ -435,6 +454,9 @@ class MongoDBCollection
         Kit::ensureArray($criterion);
         Kit::ensureBoolean($is_rollback);
         Kit::ensureBoolean($can_be_rollbacked);
+        if (FALSE === $is_rollback) {
+            self::ensureCanBeChanged();
+        }
         $this->ensureCriterionHasProperId($criterion);
         $document = $this->getTheOnlyOne($criterion);
         $status = $this->mongoRemove($criterion, FALSE);
