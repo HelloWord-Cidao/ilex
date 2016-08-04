@@ -87,7 +87,7 @@ class MongoDBCollection
         $exists_document_not_rollbacked = FALSE;
         foreach (Kit::reversed(self::$history) as $operation) {
             if (FALSE === $operation['CanBeRollbacked']) {
-                $exists_document_not_rollbacked = TRUE;
+                // $exists_document_not_rollbacked = TRUE; // @CAUTION
                 continue;
             }
             if (self::OP_INSERT === $operation['Type']) {
@@ -99,7 +99,7 @@ class MongoDBCollection
                 $operation['Collection']->addOne($operation['Document'], TRUE, FALSE);
             }
         }
-        if (FALSE === $exists_document_not_rollbacked) self::$isChanged = FALSE;
+        if (FALSE === $exists_document_not_rollbacked) self::$isChanged = FALSE; // @CAUTION
         self::$isRollbacked = TRUE;
         return TRUE;
     }
@@ -211,6 +211,7 @@ class MongoDBCollection
             'Document'        => $result['document'],
             'CanBeRollbacked' => $can_be_rollbacked,
         ];
+        if (TRUE === $is_rollback OR FALSE === $can_be_rollbacked) self::$isChanged = TRUE; // @CAUTION
         return [
             'document' => $result['document'],
             'status'   => $result['status'],
@@ -400,8 +401,8 @@ class MongoDBCollection
         // Kit::ensureBoolean($is_document);
         Kit::ensureBoolean($is_rollback);
         Kit::ensureBoolean($can_be_rollbacked);
-        if (FALSE === $is_rollback) {
-            // if (TRUE === $can_be_rollbacked) { // @CAUTION: 
+        if (FALSE === $is_rollback
+            AND TRUE === $can_be_rollbacked) { // @CAUTION: pop QueueEntity when code != 2
                 self::ensureCanBeChanged();
             // }
             $this->ensureDocumentHasNoId($new_document);
@@ -433,6 +434,7 @@ class MongoDBCollection
             'Update'          => $new_document,
             'CanBeRollbacked' => $can_be_rollbacked
         ];
+        if (TRUE === $is_rollback OR FALSE === $can_be_rollbacked) self::$isChanged = TRUE; // @CAUTION
         // return $status;
         return $new_document; // @CAUTION
     }
@@ -459,7 +461,7 @@ class MongoDBCollection
         Kit::ensureBoolean($is_rollback);
         Kit::ensureBoolean($can_be_rollbacked);
         if (FALSE === $is_rollback
-            AND TRUE === $can_be_rollbacked) { // @CAUTION: pop QueueEntity when code != 2, RequestLogEntity
+            AND TRUE === $can_be_rollbacked) { // @CAUTION: pop QueueEntity when code != 2
             self::ensureCanBeChanged();
         }
         $this->ensureCriterionHasProperId($criterion);
@@ -477,6 +479,7 @@ class MongoDBCollection
             'Document'        => $document,
             'CanBeRollbacked' => $can_be_rollbacked,
         ];
+        if (TRUE === $is_rollback OR FALSE === $can_be_rollbacked) self::$isChanged = TRUE; // @CAUTION
         return $status;
     }
 
@@ -563,7 +566,6 @@ class MongoDBCollection
         } catch (Exception $e) {
             throw new UserException($e->getMessage(), [ 'Document' => $document ], $e);
         }
-        self::$isChanged = TRUE;
         return [
             'document' => $document,
             'status'   => $status,
@@ -724,7 +726,6 @@ class MongoDBCollection
                 'Options'   => $options,
             ], $e);
         }
-        self::$isChanged = TRUE;
         return $status;
     }
 
@@ -760,7 +761,6 @@ class MongoDBCollection
                 'Options'   => $options,
             ], $e);
         }
-        self::$isChanged = TRUE;
         return $status;
     }
 }
