@@ -82,6 +82,7 @@ abstract class BaseCore
     {
         return $this->createQuery()->all()->countEntities();
     }
+    
     final public function getAllEntities()
     {
         return $this->createQuery()->all()->getMultiEntities();

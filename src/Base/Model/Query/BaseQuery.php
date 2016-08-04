@@ -216,6 +216,14 @@ class BaseQuery
         return $this->isEqualTo("Meta.${field_name}", $field_value);
     }
 
+    final public function timeFieldInToday($time_field_name)
+    {
+        Kit::ensureString($time_field_name);
+        return $this
+            ->isGreaterThanOrEqualTo($time_field_name, Kit::todayStartTime())
+            ->isLessThan($time_field_name, Kit::todayEndTime());
+    }
+
     //==============================================================================
     
     final protected function hasField($field_name)

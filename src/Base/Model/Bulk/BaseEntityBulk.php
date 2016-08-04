@@ -67,7 +67,7 @@ class BaseEntityBulk extends Bulk
         return parent::append($entity);
     }
 
-    final public function batch($method_name, $to_bulk = FALSE)
+    final public function batch($method_name, $to_bulk = FALSE, $return_array_when_empty = FALSE)
     {
         Kit::ensureString($method_name);
         $arg_list = func_get_args();
@@ -82,7 +82,8 @@ class BaseEntityBulk extends Bulk
                 throw new UserException('Inconsistent behavior of method.');
         }
         if (0 === Kit::len($result)) {
-            return $this;
+            if (TRUE === $return_array_when_empty) return [ ];
+            else return $this;
         } elseif (TRUE === $is_return_entity) {
             return $this->setEntityList($result);
         } elseif (TRUE === $to_bulk)

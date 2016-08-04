@@ -1004,6 +1004,49 @@ final class Kit
     //                       DateTime                     //
     // ================================================== //
 
+    final public static function todayStartTime()
+    {
+        return new MongoDate(self::todayStartTimestamp());
+    }
+
+    final public static function todayStartTimestamp()
+    {
+        $time_tuple = self::getTimeTuple();
+        $date_time = new DateTime();
+        $date_time
+            ->setDate($time_tuple['Year'], $time_tuple['Month'], $time_tuple['Day'])
+            ->setTime(0, 0, 0); // @CAUTION: UTC
+        return $date_time->getTimestamp();
+    }
+
+    final public static function todayEndTime()
+    {
+        return new MongoDate(self::todayEndTimestamp());
+    }
+
+    final public static function todayEndTimestamp()
+    {
+        $time_tuple = self::getTimeTuple(time() + 60 * 60 * 24);
+        $date_time = new DateTime();
+        $date_time
+            ->setDate($time_tuple['Year'], $time_tuple['Month'], $time_tuple['Day'])
+            ->setTime(0, 0, 0); // @CAUTION: UTC
+        return $date_time->getTimestamp();
+    }
+
+    final public static function getTimeTuple($timestamp = NULL)
+    {
+        $tmp = self::split('-', self::toFormat($timestamp, 'Y-m-d-H-i-s'));
+        return [
+            'Year'   => $tmp[0],
+            'Month'  => $tmp[1],
+            'Day'    => $tmp[2],
+            'Hour'   => $tmp[3],
+            'Minute' => $tmp[4],
+            'Second' => $tmp[5],
+        ];  
+    }
+
     final public static function toFormat($timestamp = NULL, $format = 'Y-m-d H:i:s')
     {
         if (TRUE === is_null($timestamp)) $timestamp = time();
