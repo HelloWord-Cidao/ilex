@@ -403,8 +403,7 @@ class MongoDBCollection
         Kit::ensureBoolean($can_be_rollbacked);
         if (FALSE === $is_rollback
             AND TRUE === $can_be_rollbacked) { // @CAUTION: pop QueueEntity when code != 2
-                self::ensureCanBeChanged();
-            // }
+            self::ensureCanBeChanged();
             $this->ensureDocumentHasNoId($new_document);
         }
         $this->ensureCriterionHasProperId($criterion);
