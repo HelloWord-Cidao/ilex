@@ -22,7 +22,7 @@ final class RequestLogEntity extends BaseEntity
 
     final public function setRequest($request)
     {
-        return $this->setData('Request', Kit::ensureArray($request_info));
+        return $this->setData('Request', Kit::ensureArray($request));
     }
 
     final public function setInput()

@@ -183,10 +183,9 @@ class MongoDBCollection
         Kit::ensureArray($document);
         Kit::ensureBoolean($is_rollback);
         Kit::ensureBoolean($can_be_rollbacked);
-        if (FALSE === $is_rollback) {
-            // if (TRUE === $can_be_rollbacked) { // @CAUTION: RequestLogEntity
-                self::ensureCanBeChanged();
-            // }
+        if (FALSE === $is_rollback
+            AND TRUE === $can_be_rollbacked) { // @CAUTION: RequestLogEntity
+            self::ensureCanBeChanged();
             $this->ensureDocumentHasNoId($document);
         }
         if (FALSE === isset($document['Meta']))

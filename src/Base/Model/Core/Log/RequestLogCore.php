@@ -21,7 +21,6 @@ final class RequestLogCore extends BaseCore
      */
     final public function addRequestLog($class_name, $method_name, $response, $code)
     {
-        return $this->ok;
         $request_log = $this->createEntity()
             ->doNotRollback()
             ->setCode(Kit::ensureIn($code, [ 0, 1, 2, 3 ]))
@@ -32,7 +31,10 @@ final class RequestLogCore extends BaseCore
             $request_log->setResponse($response);
         if (TRUE === Context::isLogin([ ]))
             $request_log->setUserInfo();
-        $request_log->setOperationInfo(Kit::len(json_encode($response)))->addToCollection();
+        $request_log
+            ->setOperationInfo(Kit::len(json_encode($response)))
+            ->doNotRollback()
+            ->addToCollection();
     }
 
     final public static function generateRequestInfo()
