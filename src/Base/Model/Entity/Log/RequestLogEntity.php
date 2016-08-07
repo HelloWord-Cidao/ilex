@@ -41,7 +41,7 @@ final class RequestLogEntity extends BaseEntity
 
     final public function setResponse($response)
     {
-        return $this->setData('Response', Kit::ensureArray($response));
+        return $this->setData('Response', json_encode(Kit::ensureArray($response)));
     }
 
     final public function setOperationInfo($size)
