@@ -71,7 +71,7 @@ class BaseEntityBulk extends Bulk
     {
         Kit::ensureString($method_name);
         $arg_list = func_get_args();
-        if (count($arg_list) > 1) $arg_list = Kit::slice($arg_list, 1); else $arg_list = [];
+        if (count($arg_list) > 3) $arg_list = Kit::slice($arg_list, 3); else $arg_list = [];
         $is_return_entity = NULL;
         $result = [];
         foreach ($this->getEntityList() as $index => $entity) {

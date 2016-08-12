@@ -71,7 +71,9 @@ class UserEntity extends BaseEntity
 
     final public function getLastLoginTimestamp()
     {
-        return Kit::toTimestamp($this->getInfo('LastLoginTime'));
+        $last_login_time = $this->getInfo('LastLoginTime', FALSE, NULL);
+        if (TRUE === is_null($last_login_time)) return 0;
+        else return Kit::toTimestamp($last_login_time);
     }
 
     final public function isMe()
