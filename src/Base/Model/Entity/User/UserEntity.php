@@ -15,20 +15,13 @@ use \Ilex\Base\Model\Entity\BaseEntity;
 class UserEntity extends BaseEntity
 {
 
-    final public function getAbstract()
+    public function getAbstract()
     {
         return [
-            'Id'       => $this->getId(TRUE),
-            'Name'     => $this->getName(),
-            'Username' => $this->getUsername(),
-            'Type'     => $this->getType(),
-        ];
-    }
-
-    final public function getDetail()
-    {
-        return $this->getAbstract() + [
-            'Email'                 => $this->getEmail(),
+            'Id'                    => $this->getId(TRUE),
+            'Name'                  => $this->getName(),
+            'Username'              => $this->getUsername(),
+            'Type'                  => $this->getType(),
             'RegistrationTimestamp' => $this->getCreationTimestamp() * 1000,
             'LastLoginTimestamp'    => $this->getLastLoginTimestamp() * 1000,
         ];

@@ -104,7 +104,7 @@ class BaseEntityBulk extends Bulk
     // O(N)
     final public function getTheOnlyOneEntityById($id)
     {
-        $detail = $this->batch('getName');
+        $detail = $this->batch('getName', FALSE, TRUE);
         $result = $this->filter(function ($entity, $id) {
             return $entity->isIdEqualTo($id);
         }, $id);

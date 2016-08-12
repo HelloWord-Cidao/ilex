@@ -67,7 +67,7 @@ abstract class BaseService extends BaseController
                 Debug::monitor('Waited', [
                     'now'   => Kit::microTimestampAtNow(),
                     'me'    => $this->QueueCore->getPushingTimestamp(),
-                    'ahead' => $this->QueueCore->getItemsAhead()->batch('getAbstract'),
+                    'ahead' => $this->QueueCore->getItemsAhead()->batch('getAbstract', FALSE, TRUE),
                 ], TRUE);
                 usleep(QueueCore::T_SLEEP); // sleep 0.1 second 
             }
