@@ -196,7 +196,7 @@ class BaseQuery
 
     final public function isNotRemoved()
     {
-        return $this->isNotEqualTo('Meta.IsRemoved', TRUE);
+        return $this->metaFieldIsNot('IsRemoved', TRUE);
     }
     
     final public function isRemoved()
@@ -214,6 +214,12 @@ class BaseQuery
     {
         Kit::ensureString($field_name);
         return $this->isEqualTo("Meta.${field_name}", $field_value);
+    }
+
+    final public function metaFieldIsNot($field_name, $field_value)
+    {
+        Kit::ensureString($field_name);
+        return $this->isNotEqualTo("Meta.${field_name}", $field_value);
     }
 
     final public function timeFieldInToday($time_field_name)

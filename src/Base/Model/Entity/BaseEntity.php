@@ -515,7 +515,7 @@ class BaseEntity
 
     final public function isRemoved()
     {
-        return $this->getMeta('IsRemoved');
+        return $this->getMeta('IsRemoved', FALSE, FALSE);
     }
     
     final public function setMeta($arg1 = NULL, $arg2 = Kit::TYPE_VACANCY)
