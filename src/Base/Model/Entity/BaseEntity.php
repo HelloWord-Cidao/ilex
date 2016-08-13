@@ -206,6 +206,23 @@ class BaseEntity
     // ======================================= Info =============================================
 
 
+    final public function getIdentity($id_to_string = FALSE)
+    {
+        Kit::ensureBoolean($id_to_string);
+        $result = [
+            'Name' => $this->getName(),
+        ];
+        if (FALSE === $id_to_string) {
+            return $result + [
+                'Id' => $this->getId()->toMongoId(),
+            ];
+        } else {
+            return $result + [
+                'Id' => $this->getId(TRUE),
+            ];
+        }
+    }
+
     final public function setName($name)
     {
         Kit::ensureString($name);

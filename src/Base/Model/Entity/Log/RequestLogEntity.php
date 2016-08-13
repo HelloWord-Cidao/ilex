@@ -55,6 +55,8 @@ final class RequestLogEntity extends BaseEntity
 
     final public function setUserInfo()
     {
-        return $this->setInfo('UserInfo', Context::me()->getAbstract());
+        return $this
+            ->setInfo('UserInfo', Context::me()->getAbstract())
+            ->buildOneReferenceTo(Context::me(), 'User');
     }
 }

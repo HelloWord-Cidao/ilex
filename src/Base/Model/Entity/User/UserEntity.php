@@ -17,9 +17,7 @@ class UserEntity extends BaseEntity
 
     public function getAbstract()
     {
-        return [
-            'Id'                    => $this->getId(TRUE),
-            'Name'                  => $this->getName(),
+        return $this->getIdentity(TRUE) + [
             'Username'              => $this->getUsername(),
             'Type'                  => $this->getType(),
             'RegistrationTimestamp' => $this->getCreationTimestamp() * 1000,
@@ -74,17 +72,5 @@ class UserEntity extends BaseEntity
         $last_login_time = $this->getInfo('LastLoginTime', FALSE, NULL);
         if (TRUE === is_null($last_login_time)) return 0;
         else return Kit::toTimestamp($last_login_time);
-    }
-
-    final public function isMe()
-    {
-        return $this->getId()->isEqualTo(Context::me()->getId());
-    }
-
-    final public function ensureMe()
-    {
-        if (FALSE === $this->isMe())
-            throw new UserException('This user is not me.');
-        return $this;
     }
 }
