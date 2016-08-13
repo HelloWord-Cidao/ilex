@@ -31,8 +31,11 @@ final class RequestLogCore extends BaseCore
             $request_log->setResponse($response);
         if (TRUE === Context::isLogin([ ]))
             $request_log->setUserInfo();
+        $response = json_encode($response);
+        if (FALSE === $response) $len = 0;
+        else $len = Kit::len($response);
         $request_log
-            ->setOperationInfo(Kit::len(json_encode($response)))
+            ->setOperationInfo($len)
             ->doNotRollback()
             ->addToCollection();
     }
