@@ -27,7 +27,7 @@ use \Ilex\Lib\UserTypeException;
  * @method final public static string     getRealPath(string $path)
  * @method final public static string     j(mixed $data)
  * @method final public static mixed|NULL last(array $array, int $offset = 1)
- * @method final public array|FALSE       randomByWeight(array $list_of_dict)
+ * @method final public array|FALSE       randomByWeight(array $item_weight_pair_list)
  * @method final public static array      separateTitleWords(string $string)
  * @method final public static string     time(int|NULL $time = NULL, string $format = 'Y-m-d H:i:s')
  * @method final public static string     toString(mixed $data, boolean $quotation_mark_list = TRUE)
@@ -1229,9 +1229,9 @@ final class Kit
      * Utility function for getting random values with weighting.
      * Pass in an associative array, such as
      * [
-     *     ['item' => 'A', 'weight' => 5],
-     *     ['item' => 'B', 'weight' => 45],
-     *     ['item' => 'C', 'weight' => 50]
+     *     [ 'item' => 'A', 'weight' => 5  ],
+     *     [ 'item' => 'B', 'weight' => 45 ],
+     *     [ 'item' => 'C', 'weight' => 50 ],
      * ]
      * An array like this means that "A" has a 5% chance of being selected, "B" 45%, and "C" 50%.
      * The return value is the array key, A, B, or C in this case.
@@ -1240,23 +1240,23 @@ final class Kit
      * If one value weight was 2, and the other weight of 1,
      * the value with the weight of 2 has about a 66% chance of being selected.
      * Also note that weights should be integers.
-     * @param array $list_of_dict
+     * @param array $item_weight_pair_list
      * @return array
      * @throws UserException if the sum of weights is 0.
      */
-    final public static function randomlySelectByWeight(&$list_of_dict)
+    final public static function randomlySelectByWeight(&$item_weight_pair_list)
     {
-        // self::ensureListOfDict($list_of_dict);
-        $weight_list = self::columns($list_of_dict, 'weight', TRUE, NULL, TRUE);
+        // self::ensureListOfDict($item_weight_pair_list);
+        $weight_list = self::columns($item_weight_pair_list, 'weight', TRUE, NULL, TRUE);
         // self::ensureAllSame(self::mapped([ 'self', 'sign' ], $weight_list), 1);
         $sum = self::sum($weight_list);
-        if (0 === $sum) throw new UserException('The sum of weights is 0.', $list_of_dict);
+        if (0 === $sum) throw new UserException('The sum of weights is 0.', $item_weight_pair_list);
         $rand = self::randomInt(1, $sum);
-        // // @todo: use bisection method when length of $list_of_dict > 50!
-        foreach ($list_of_dict as $object) {
+        // // @todo: use bisection method when length of $item_weight_pair_list > 50!
+        foreach ($item_weight_pair_list as $object) {
             $rand -= $object['weight'];
             if ($rand <= 0) return $object['item'];
         }
-        return $list_of_dict[0]['item'];
+        return $item_weight_pair_list[0]['item'];
     }
 }

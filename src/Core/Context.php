@@ -49,7 +49,9 @@ final class Context
 
     final public static function myInstitution()
     {
-        return self::$currentInstitution;
+        if (TRUE === is_null(self::$currentInstitution))
+            return (self::$currentInstitution = self::$currentUser->getInstitution()->setReadOnly());
+        else return self::$currentInstitution;
     }
 
     final public static function refresh()
@@ -57,6 +59,5 @@ final class Context
         $token                    = Loader::loadInput()->token();
         $class_name               = Loader::includeCore('User/User');
         self::$currentUser        = $class_name::getCurrentUser(Kit::ensureString($token));
-        self::$currentInstitution = self::$currentUser->getInstitution()->setReadOnly();
     }
 }

@@ -405,6 +405,15 @@ class BaseEntity
         return $this->setDocument('Reference', $field_name, $entity_id->toMongoId());
     }
 
+    final protected function copyOneReferenceFrom(BaseEntity $entity, $reference_name)
+    {
+        Kit::ensureString($reference_name);
+        if (TRUE === $this->hasOneReference($reference_name))
+            throw new UserException('Can not overwrite existing one reference.', $this->document());
+        $reference = $entity->getOneReference($reference_name)->toMongoId();
+        return $this->setDocument('Reference', $reference_name . 'Id', $reference);
+    }
+
     final public function deleteOneReferenceTo(BaseEntity $entity, $reference_name)
     {
         Kit::ensureString($reference_name);
