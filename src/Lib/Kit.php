@@ -27,7 +27,6 @@ use \Ilex\Lib\UserTypeException;
  * @method final public static string     getRealPath(string $path)
  * @method final public static string     j(mixed $data)
  * @method final public static mixed|NULL last(array $array, int $offset = 1)
- * @method final public array|FALSE       randomByWeight(array $item_weight_pair_list)
  * @method final public static array      separateTitleWords(string $string)
  * @method final public static string     time(int|NULL $time = NULL, string $format = 'Y-m-d H:i:s')
  * @method final public static string     toString(mixed $data, boolean $quotation_mark_list = TRUE)
@@ -1244,7 +1243,7 @@ final class Kit
      * @return array
      * @throws UserException if the sum of weights is 0.
      */
-    final public static function randomlySelectByWeight(&$item_weight_pair_list)
+    final public static function randomlySelectByWeight($item_weight_pair_list)
     {
         // self::ensureListOfDict($item_weight_pair_list);
         $weight_list = self::columns($item_weight_pair_list, 'weight', TRUE, NULL, TRUE);
