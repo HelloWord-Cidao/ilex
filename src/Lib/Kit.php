@@ -1214,8 +1214,8 @@ final class Kit
     {
         self::ensureArray($list);
         self::ensureInt($num);
-        if ($num > self::len($list)) $num = self::len($list);
-        if (0 === $num) return [ ];
+        if ($num > self::len($list)) return self::shuffle($list);
+        elseif (0 === $num) return [ ];
         elseif (1 === $num) return [ $list[self::randomInt(0, self::len($list) - 1)] ];
         else return self::slice(self::shuffle($list), 0, $num); // @TODO: check efficiency
         // $result = array_rand($list, $num);
