@@ -371,7 +371,7 @@ class BaseQuery
     {
         $this->ensureInitialized();
         $result = $this->queryWrapper->checkExistEntities($this->criterion);
-        $this->clear();
+        // $this->clear();
         return $result;
     }
 
@@ -379,7 +379,7 @@ class BaseQuery
     {
         $this->ensureInitialized();
         $this->queryWrapper->ensureExistEntities($this->criterion);
-        $this->clear();
+        // $this->clear();
         return $this;
     }
 
@@ -387,7 +387,7 @@ class BaseQuery
     {
         $this->ensureInitialized();
         $result = $this->queryWrapper->checkExistsOnlyOneEntity($this->criterion);
-        $this->clear();
+        // $this->clear();
         return $result;
     }
 
@@ -395,7 +395,7 @@ class BaseQuery
     {
         $this->ensureInitialized();
         $this->queryWrapper->ensureExistsOnlyOneEntity($this->criterion);
-        $this->clear();
+        // $this->clear();
         return $this;
     }
      
@@ -407,7 +407,7 @@ class BaseQuery
             $this->skip,
             $this->limit
         );
-        $this->clear();
+        // $this->clear();
         return $result;
     }
 
@@ -420,7 +420,7 @@ class BaseQuery
             $this->skip,
             $this->limit
         );
-        $this->clear();
+        // $this->clear();
         return $result;
     }
 
@@ -428,7 +428,7 @@ class BaseQuery
     {
         $this->ensureInitialized();
         $result = $this->queryWrapper->getTheOnlyOneEntity($this->criterion);
-        $this->clear();
+        // $this->clear();
         return $result;
     }
 
@@ -441,7 +441,7 @@ class BaseQuery
             $this->skip,
             $this->limit
         );
-        $this->clear();
+        // $this->clear();
         return $result;
     }
 }
