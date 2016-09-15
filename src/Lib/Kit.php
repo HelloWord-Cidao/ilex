@@ -707,7 +707,7 @@ final class Kit
     //                       List                         //
     // ================================================== //
 
-    final public static function slice(&$list, $offset, $length = NULL)
+    final public static function slice($list, $offset, $length = NULL)
     {
         self::ensureList($list);
         self::ensureInt($offset, FALSE, FALSE);
