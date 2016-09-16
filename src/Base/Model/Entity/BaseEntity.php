@@ -206,7 +206,7 @@ class BaseEntity
     // ======================================= Info =============================================
 
 
-    final public function getIdentity($id_to_string = FALSE)
+    final public function getIdentity($id_to_string = TRUE)
     {
         Kit::ensureBoolean($id_to_string);
         $result = [

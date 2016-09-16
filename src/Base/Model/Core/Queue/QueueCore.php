@@ -92,7 +92,7 @@ final class QueueCore extends BaseCore
         $this->createQuery()
             ->isNotInQueue()
             ->getMultiEntities()
-            ->batch('doNotRollback')
+            ->batch('doNotRollback', FALSE, FALSE)
             ->batch('removeFromCollection');
     }
 

@@ -67,7 +67,7 @@ class BaseEntityBulk extends Bulk
         return parent::append($entity);
     }
 
-    final public function batch($method_name, $to_bulk = FALSE, $return_array_when_empty = FALSE)
+    final public function batch($method_name, $to_bulk = FALSE, $return_array_when_empty = TRUE)
     {
         Kit::ensureString($method_name);
         $arg_list = func_get_args();
@@ -104,7 +104,7 @@ class BaseEntityBulk extends Bulk
     // O(N)
     final public function getTheOnlyOneEntityById($id)
     {
-        $detail = $this->batch('getName', FALSE, TRUE);
+        $detail = $this->batch('getName');
         $result = $this->filter(function ($entity, $id) {
             return $entity->isIdEqualTo($id);
         }, $id);

@@ -17,7 +17,7 @@ class UserEntity extends BaseEntity
 
     public function getAbstract()
     {
-        return $this->getIdentity(TRUE) + [
+        return $this->getIdentity() + [
             'Username'              => $this->getUsername(),
             'Type'                  => $this->getType(),
             'RegistrationTimestamp' => $this->getCreationTimestamp() * 1000,
