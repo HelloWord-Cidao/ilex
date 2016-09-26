@@ -150,8 +150,9 @@ final class Debug
             unset($result['time']);
             unset($result['memory']);
             unset($result['size']);
+        } else {
+            Http::json($result);
         }
-        Http::json($result);
         Loader::loadCore('Queue/Queue')->pop();
     }
 
