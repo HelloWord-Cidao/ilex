@@ -72,6 +72,7 @@ abstract class BaseService extends BaseController
                 usleep(QueueCore::T_SLEEP); // sleep 0.1 second 
             }
             Context::refresh();
+            Debug::resetStartTime();
         }
     }
 

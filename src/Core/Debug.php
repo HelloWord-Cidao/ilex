@@ -110,6 +110,11 @@ final class Debug
         self::$startTime            = $_SERVER['REQUEST_TIME_FLOAT'];
     }
 
+    final public static function resetStartTime()
+    {
+        self::$startTime = Kit::microTimestampAtNow();
+    }
+
     final private static function respondOnFail($exception_or_error, $is_error = FALSE)
     {
         Kit::ensureBoolean($is_error);
