@@ -387,6 +387,7 @@ abstract class BaseService extends BaseController
         $this->result['monitor'] = Debug::getMonitor();
         $this->result += Debug::getDebugInfo();
         $this->result += [ 'size' => sprintf('%.2fKB', Kit::len(json_encode($this->result)) / 1024) ];
+        $this->result += [ 'datetime' => Kit::toFormat() ];
         if (TRUE === is_null($this->result['mainException'])) unset($this->result['mainException']);
         if (TRUE === is_null($this->result['monitor'])) unset($this->result['monitor']);
         $this->loadCore('Log/RequestLog')->addRequestLog(
