@@ -328,6 +328,11 @@ class BaseQuery
 
     //==============================================================================
 
+    final public function sortByName($direction = 1)
+    {
+        return $this->sortBy('Info.Name', $direction);
+    }
+
     final public function sortByCreationTime($direction = -1)
     {
         return $this->sortBy('Meta.CreationTime', $direction);
