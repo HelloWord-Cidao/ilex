@@ -182,13 +182,13 @@ class BaseQuery
         return $this->isGreaterThan('Meta.CreationTime', $date);
     }
 
-    // final public function isUpdatedBefore($timestamp)
+    // final public function isModifiedBefore($timestamp)
     // {
     //     // @TODO: $timestamp
     //     return $this->isLessThan('Meta.ModificationTime', $timestamp);
     // }
 
-    // final public function isUpdatedAfter($timestamp)
+    // final public function isModifiedAfter($timestamp)
     // {
     //     // @TODO: $timestamp
     //     return $this->isGreaterThan('Meta.ModificationTime', $timestamp);

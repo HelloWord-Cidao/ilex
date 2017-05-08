@@ -421,6 +421,7 @@ class MongoDBCollection
                 throw new UserException($msg, [ $status, $criterion, $new_document ]);
             } else {
                 // @TODO!!
+                // rollback时，Mongo操作失败？
             }
         }
         self::$history[] = [

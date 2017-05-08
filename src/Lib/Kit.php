@@ -1025,12 +1025,45 @@ final class Kit
 
     final public static function todayEndTimestamp()
     {
-        $time_tuple = self::getTimeTuple(time() + 60 * 60 * 24);
+        $time_tuple = self::getTimeTuple(self::timestampAtNow() + 60 * 60 * 24);
         $date_time = new DateTime();
         $date_time
             ->setDate($time_tuple['Year'], $time_tuple['Month'], $time_tuple['Day'])
             ->setTime(0, 0, 0); // @CAUTION: UTC
         return $date_time->getTimestamp();
+    }
+
+    final public static function todayDateFormat()
+    {
+        return self::toFormat(NULL, 'Y-m-d');
+    }
+
+    final public static function daysAfterNowDateFormat($days)
+    {
+        self::ensureInt($days);
+        return self::toFormat(self::timestampAtNow() + 60 * 60 * 24 * $days, 'Y-m-d');
+    }
+
+    final public static function daysAfterNow($days)
+    {
+        self::ensureInt($days);
+        return new MongoDate(
+            (new DateTime())->add(new DateInterval("P${days}D"))->getTimestamp()
+        );
+    }
+
+    final public static function daysBeforeNowDateFormat($days)
+    {
+        self::ensureInt($days);
+        return self::toFormat(self::timestampAtNow() - 60 * 60 * 24 * $days, 'Y-m-d');
+    }
+
+    final public static function daysBeforeNow($days)
+    {
+        self::ensureInt($days);
+        return new MongoDate(
+            (new DateTime())->sub(new DateInterval("P${days}D"))->getTimestamp()
+        );
     }
 
     final public static function getTimeTuple($timestamp = NULL)
@@ -1048,8 +1081,9 @@ final class Kit
 
     final public static function toFormat($timestamp = NULL, $format = 'Y-m-d H:i:s')
     {
-        if (TRUE === is_null($timestamp)) $timestamp = time();
-        return date($format, $timestamp);
+        if (TRUE === is_null($timestamp)) $timestamp = self::timestampAtNow();
+        $timestamp += 60 * 60 * 8; // @CAUTION
+        return date($format, $timestamp) . ' EST';
     }
 
     final public static function toTimestamp(MongoDate $mongo_date)
@@ -1078,22 +1112,6 @@ final class Kit
     final public static function microTimestampAtNow()
     {
         return microtime(TRUE);
-    }
-
-    final public static function daysAfterNow($days)
-    {
-        self::ensureInt($days);
-        return new MongoDate(
-            (new DateTime())->add(new DateInterval("P${days}D"))->getTimestamp()
-        );
-    }
-
-    final public static function daysBeforeNow($days)
-    {
-        self::ensureInt($days);
-        return new MongoDate(
-            (new DateTime())->sub(new DateInterval("P${days}D"))->getTimestamp()
-        );
     }
 
     // ================================================== //
