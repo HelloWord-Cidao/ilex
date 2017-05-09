@@ -52,8 +52,8 @@ final class Kit
     const M_MAX = 'max';
 
     const SEC_MINUTE = 60;
-    const SEC_HOUR   = 60 * 60;
-    const SEC_DAY    = 60 * 60 * 24;
+    const SEC_HOUR   = 3600;
+    const SEC_DAY    = 86400;
 
     // ================================================== //
     //                        Type                        //
