@@ -2,6 +2,7 @@
 
 namespace Ilex\Base\Model\Query;
 
+use \MongoDate;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
@@ -66,6 +67,12 @@ class BaseQuery
         return $this->isEqualTo('_id', $id->toMongoId());
     }
 
+    final public function idIsNot($id)
+    {
+        $id = new MongoDBId($id);
+        return $this->isNotEqualTo('_id', $id->toMongoId());
+    }
+
     // O(N) when $to_mongo_id is TRUE
     final public function idIn($id_list, $to_mongo_id = FALSE)
     {
@@ -79,16 +86,15 @@ class BaseQuery
         return $this->in('_id', $id_list);
     }
 
-    // @TODO: move it into ContentQuery
     final public function signatureIs($signature)
     {
         return $this->isEqualTo('Signature', $signature);
     }
 
-    final public function dataIs($field_value)
+    final public function hasDataField($field_name)
     {
-        Kit::ensureArray($field_value);
-        return $this->isEqualTo("Data", $field_value);
+        Kit::ensureString($field_name);
+        return $this->hasField("Data.${field_name}");
     }
 
     final public function dataFieldIs($field_name, $field_value)
@@ -97,10 +103,22 @@ class BaseQuery
         return $this->isEqualTo("Data.${field_name}", $field_value);
     }
 
+    final public function dataIs($field_value)
+    {
+        Kit::ensureArray($field_value);
+        return $this->isEqualTo("Data", $field_value);
+    }
+
     final public function nameIs($name)
     {
         Kit::ensureString($name);
         return $this->infoFieldIs('Name', $name);
+    }
+
+    final public function hasInfoField($field_name)
+    {
+        Kit::ensureString($field_name);
+        return $this->hasField("Info.${field_name}");
     }
 
     final public function infoFieldIs($field_name, $field_value)
@@ -112,27 +130,29 @@ class BaseQuery
     final public function infoIs($field_value)
     {
         Kit::ensureArray($field_value);
-        return $this->isEqualTo("Info", $field_value);
+        return $this->isEqualTo('Info', $field_value);
     }
 
-    final public function hasMultiReferenceTo(BaseEntity $entity, $name = NULL)
+    final public function hasMultiReferenceTo(BaseEntity $entity, $reference_name = NULL)
     {
-        if (TRUE === is_null($name)) $name = $entity->getEntityName();
-        else Kit::ensureString($name);
-        return $this->isEqualTo("Reference.${name}IdList", $entity->getId()->toMongoId());
+        Kit::ensureString($reference_name, TRUE);
+        if (TRUE === is_null($reference_name))
+            $reference_name = $entity->getEntityName();
+        return $this->isEqualTo("Reference.${reference_name}IdList", $entity->getId()->toMongoId());
     }
     
-    final public function hasOneReferenceTo(BaseEntity $entity, $name = NULL)
+    final public function hasOneReferenceTo(BaseEntity $entity, $reference_name = NULL)
     {
-        if (TRUE === is_null($name)) $name = $entity->getEntityName();
-        else Kit::ensureString($name);
-        return $this->isEqualTo("Reference.${name}Id", $entity->getId()->toMongoId());
+        Kit::ensureString($reference_name, TRUE);
+        if (TRUE === is_null($reference_name))
+            $reference_name = $entity->getEntityName();
+        return $this->isEqualTo("Reference.${reference_name}Id", $entity->getId()->toMongoId());
     }
 
     final public function typeIs($type)
     {
         Kit::ensureString($type);
-        return $this->isEqualTo('Meta.Type', $type);
+        return $this->metaFieldIs('Type', $type);
     }
 
     final public function typeIn($type_list)
@@ -143,7 +163,7 @@ class BaseQuery
     final public function stateIs($state)
     {
         Kit::ensureType($state, [ Kit::TYPE_INT, Kit::TYPE_STRING ]);
-        return $this->isEqualTo('Meta.State', $state);
+        return $this->metaFieldIs('State', $state);
     }
 
     final public function stateIn($state_list)
@@ -151,39 +171,90 @@ class BaseQuery
         return $this->in('Meta.State', $state_list);
     }
 
-    final public function isCreatedBefore($timestamp)
+    // final public function isCreatedBefore($timestamp)
+    // {
+    //     // @TODO: $timestamp
+    //     return $this->isLessThan('Meta.CreationTime', $timestamp);
+    // }
+
+    final public function isCreatedAfter(MongoDate $date)
     {
-        // @TODO: $timestamp
-        return $this->isLessThan('Meta.CreationTime', $timestamp);
+        return $this->isGreaterThan('Meta.CreationTime', $date);
     }
 
-    final public function isCreatedAfter($timestamp)
+    // final public function isModifiedBefore($timestamp)
+    // {
+    //     // @TODO: $timestamp
+    //     return $this->isLessThan('Meta.ModificationTime', $timestamp);
+    // }
+
+    // final public function isModifiedAfter($timestamp)
+    // {
+    //     // @TODO: $timestamp
+    //     return $this->isGreaterThan('Meta.ModificationTime', $timestamp);
+    // }
+
+    final public function isNotRemoved()
     {
-        // @TODO: $timestamp
-        return $this->isGreaterThan('Meta.CreationTime', $timestamp);
+        return $this->metaFieldIsNot('IsRemoved', TRUE);
+    }
+    
+    final public function isRemoved()
+    {
+        return $this->metaFieldIs('IsRemoved', TRUE);
     }
 
-    final public function isUpdatedBefore($timestamp)
+    final public function hasMetaField($field_name)
     {
-        // @TODO: $timestamp
-        return $this->isLessThan('Meta.ModificationTime', $timestamp);
+        Kit::ensureString($field_name);
+        return $this->hasField("Meta.${field_name}");
     }
 
-    final public function isUpdatedAfter($timestamp)
+    final public function metaFieldIs($field_name, $field_value)
     {
-        // @TODO: $timestamp
-        return $this->isGreaterThan('Meta.ModificationTime', $timestamp);
+        Kit::ensureString($field_name);
+        return $this->isEqualTo("Meta.${field_name}", $field_value);
     }
 
+    final public function metaFieldIsNot($field_name, $field_value)
+    {
+        Kit::ensureString($field_name);
+        return $this->isNotEqualTo("Meta.${field_name}", $field_value);
+    }
+
+    final public function timeFieldInToday($time_field_name)
+    {
+        Kit::ensureString($time_field_name);
+        return $this
+            ->isGreaterThanOrEqualTo($time_field_name, Kit::todayStartTime())
+            ->isLessThan($time_field_name, Kit::todayEndTime());
+    }
 
     //==============================================================================
     
+    final protected function hasField($field_name)
+    {
+        Kit::ensureString($field_name);
+        $criterion = [
+            $field_name => [ '$exists' => TRUE ],
+        ];
+        return $this->mergeCriterion($criterion);
+    }
 
     final protected function isEqualTo($field_name, $field_value)
     {
         Kit::ensureString($field_name);
         $criterion = [
             $field_name => $field_value,
+        ];
+        return $this->mergeCriterion($criterion);
+    }
+
+    final protected function isNotEqualTo($field_name, $field_value)
+    {
+        Kit::ensureString($field_name);
+        $criterion = [
+            $field_name => [ '$ne' => $field_value ],
         ];
         return $this->mergeCriterion($criterion);
     }
@@ -224,6 +295,7 @@ class BaseQuery
         return $this->mergeCriterion($criterion);
     }
 
+    // If $field_value_list is empty, returns no result.
     final protected function in($field_name, $field_value_list)
     {
         Kit::ensureString($field_name);
@@ -234,6 +306,12 @@ class BaseQuery
         return $this->mergeCriterion($criterion);
     }
 
+    final protected function addOr($criterion)
+    {
+        Kit::ensureArray($criterion);
+        return $this->mergeCriterion([ '$or' => $criterion ]);
+    }
+
     final public function getCriterion()
     {
         return $this->criterion;
@@ -242,37 +320,51 @@ class BaseQuery
     final private function mergeCriterion($criterion)
     {
         Kit::ensureDict($criterion);
-        if (TRUE === is_null($this->criterion)) $this->criterion = [ ];
-        $this->criterion = array_merge_recursive($this->criterion, $criterion);
+        if (TRUE === is_null($this->criterion))
+            $this->criterion = [ ];
+        $this->criterion = array_merge_recursive($this->criterion, $criterion); // @CAUTION
         return $this;
     }
 
     //==============================================================================
 
-    // final public function sortBy()
-    // {
-    //     return $this->sortBy;
-    // }
+    final public function sortByName($direction = 1)
+    {
+        return $this->sortBy('Info.Name', $direction);
+    }
 
-    // final private function mergeSortBy($sort_by)
-    // {
-    //     Kit::ensureDict($sort_by);
-    //     Kit::update($this->sortBy, $sort_by);
-    //     return $this;
-    // }
+    final public function sortByCreationTime($direction = -1)
+    {
+        return $this->sortBy('Meta.CreationTime', $direction);
+    }
+
+    final protected function sortBy($field_name, $direction)
+    {
+        Kit::ensureIn($direction, [ -1, 1 ]);
+        return $this->mergeSortBy([ $field_name => $direction ]);
+    }
+
+    final private function mergeSortBy($sort_by)
+    {
+        Kit::ensureDict($sort_by);
+        if (TRUE === is_null($this->sortBy))
+            $this->sortBy = [ ];
+        $this->sortBy = array_merge_recursive($this->sortBy, $sort_by); // @CAUTION
+        return $this;
+    }
 
     final public function skip($skip = NULL)
     {
+        Kit::ensureNonNegativeInt($skip, TRUE);
         if (TRUE === is_null($skip)) return $this->skip;
-        Kit::ensureNonNegativeInt($skip);
         $this->skip = $skip;
         return $this;
     }
 
     final public function limit($limit = NULL)
     {
+        Kit::ensureInt($limit, TRUE);
         if (TRUE === is_null($limit)) return $this->limit;
-        Kit::ensureInt($limit);
         $this->limit = $limit;
         return $this;
     }
@@ -284,7 +376,7 @@ class BaseQuery
     {
         $this->ensureInitialized();
         $result = $this->queryWrapper->checkExistEntities($this->criterion);
-        $this->clear();
+        // $this->clear();
         return $result;
     }
 
@@ -292,7 +384,7 @@ class BaseQuery
     {
         $this->ensureInitialized();
         $this->queryWrapper->ensureExistEntities($this->criterion);
-        $this->clear();
+        // $this->clear();
         return $this;
     }
 
@@ -300,7 +392,7 @@ class BaseQuery
     {
         $this->ensureInitialized();
         $result = $this->queryWrapper->checkExistsOnlyOneEntity($this->criterion);
-        $this->clear();
+        // $this->clear();
         return $result;
     }
 
@@ -308,7 +400,7 @@ class BaseQuery
     {
         $this->ensureInitialized();
         $this->queryWrapper->ensureExistsOnlyOneEntity($this->criterion);
-        $this->clear();
+        // $this->clear();
         return $this;
     }
      
@@ -320,7 +412,7 @@ class BaseQuery
             $this->skip,
             $this->limit
         );
-        $this->clear();
+        // $this->clear();
         return $result;
     }
 
@@ -333,7 +425,7 @@ class BaseQuery
             $this->skip,
             $this->limit
         );
-        $this->clear();
+        // $this->clear();
         return $result;
     }
 
@@ -341,7 +433,7 @@ class BaseQuery
     {
         $this->ensureInitialized();
         $result = $this->queryWrapper->getTheOnlyOneEntity($this->criterion);
-        $this->clear();
+        // $this->clear();
         return $result;
     }
 
@@ -354,8 +446,7 @@ class BaseQuery
             $this->skip,
             $this->limit
         );
-        $this->clear();
+        // $this->clear();
         return $result;
     }
-
 }

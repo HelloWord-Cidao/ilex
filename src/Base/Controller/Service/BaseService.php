@@ -5,7 +5,7 @@ namespace Ilex\Base\Controller\Service;
 use \Exception;
 use \ReflectionClass;
 use \ReflectionMethod;
-use \Ilex\Core\Context as c;
+use \Ilex\Core\Context;
 use \Ilex\Core\Debug;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Http;
@@ -13,7 +13,8 @@ use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 use \Ilex\Base\Controller\BaseController;
 use \Ilex\Base\Model\Core\BaseCore;
-use \Ilex\Lib\MongoDB\MongoDBCollection as MDBC;
+use \Ilex\Base\Model\Core\Queue\QueueCore;
+use \Ilex\Lib\MongoDB\MongoDBCollection;
 
 /**
  * Class BaseService
@@ -47,15 +48,32 @@ abstract class BaseService extends BaseController
 
     public function __construct()
     {
-        c::trySetCurrentUserEntity();
+        Context::trySetCurrentUser();
+        $this->loadCore('Queue/Queue');
     }
 
     final protected function ensureLogin()
     {
         $user_type_list = func_get_args();
-        if (TRUE === Kit::in('Administrator', $user_type_list)) return; // @TODO: CAUTION
-        if (FALSE === c::isLogin($user_type_list))
+        if (TRUE === Kit::in('Administrator', $user_type_list)
+            AND 1 === Kit::len($user_type_list)
+            AND FALSE === Context::isLogin([ ])) // Administrator专属API 且当前无用户登录 待删除此逻辑
+            return; // @TODO: CAUTION
+        if (FALSE === Context::isLogin($user_type_list))
             throw new UserException('Login failed.');
+        if (0 < Kit::len($user_type_list)) { // 非游客、已登录情形
+            $this->QueueCore->push();
+            while (TRUE === $this->QueueCore->hasItemsAhead()) {
+                Debug::monitor('Waited', [
+                    'now'   => Kit::microTimestampAtNow(),
+                    'me'    => $this->QueueCore->getPushingTimestamp(),
+                    'ahead' => $this->QueueCore->getItemsAhead()->batch('getAbstract'),
+                ], TRUE);
+                usleep(QueueCore::T_SLEEP); // sleep 0.1 second 
+            }
+            Context::refresh();
+            Debug::resetStartTime();
+        }
     }
 
     final protected function loadInput()
@@ -151,14 +169,6 @@ abstract class BaseService extends BaseController
             $this->result['data'] = $computation_data = $service_result_sanitization_result['data'];
             $this->result['status'] = $operation_status = $service_result_sanitization_result['status'];
             
-            // $this->loadLog('Request');
-            // $this->RequestLog->addRequestLog(
-            //     $execution_record['class'],
-            //     $execution_record['method'],
-            //     $input,
-            //     $code,
-            //     $operation_status
-            // );
             $this->succeedRequest($execution_id, $execution_record);
         } catch (Exception $e) {
             $this->failRequest(
@@ -174,11 +184,9 @@ abstract class BaseService extends BaseController
      */
     final private function prepareExecutionRecord($method_name)
     {
-        $input      = $this->loadInput()->input();
+        $input      = $this->loadInput()->cleanInput();
         $class_name = get_called_class();
-        
-        $execution_record = $this->generateExecutionRecord($class_name, $method_name);
-        $execution_record += [
+        $execution_record = $this->generateExecutionRecord($class_name, $method_name) + [
             'input' => $input,
         ];
         return $execution_record;
@@ -191,7 +199,8 @@ abstract class BaseService extends BaseController
         $this->setCode(2);
     }
 
-    final private function fail() // @CAUTION can not be invoked from XService
+    // @CAUTION can not be invoked from XService
+    final private function fail()
     {
         $this->setCode(1);
     }
@@ -204,13 +213,13 @@ abstract class BaseService extends BaseController
         if (FALSE === is_null($current_code) 
             AND FALSE === Kit::in($current_code, [ 0, 1, 2, 3 ]))
             throw new UserException('Invalid $current_code.', $current_code);
-        if (TRUE === Kit::in($current_code, [ 0, 3 ]))
+        if (0 === $current_code)
             throw new UserException("Can not change code(${current_code}) to $code after the request has finished.", $current_code);
-        // current_code = NULL/1/2; code = 0/1/2/3
         if ((TRUE === is_null($current_code) AND TRUE === Kit::in($code, [ 0, 1, 2, 3 ]))
             OR (1 === $current_code AND TRUE === Kit::in($code, [ 0, 1 ]))
             OR (2 === $current_code AND TRUE === Kit::in($code, [ 0, 1, 2 ]))
-            ) {
+            OR (3 === $current_code AND TRUE === Kit::in($code, [ 0, 1, 2 ]))
+        ) {
             $this->result['code'] = $code;
             return $code;
         } elseif (1 === $current_code AND 2 === $code) {
@@ -254,22 +263,19 @@ abstract class BaseService extends BaseController
                 return $this->getResult($type, $name);
             // (valid, valid/NULL)
             return $this->setResult($type, $name, $value, $is_list);
-        } elseif (TRUE === is_null($name)) {
+        } else {
             if (TRUE === Kit::isVacancy($value)) // (NULL) / ()
                 return $this->getResult($type, NULL);
             // (NULL, valid/NULL)
             throw new UserException('Invalid $value when $name is NULL.', $value);
-        } else {
-            // (invalid, valid/NULL/empty)
-            throw new UserException('Invalid $name.', $name);
         }
     }
 
     final private function setResult($type, $name, $value, $is_list)
     {
-        if (FALSE === Kit::in($type, [ 'data', 'status', 'process' ]))
-            throw new UserException('Invalid $type.', $type);
+        Kit::ensureIn($type, [ 'data', 'status', 'process' ]);
         Kit::ensureString($name);
+        Kit::ensureBoolean($is_list);
         if ('' === $name)
             throw new UserException('$name is an empty string.', $type);
         if (TRUE === isset($this->result[$type][$name])) {
@@ -368,9 +374,9 @@ abstract class BaseService extends BaseController
         if (FALSE === $close_cgi_only) {
             $this->result['database'] = [];
             if (2 !== $this->getCode()) {
-                $this->result['database']['rollbacked'] = MDBC::rollback();
-            } else $this->result['database']['rollbacked'] = FALSE;
-            $this->result['database']['changed'] = MDBC::isChanged();
+                $this->result['database']['rollbacked'] = MongoDBCollection::rollback();
+            } else $this->result['database']['rollbacked'] = MongoDBCollection::isRollbacked();
+            $this->result['database']['changed'] = MongoDBCollection::isChanged();
             Debug::updateExecutionRecord($execution_id, $execution_record);
             Debug::popExecutionId($execution_id);
         }
@@ -378,24 +384,34 @@ abstract class BaseService extends BaseController
             Debug::handleFatalError($error);
         }
         header('Content-Type : application/json', TRUE, $status_code);
-        if (FALSE === Debug::isProduction()) {
-            $this->result['monitor'] = Debug::getMonitor();
-            $this->result += Debug::getDebugInfo();
-            $this->result += [ 'size' => sprintf('%.2fKB', Kit::len(json_encode($this->result)) / 1024) ];
-            if (TRUE === is_null($this->result['mainException']))
-                unset($this->result['mainException']);
-            if (TRUE === is_null($this->result['monitor']))
-                unset($this->result['monitor']);
-        } else {
+        $this->result['monitor'] = Debug::getMonitor();
+        $this->result += Debug::getDebugInfo();
+        $this->result += [ 'size' => sprintf('%.2fKB', Kit::len(json_encode($this->result)) / 1024) ];
+        $this->result += [ 'datetime' => Kit::toFormat() ];
+        if (TRUE === is_null($this->result['mainException'])) unset($this->result['mainException']);
+        if (TRUE === is_null($this->result['monitor'])) unset($this->result['monitor']);
+        $this->loadCore('Log/RequestLog')->addRequestLog(
+            $execution_record['class'],
+            $execution_record['method'],
+            $this->result,
+            $this->getCode()
+        );
+        if (TRUE === Debug::isProduction()) {
             unset($this->result['mainException']);
             unset($this->result['monitor']);
             unset($this->result['database']);
             unset($this->result['process']);
+            unset($this->result['time']);
+            unset($this->result['memory']);
+            unset($this->result['size']);
         }
         Http::json($this->result);
         if (TRUE === $close_cgi_only) {
             fastcgi_finish_request();
             // DO NOT exit in order to run the subsequent scripts.
-        } else exit();
+        } else {
+            $this->QueueCore->pop();
+            exit();
+        }
     }
 }

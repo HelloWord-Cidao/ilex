@@ -70,30 +70,62 @@ class MongoDBCollection
 
     protected $collectionName = NULL;
 
-    private        $collection = NULL;
-    private static $isChanged  = FALSE;
-    private static $history    = [];
+    private        $collection   = NULL;
+    private static $isRollbacked = NULL;
+    private static $canBeChanged = TRUE;
+    private static $isChanged    = FALSE;
+    private static $history      = [];
 
     final public static function rollback()
     {
-        if (0 === Kit::len(self::$history)) return FALSE;
+        self::$canBeChanged = FALSE;
+        if (FALSE === is_null(self::$isRollbacked)) return self::$isRollbacked;
+        if (0 === Kit::len(self::$history)) {
+            self::$isRollbacked = FALSE;
+            return FALSE;
+        }
+        $exists_document_not_rollbacked = FALSE;
         foreach (Kit::reversed(self::$history) as $operation) {
+            if (FALSE === $operation['CanBeRollbacked']) {
+                // $exists_document_not_rollbacked = TRUE; // @CAUTION
+                continue;
+            }
             if (self::OP_INSERT === $operation['Type']) {
-                $operation['Collection']->deleteTheOnlyOne([ '_id' => $operation['Id'] ], TRUE);
+                $operation['Collection']->removeTheOnlyOne([ '_id' => $operation['Id'] ], TRUE, FALSE);
             } elseif (self::OP_UPDATE === $operation['Type']) {
                 $operation['Collection']->updateTheOnlyOne([ '_id' => $operation['Document']['_id'] ],
-                    $operation['Document'], TRUE);
+                    $operation['Document'], TRUE, FALSE);
             } elseif (self::OP_REMOVE === $operation['Type']) {
-                $operation['Collection']->addOne($operation['Document'], TRUE);
+                $operation['Collection']->addOne($operation['Document'], TRUE, FALSE);
             }
         }
-        self::$isChanged = FALSE;
+        if (FALSE === $exists_document_not_rollbacked) self::$isChanged = FALSE; // @CAUTION
+        self::$isRollbacked = TRUE;
         return TRUE;
+    }
+
+    final public static function getHistory()
+    {
+        return self::$history;
+    }
+
+    final public static function isRollbacked()
+    {
+        if (TRUE === is_null(self::$isRollbacked))
+            return FALSE;
+        return self::$isRollbacked;
     }
 
     final public static function isChanged()
     {
         return self::$isChanged;
+    }
+
+
+    final private static function ensureCanBeChanged()
+    {
+        if (FALSE === self::$canBeChanged)
+            throw new UserException('MongoDB can not be changed.');
     }
 
     protected function __construct($collection_name)
@@ -144,16 +176,21 @@ class MongoDBCollection
      *                                     The operation in MongoCollection::$wtimeout
      *                                     is milliseconds.
      */
-    final protected function addOne($document, $is_rollback = FALSE)
+    final protected function addOne($document, $is_rollback = FALSE, $can_be_rollbacked = TRUE)
     {
         $collection_name = $this->collectionName;
         // Kit::ensureDict($document); // @CAUTION
         Kit::ensureArray($document);
-        if (FALSE === $is_rollback)
+        Kit::ensureBoolean($is_rollback);
+        Kit::ensureBoolean($can_be_rollbacked);
+        if (FALSE === $is_rollback
+            AND TRUE === $can_be_rollbacked) { // @CAUTION: RequestLogEntity
+            self::ensureCanBeChanged();
             $this->ensureDocumentHasNoId($document);
+        }
         if (FALSE === isset($document['Meta']))
             $document['Meta'] = [];
-        $document['Meta']['CreationTime'] = new MongoDate();
+        $document['Meta']['CreationTime'] = Kit::now();
         
         $result = $this->mongoInsert($document);
         if (FALSE === (bool)$result['status']['ok'] OR TRUE === isset($result['status']['err']))
@@ -166,10 +203,14 @@ class MongoDBCollection
                 $result);
         }
         self::$history[] = [
-            'Collection' => $this,
-            'Type'       => self::OP_INSERT,
-            'Id'         => $result['document']['_id'],
+            'Collection'      => $this,
+            'CollectionName'  => $this->getCollectionName(),
+            'Type'            => self::OP_INSERT,
+            'Id'              => $result['document']['_id'],
+            'Document'        => $result['document'],
+            'CanBeRollbacked' => $can_be_rollbacked,
         ];
+        if (TRUE === $is_rollback OR FALSE === $can_be_rollbacked) self::$isChanged = TRUE; // @CAUTION
         return [
             'document' => $result['document'],
             'status'   => $result['status'],
@@ -333,7 +374,6 @@ class MongoDBCollection
     }
 
     /**
-     * @TODO: support upsert
      * Update the only one document based on a given criterion.
      * @param array   $criterion   Associative array with fields to match.
      * @param array   $update      The object used to update the matched documents.
@@ -350,43 +390,50 @@ class MongoDBCollection
      *                                     The operation in MongoCollection::$wtimeout
      *                                     is milliseconds.
      */
-    final protected function updateTheOnlyOne($criterion, $update, $is_rollback = FALSE/*, $is_document*/)
+    final protected function updateTheOnlyOne($criterion, $update, $is_rollback = FALSE, $can_be_rollbacked = TRUE)
     {
         $collection_name = $this->collectionName;
-        $new_document = $update; // @CAUTION
+        // Kit::ensureDict($new_document); // @CAUTION
+        $new_document = Kit::ensureArray($update); // @CAUTION
         // Kit::ensureDict($criterion); // @CAUTION
         Kit::ensureArray($criterion);
-        // Kit::ensureDict($update); // @CAUTION
-        Kit::ensureArray($new_document);
         // Kit::ensureBoolean($is_document);
+        Kit::ensureBoolean($is_rollback);
+        Kit::ensureBoolean($can_be_rollbacked);
+        if (FALSE === $is_rollback
+            AND TRUE === $can_be_rollbacked) { // @CAUTION: pop QueueEntity when code != 2
+            self::ensureCanBeChanged();
+            $this->ensureDocumentHasNoId($new_document);
+        }
         $this->ensureCriterionHasProperId($criterion);
         $document = $this->getTheOnlyOne($criterion);
-        // if (TRUE === $is_document) {
-            if (FALSE === $is_rollback)
-                $this->ensureDocumentHasNoId($new_document);
-            if (FALSE === isset($new_document['Meta']) 
-                OR FALSE === isset($new_document['Meta']['CreationTime'])){
-                $msg = "<${collection_name}>\$new_document has no Meta or Meta.CreationTime field as a document.";
-                throw new UserException($msg, $new_document);
-            }
-            if (FALSE === $is_rollback)
-                $new_document['Meta']['ModificationTime'] = new MongoDate();
-        // } else {
-            // if (FALSE === isset($update['$set'])) $update['$set'] = [];
-            // $update['$set']['Meta.ModificationTime'] = new MongoDate();
-            // if (TRUE === isset($update['$set']['_id']))
-                // throw new UserException("<${collection_name}>\$update should not set the _id field.", $update);
-        // }
+        if (FALSE === isset($new_document['Meta']) 
+            OR FALSE === isset($new_document['Meta']['CreationTime'])){
+            $msg = "<${collection_name}>\$new_document has no Meta or Meta.CreationTime field as a document.";
+            throw new UserException($msg, $new_document);
+        }
+        if (FALSE === $is_rollback)
+            $new_document['Meta']['ModificationTime'] = Kit::now();
         $status = $this->mongoUpdate($criterion, $new_document, FALSE);
         if (FALSE === $this->validateOperationStatus($status)) {
-            $msg = "<${collection_name}>MongoDBCollection update operation failed.";
-            throw new UserException($msg, [ $status, $criterion, $new_document ]);
+            if (FALSE === $is_rollback) {
+                $msg = "<${collection_name}>MongoDBCollection update operation failed.";
+                throw new UserException($msg, [ $status, $criterion, $new_document ]);
+            } else {
+                // @TODO!!
+                // rollback时，Mongo操作失败？
+            }
         }
         self::$history[] = [
-            'Collection' => $this,
-            'Type'       => self::OP_UPDATE,
-            'Document'   => $document,
+            'Collection'      => $this,
+            'CollectionName'  => $this->getCollectionName(),
+            'Type'            => self::OP_UPDATE,
+            'Criterion'       => $criterion,
+            'Document'        => $document,
+            'Update'          => $new_document,
+            'CanBeRollbacked' => $can_be_rollbacked
         ];
+        if (TRUE === $is_rollback OR FALSE === $can_be_rollbacked) self::$isChanged = TRUE; // @CAUTION
         // return $status;
         return $new_document; // @CAUTION
     }
@@ -404,12 +451,18 @@ class MongoDBCollection
      *                                     The operation in MongoCollection::$wtimeout
      *                                     is milliseconds.
      */
-    final protected function deleteTheOnlyOne($criterion, $is_rollback = FALSE)
+    final protected function removeTheOnlyOne($criterion, $is_rollback = FALSE, $can_be_rollbacked = TRUE)
     {
         $collection_name = $this->collectionName;
         $this->ensureInitialized();
         // Kit::ensureDict($criterion); // @CAUTION
         Kit::ensureArray($criterion);
+        Kit::ensureBoolean($is_rollback);
+        Kit::ensureBoolean($can_be_rollbacked);
+        if (FALSE === $is_rollback
+            AND TRUE === $can_be_rollbacked) { // @CAUTION: pop QueueEntity when code != 2
+            self::ensureCanBeChanged();
+        }
         $this->ensureCriterionHasProperId($criterion);
         $document = $this->getTheOnlyOne($criterion);
         $status = $this->mongoRemove($criterion, FALSE);
@@ -418,10 +471,14 @@ class MongoDBCollection
             throw new UserException($msg, [ $status, $criterion ]);
         }
         self::$history[] = [
-            'Collection' => $this,
-            'Type'       => self::OP_REMOVE,
-            'Document'   => $document,
+            'Collection'      => $this,
+            'CollectionName'  => $this->getCollectionName(),
+            'Type'            => self::OP_REMOVE,
+            'Criterion'       => $criterion,
+            'Document'        => $document,
+            'CanBeRollbacked' => $can_be_rollbacked,
         ];
+        if (TRUE === $is_rollback OR FALSE === $can_be_rollbacked) self::$isChanged = TRUE; // @CAUTION
         return $status;
     }
 
@@ -443,7 +500,12 @@ class MongoDBCollection
         Kit::ensureArray($criterion);
         if (TRUE === isset($criterion['_id']) AND (
             (TRUE === Kit::isArray($criterion['_id']) AND
+                TRUE === isset($criterion['_id']['$in']) AND
                 FALSE === Kit::isArray($criterion['_id']['$in'])) 
+            OR
+            (TRUE === Kit::isArray($criterion['_id']) AND
+                TRUE === isset($criterion['_id']['$ne']) AND
+                FALSE === $criterion['_id']['$ne'] instanceof MongoId) 
             OR
             (FALSE === Kit::isArray($criterion['_id']) AND
                 FALSE === $criterion['_id'] instanceof MongoId)
@@ -498,8 +560,11 @@ class MongoDBCollection
         // if it does not already exist in the supplied array.
         // Even if no new document was inserted,
         // the supplied array will still have a new MongoId key.
-        $status = $this->collection->insert($document, ['w' => 1]);
-        self::$isChanged = TRUE;
+        try {
+            $status = $this->collection->insert($document, ['w' => 1]);
+        } catch (Exception $e) {
+            throw new UserException($e->getMessage(), [ 'Document' => $document ], $e);
+        }
         return [
             'document' => $document,
             'status'   => $status,
@@ -527,7 +592,14 @@ class MongoDBCollection
         if (FALSE === is_null($skip))  $options['skip']  = $skip;
         if (FALSE === is_null($limit)) $options['limit'] = $limit;
         // @TODO: add $hint: Index to use for the query.
-        return $this->collection->count($criterion, $options);
+        try {
+            return $this->collection->count($criterion, $options);
+        } catch (Exception $e) {
+            throw new UserException($e->getMessage(), [
+                'Criterion' => $criterion,
+                'Options'   => $options,
+            ], $e);
+        }
     }
 
     /**
@@ -560,7 +632,14 @@ class MongoDBCollection
         Kit::ensureInt($skip, TRUE);
         Kit::ensureInt($limit, TRUE);
         Kit::ensureBoolean($to_array);
-        $cursor = $this->collection->find($criterion, $projection);
+        try {
+            $cursor = $this->collection->find($criterion, $projection);
+        } catch (Exception $e) {
+            throw new UserException($e->getMessage(), [
+                'Criterion'  => $criterion,
+                'Projection' => $projection,
+            ], $e);
+        }
         if (FALSE === is_null($sort_by)) $cursor = $cursor->sort($sort_by);
         if (FALSE === is_null($skip))    $cursor = $cursor->skip($skip);
         if (FALSE === is_null($limit))   $cursor = $cursor->limit($limit);
@@ -583,11 +662,17 @@ class MongoDBCollection
         Kit::ensureArray($criterion);
         // Kit::ensureDict($projection); // @CAUTION
         Kit::ensureArray($projection);
-        return $this->collection->findOne($criterion, $projection);
+        try {
+            return $this->collection->findOne($criterion, $projection);
+        } catch (Exception $e) {
+            throw new UserException($e->getMessage(), [
+                'Criterion'  => $criterion,
+                'Projection' => $projection,
+            ], $e);
+        }
     }
 
     /**
-     * @TODO: support upsert
      * Update documents based on a given criterion.
      * @param array   $criterion Associative array with fields to match.
      * @param array   $update    The object used to update the matched documents.
@@ -631,8 +716,15 @@ class MongoDBCollection
             'multiple' => $multiple,
         ];
         // @TODO: check returns n, upserted, updatedExisting
-        $status = $this->collection->update($criterion, $update, $options);
-        self::$isChanged = TRUE;
+        try {
+            $status = $this->collection->update($criterion, $update, $options);
+        } catch (Exception $e) {
+            throw new UserException($e->getMessage(), [
+                'Criterion' => $criterion,
+                'Update'    => $update,
+                'Options'   => $options,
+            ], $e);
+        }
         return $status;
     }
 
@@ -660,8 +752,14 @@ class MongoDBCollection
             'w'       => 1,
             'justOne' => (FALSE === $multiple),
         ];
-        $status = $this->collection->remove($criterion, $options);
-        self::$isChanged = TRUE;
+        try {
+            $status = $this->collection->remove($criterion, $options);
+        } catch (Exception $e) {
+            throw new UserException($e->getMessage(), [
+                'Criterion' => $criterion,
+                'Options'   => $options,
+            ], $e);
+        }
         return $status;
     }
 }

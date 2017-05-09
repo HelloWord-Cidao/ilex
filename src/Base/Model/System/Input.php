@@ -7,7 +7,6 @@ use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
 
 /**
- * @todo: method arg type validate
  * Class Input
  * Encapsulation of system input, such as $_GET, $_POST.
  * @package Ilex\Base\Model\System
@@ -29,7 +28,6 @@ use \Ilex\Lib\UserException;
  * @method final public static array   missPost(array $key_list)
  * @method final public static mixed   post(string $key = NULL, mixed $default = NULL)
  * @method final public static mixed   setInput(mixed $key, mixed $value)
- * @method final public static boolean deleteInput(mixed $key)
  */
 final class Input
 {
@@ -59,7 +57,27 @@ final class Input
         $limit = 100000;
         if (Kit::len(json_encode(self::input())) > $limit) 
             throw new UserException("Input size exceeds limit($limit).");
-        self::deleteInput('_url');
+    }
+
+    final public static function uri()
+    {
+        return Kit::ensureString(self::input()[0]);
+    }
+
+    final public static function token()
+    {
+        return self::input('token');
+    }
+
+    final public static function cleanInput()
+    {
+        $result = self::input();
+        unset($result[0]);
+        unset($result['_url']);
+        unset($result['token']);
+        unset($result['error']);
+        unset($result['Debug']);
+        return $result;
     }
 
     /**
@@ -71,11 +89,10 @@ final class Input
     {
         Kit::ensureString($name, TRUE);
         if (FALSE === is_null($name)) {
-            if (TRUE === Kit::in($name, ['get', 'post', 'input'])) {
-                $name .= 'Data';
-                self::$$name->clear();
-                return TRUE;
-            } else throw new UserException("Invalid \$name($name).");
+            Kit::ensureIn($name, ['get', 'post', 'input']);
+            $name .= 'Data';
+            self::$$name->clear();
+            return TRUE;
         } else {
             self::$getData->clear();
             self::$postData->clear();
@@ -90,6 +107,7 @@ final class Input
      */
     final public static function hasInput($key_list)
     {
+        Kit::ensureArray($key_list); // @CAUTION
         return call_user_func_array([self::$inputData, 'has'], $key_list);
     }
     
@@ -99,6 +117,7 @@ final class Input
      */
     final public static function hasGet($key_list)
     {
+        Kit::ensureArray($key_list); // @CAUTION
         return call_user_func_array([self::$getData, 'has'], $key_list);
     }
 
@@ -108,6 +127,7 @@ final class Input
      */
     final public static function hasPost($key_list)
     {
+        Kit::ensureArray($key_list); // @CAUTION
         return call_user_func_array([self::$postData, 'has'], $key_list);
     }
 
@@ -119,7 +139,6 @@ final class Input
     final public static function input($key = NULL, $default = NULL)
     {
         return self::$inputData->get($key, $default);
-
     }
 
     /**
@@ -153,46 +172,36 @@ final class Input
     }
 
     /**
-     * @param string $key
-     * @return boolean
-     */
-    final public static function deleteInput($key)
-    {
-        return self::$inputData->delete($key);
-    }
-
-    /**
      * @param string $name
      * @param array  $data
      * @return boolean
      */
     final public static function merge($name, $data)
     {
-        if (TRUE === Kit::in($name, ['get', 'post', 'input'])) {
-            $name .= 'Data';
-            self::$$name->merge($data);
-            /* 
-            CAUTION: 
-                The + operator returns the right-hand array appended to the left-hand array;
-                for keys that exist in both arrays, the elements from the left-hand array will be used,
-                and the matching elements from the right-hand array will be ignored.
-            
-                array_merge — Merge one or more arrays
-                array array_merge ( array $array1 [, array $... ] )
-                Merges the elements of one or more arrays together so that the values of one
-                are appended to the end of the previous one. It returns the resulting array.
-                If the input arrays have the same string keys, then the later value for that key will 
-                overwrite the previous one. If, however, the arrays contain numeric keys,
-                the later value will not overwrite the original value, but will be appended.
-                Values in the input array with numeric keys will be renumbered with
-                incrementing keys starting from zero in the result array.
-            */
-            if ($name !== 'input') {
-                self::$inputData->merge(self::get());
-                self::$inputData->merge(self::post());
-            }
-            return TRUE;
-        } else throw new UserException("Invalid \$name($name).");
+        Kit::ensureIn($name, ['get', 'post', 'input']);
+        $name .= 'Data';
+        self::$$name->merge($data);
+        /* 
+        CAUTION: 
+            The + operator returns the right-hand array appended to the left-hand array;
+            for keys that exist in both arrays, the elements from the left-hand array will be used,
+            and the matching elements from the right-hand array will be ignored.
+        
+            array_merge — Merge one or more arrays
+            array array_merge ( array $array1 [, array $... ] )
+            Merges the elements of one or more arrays together so that the values of one
+            are appended to the end of the previous one. It returns the resulting array.
+            If the input arrays have the same string keys, then the later value for that key will 
+            overwrite the previous one. If, however, the arrays contain numeric keys,
+            the later value will not overwrite the original value, but will be appended.
+            Values in the input array with numeric keys will be renumbered with
+            incrementing keys starting from zero in the result array.
+        */
+        if ($name !== 'input') {
+            self::$inputData->merge(self::get());
+            self::$inputData->merge(self::post());
+        }
+        return TRUE;
     }
 
     /**

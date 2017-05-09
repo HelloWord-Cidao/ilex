@@ -2,11 +2,9 @@
 
 namespace Ilex\Lib;
 
-use \ReflectionClass;
-use \Ilex\Lib\UserException;
+use \Ilex\Lib\Kit;
 
 /**
- * @todo: method arg type validate
  * Class Validator
  * A tool used to validate data efficiently.
  * @package Ilex\Lib
@@ -84,27 +82,6 @@ final class Validator
     //     V_REST, V_REST_REQUIRE, V_REST_NOT_REQUIRE, 
     //     V_VERSION, V_VERSION_DEFAULT,
     // ];
-
-    /**
-     * 
-     * check all array keys and values in $pattern being consts in this class
-     * check all array values in $pattern using several 'if'. DO NOT use 'else'
-     * @param 
-     * @return boolean
-     * @throws UserException if there is unknown pattern tag found.
-     */
-    final public static function validate($pattern, $data)
-    {
-        if (TRUE === is_null(self::$patternTagNameList))
-            self::$patternTagNameList = array_keys((new ReflectionClass(get_class()))->getConstants());
-        if (TRUE === is_null(self::$patternTagValueList))
-            self::$patternTagValueList = array_values((new ReflectionClass(get_class()))->getConstants());
-        $tag_list = array_merge(self::$patternTagNameList, self::$patternTagValueList);
-        if (Kit::len($unknown_tag_list = array_diff(array_keys($pattern), $tag_list)) > 0)
-            throw new UserException('Unknown pattern tag found.', $unknown_tag_list);
-        return TRUE;
-    }
-
 
 
     private static $patternList = [

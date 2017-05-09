@@ -2,8 +2,9 @@
 
 namespace Ilex\Lib;
 
+use \Ilex\Lib\Kit;
+
 /**
- * @todo: method arg type validate
  * Class Http
  * The class in charge of http operations.
  * @package Ilex\Lib
@@ -17,24 +18,30 @@ final class Http
 
     /**
      * Escapes html content.
-     * @param string $data
+     * @param string $string
      * @return string
      */
-    final public static function escape($data)
+    final public static function escape($string)
     {
-        return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+        Kit::ensureString($string);
+        return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
     }
 
     /**
-     * @param mixed $data
+     * @param array $data
      */
     final public static function json($data)
     {
+        Kit::ensureArray($data); // @CAUTION
         echo json_encode($data);
     }
 
-    final public static function request($url, $param, $data = '', $method = 'GET')
+    final public static function request($url, $param, $data = [], $method = 'GET')
     {
+        Kit::ensureString($url);
+        Kit::ensureArray($param); // @CAUTION
+        Kit::ensureArray($data); // @CAUTION
+        Kit::ensureIn($method, [ 'GET', 'POST' ]);
         $opts = [
             CURLOPT_TIMEOUT        => 5,
             CURLOPT_CONNECTTIMEOUT => 5,
@@ -49,10 +56,9 @@ final class Http
         curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
         curl_setopt_array($curl, $opts);
 
-        $data = curl_exec($curl);
+        $result = curl_exec($curl);
         curl_close($curl);
 
-        return $data;
+        return $result;
     }
-
 }

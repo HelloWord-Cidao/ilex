@@ -3,8 +3,10 @@
 namespace Ilex\Core;
 
 use \Exception;
+use \Ilex\Core\Debug;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
+use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\Entity\User\UserEntity;
 
 /**
@@ -17,20 +19,14 @@ final class Context
 
     private static $currentUser            = NULL;
     private static $currentInstitution     = NULL;
-    private static $currentMemorizeMission = NULL;
     
-    final public static function trySetCurrentUserEntity()
+    final public static function trySetCurrentUser()
     {
-        $token = Loader::loadInput()->input('token');
-        if (TRUE === Kit::isString($token) AND '' !== $token) {
-            $class_name = Loader::includeCore('User/User');
-            try {
-                self::$currentUser        = $class_name::getCurrentUserEntity($token);
-                self::$currentInstitution = self::$currentUser->getInstitution()->setReadOnly();
-            } catch (Exception $e) {
-                self::$currentUser        = NULL;
-                self::$currentInstitution = NULL;
-            }
+        try {
+            self::refresh();
+        } catch (Exception $e) {
+            self::$currentUser        = NULL;
+            self::$currentInstitution = NULL;
         }
     }
 
@@ -38,20 +34,30 @@ final class Context
     {
         $result = (TRUE === isset(self::$currentUser) AND TRUE === (self::$currentUser instanceof UserEntity));
         if (FALSE === $result OR 0 === Kit::len($user_type_list)) return $result;
+        $current_user_type = self::$currentUser->getType();
         foreach ($user_type_list as $user_type) {
             if ($user_type === self::$currentUser->getType()) return TRUE;
         }
+        Debug::monitor('loginFailed', "Wrong user type($current_user_type).");
         return FALSE;
     }
 
-    final public static function user()
+    final public static function me()
     {
         return self::$currentUser;
     }
 
-    final public static function institution()
+    final public static function myInstitution()
     {
-        return self::$currentInstitution;
+        if (TRUE === is_null(self::$currentInstitution))
+            return (self::$currentInstitution = self::$currentUser->getInstitution()->setReadOnly());
+        else return self::$currentInstitution;
     }
 
+    final public static function refresh()
+    {
+        $token                    = Loader::loadInput()->token();
+        $class_name               = Loader::includeCore('User/User');
+        self::$currentUser        = $class_name::getCurrentUser(Kit::ensureString($token));
+    }
 }

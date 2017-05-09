@@ -2,7 +2,6 @@
 
 namespace Ilex\Base\Model\Bulk;
 
-use \Closure;
 use \MongoId;
 use \Ilex\Lib\Bulk;
 use \Ilex\Lib\Kit;
@@ -57,18 +56,22 @@ class BaseEntityBulk extends Bulk
         return $this->setItemList($entity_list);
     }
 
-    final private function getTheOnlyOneEntity()
+    final public function append($entity)
     {
-        if (1 !== $this->count())
-            throw new UserException('This bulk has no or more than one entities.', $this->getEntityList());
-        return $this->getEntityList()[0];
+        if (FALSE === $entity instanceof BaseEntity)
+            throw new UserException('$entity is not an entity object.');
+        if (0 === $this->count()) return parent::append($entity);
+        if ($entity->getCollectionName() !== $this[0]->getCollectionName() OR
+            $entity->getEntityPath() !== $this[0]->getEntityPath())
+            throw new UserException('$entity is not the same type as the entities in this entity bulk.');
+        return parent::append($entity);
     }
 
-    final public function batch($method_name)
+    final public function batch($method_name, $to_bulk = FALSE, $return_array_when_empty = TRUE)
     {
         Kit::ensureString($method_name);
         $arg_list = func_get_args();
-        if (count($arg_list) > 1) $arg_list = Kit::slice($arg_list, 1); else $arg_list = [];
+        if (count($arg_list) > 3) $arg_list = Kit::slice($arg_list, 3); else $arg_list = [];
         $is_return_entity = NULL;
         $result = [];
         foreach ($this->getEntityList() as $index => $entity) {
@@ -78,50 +81,28 @@ class BaseEntityBulk extends Bulk
             if ($is_return_entity !== $item instanceof BaseEntity)
                 throw new UserException('Inconsistent behavior of method.');
         }
-        if (TRUE === $is_return_entity) {
+        if (0 === Kit::len($result)) {
+            if (TRUE === $return_array_when_empty) return [ ];
+            else return $this;
+        } elseif (TRUE === $is_return_entity) {
             return $this->setEntityList($result);
-        }
+        } elseif (TRUE === $to_bulk)
+            return new Bulk($result);
         else return $result;
     }
 
-    final public function map(Closure $function)
+    final public function getTheOnlyOneEntity()
     {
-        $arg_list = func_get_args();
-        if (count($arg_list) > 1) $arg_list = Kit::slice($arg_list, 1); else $arg_list = [];
-        $result = [];
-        foreach ($this->getEntityList() as $index => $entity) {
-            $result[] = call_user_func_array($function,
-                array_merge([ $entity ], $arg_list, [ $index ]));
-        }
-        return $result;
+        return $this->getTheOnlyOne();
     }
 
-    final public function aggregate(Closure $function, $context)
+    final public function getOneEntityRandomly()
     {
-        $arg_list = func_get_args();
-        if (count($arg_list) > 2) $arg_list = Kit::slice($arg_list, 2); else $arg_list = [];
-        foreach ($this->getEntityList() as $index => $entity) {
-            $context = call_user_func_array($function,
-                array_merge([ $entity, $context ], $arg_list, [ $index ]));
-        }
-        return $context;
+        return $this->getOneRandomly();
     }
 
-    final public function filter(Closure $function)
-    {
-        $arg_list = func_get_args();
-        if (count($arg_list) > 1) $arg_list = Kit::slice($arg_list, 1); else $arg_list = [];
-        $result = [];
-        foreach ($this->getEntityList() as $index => $entity) {
-            if (TRUE === call_user_func_array($function,
-                array_merge([ $entity ], $arg_list, [ $index ]))) {
-                $result[] = $entity;
-            }
-        }
-        return $this->setEntityList($result);
-    }
-
-    final public function filterById($id)
+    // O(N)
+    final public function getTheOnlyOneEntityById($id)
     {
         $detail = $this->batch('getName');
         $result = $this->filter(function ($entity, $id) {
@@ -131,15 +112,4 @@ class BaseEntityBulk extends Bulk
             throw new UserException('$id not found in this bulk.', $detail);
         else return $result->getTheOnlyOneEntity();
     }
-
-    final public function filterByRandomlySelect($num)
-    {
-        return $this->setEntityList(Kit::randomlySelect($this->getEntityList(), $num));
-    }
-
-    final public function shuffle()
-    {
-        return $this->setEntityList(Kit::shuffled($this->getEntityList()));
-    }
-
 }

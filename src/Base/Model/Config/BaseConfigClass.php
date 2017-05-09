@@ -16,5 +16,4 @@ abstract class BaseConfigClass extends BaseModel
     {
         return TRUE;
     }
-
 }

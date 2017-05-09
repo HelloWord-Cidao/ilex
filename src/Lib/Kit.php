@@ -3,11 +3,14 @@
 namespace Ilex\Lib;
 
 use \Closure;
+use \DateTime;
+use \DateInterval;
+use \MongoDate;
+use \Ilex\Core\Debug;
 use \Ilex\Lib\UserException;
 use \Ilex\Lib\UserTypeException;
 
 /**
- * @todo: method arg type validate
  * Class Kit
  * A kit class.
  * @package Ilex\Lib
@@ -24,7 +27,6 @@ use \Ilex\Lib\UserTypeException;
  * @method final public static string     getRealPath(string $path)
  * @method final public static string     j(mixed $data)
  * @method final public static mixed|NULL last(array $array, int $offset = 1)
- * @method final public array|FALSE       randomByWeight(array $list_of_dict)
  * @method final public static array      separateTitleWords(string $string)
  * @method final public static string     time(int|NULL $time = NULL, string $format = 'Y-m-d H:i:s')
  * @method final public static string     toString(mixed $data, boolean $quotation_mark_list = TRUE)
@@ -49,6 +51,10 @@ final class Kit
     const M_MIN = 'min';
     const M_MAX = 'max';
 
+    const T_MINUTE = 60;
+    const T_HOUR   = 60 * 60;
+    const T_DAY    = 60 * 60 * 24;
+
     // ================================================== //
     //                        Type                        //
     // ================================================== //
@@ -62,6 +68,8 @@ final class Kit
      */
     final public static function type(&$variable, $distinguish_array = FALSE, $empty_array = self::TYPE_LIST)
     {
+        if (FALSE === is_bool($distinguish_array))
+            throw new UserTypeException($distinguish_array, self::TYPE_BOOLEAN);
         if (self::TYPE_LIST !== $empty_array AND self::TYPE_DICT !== $empty_array)
             throw new UserException('Invalid $empty_array.', $empty_array);
         if (FALSE === $distinguish_array) {
@@ -153,6 +161,7 @@ final class Kit
     {
         if (FALSE === self::isType($variable, $type_list, $can_be_null))
             throw new UserTypeException($variable, $type_list);
+        return $variable;
     }
 
     final public static function isList(&$variable, $can_be_null = FALSE)
@@ -162,7 +171,7 @@ final class Kit
 
     final public static function ensureList(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_LIST, $can_be_null);
+        return self::ensureType($variable, self::TYPE_LIST, $can_be_null);
     }
 
     final public static function isListOfType(&$list, $type_list)
@@ -178,6 +187,7 @@ final class Kit
     {
         if (FALSE === self::isListOfType($list, $type_list))
             throw new UserException('Values in $list is not of $type_list.', [ $list, $type_list ]);
+        return $list;
     }
 
     final public static function isListOfList(&$list)
@@ -221,6 +231,7 @@ final class Kit
     {
         if (FALSE === self::isMatrix($list))
             throw new UserException('$matrix is not a matrix.', $matrix);
+        return $matrix;
     }
 
     final public static function isDict(&$variable, $can_be_null = FALSE)
@@ -230,7 +241,7 @@ final class Kit
 
     final public static function ensureDict(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_DICT, $can_be_null);
+        return self::ensureType($variable, self::TYPE_DICT, $can_be_null);
     }
 
     final public static function isDictOfType(&$dict, $type_list)
@@ -246,6 +257,7 @@ final class Kit
     {
         if (FALSE === self::isDictOfType($dict, $type_list))
             throw new UserException('Values in $dict is not of $type_list.', [ $dict, $type_list ]);
+        return $dict;
     }
 
     final public static function isDictOfList(&$dict)
@@ -285,7 +297,7 @@ final class Kit
 
     final public static function ensureArray(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_ARRAY, $can_be_null);
+        return self::ensureType($variable, self::TYPE_ARRAY, $can_be_null);
     }
 
     final public static function isString($variable, $can_be_null = FALSE, $can_be_empty = FALSE)
@@ -299,6 +311,7 @@ final class Kit
     {
         if (FALSE === self::isString($variable, $can_be_null, $can_be_empty))
             throw new UserTypeException($variable, self::TYPE_STRING);
+        return $variable;
     }
 
     final public static function isCharacter($variable, $can_be_null = FALSE)
@@ -310,6 +323,7 @@ final class Kit
     {
         if (FALSE === self::isCharacter($variable, $can_be_null))
             throw new UserTypeException($variable, self::TYPE_CHARACTER);
+        return $variable;
     }
 
     final public static function isMatchRegex($variable, $regex, $can_be_null = FALSE)
@@ -328,6 +342,7 @@ final class Kit
     {
         if (FALSE === self::isMatchRegex($variable, $regex, $can_be_null))
             throw new UserException("\$variable($variable) match \$regex($regex) failed.", $can_be_null);
+        return $variable;
     }
 
     final public static function isInt($variable, $can_be_null = FALSE, $should_be_positive = TRUE)
@@ -341,6 +356,7 @@ final class Kit
     {
         if (FALSE === self::isInt($variable, $can_be_null, $should_be_positive))
             throw new UserTypeException($variable, self::TYPE_INT);
+        return $variable;
     }
 
     final public static function isNonNegativeInt($variable, $can_be_null = FALSE)
@@ -353,16 +369,34 @@ final class Kit
     {
         if (FALSE === self::isNonNegativeInt($variable, $can_be_null))
             throw new UserTypeException($variable, self::TYPE_INT);
+        return $variable;
     }
 
-    final public static function isFloat($variable, $can_be_null = FALSE)
+    final public static function isFloat($variable, $can_be_null = FALSE, $should_be_positive = TRUE)
     {
-        return self::isType($variable, self::TYPE_FLOAT, $can_be_null);
+        self::ensureBoolean($should_be_positive);
+        return self::isType($variable, [ self::TYPE_FLOAT, self::TYPE_INT ], $can_be_null)
+            AND (TRUE === $can_be_null OR FALSE === $should_be_positive OR $variable > 0);
     }
 
-    final public static function ensureFloat($variable, $can_be_null = FALSE)
+    final public static function ensureFloat($variable, $can_be_null = FALSE, $should_be_positive = TRUE)
     {
-        self::ensureType($variable, self::TYPE_FLOAT, $can_be_null);
+        if (FALSE === self::isFloat($variable, $can_be_null, $should_be_positive))
+            throw new UserTypeException($variable, [ self::TYPE_FLOAT, self::TYPE_INT ]);
+        return $variable;
+    }
+
+    final public static function isNonNegativeFloat($variable, $can_be_null = FALSE)
+    {
+        return self::isType($variable, [ self::TYPE_FLOAT, self::TYPE_INT ], $can_be_null)
+            AND (TRUE === $can_be_null OR $variable >= 0);
+    }
+
+    final public static function ensureNonNegativeFloat($variable, $can_be_null = FALSE)
+    {
+        if (FALSE === self::isNonNegativeFloat($variable, $can_be_null))
+            throw new UserTypeException($variable, [ self::TYPE_FLOAT, self::TYPE_INT ]);
+        return $variable;
     }
 
     final public static function isBoolean($variable, $can_be_null = FALSE)
@@ -372,7 +406,7 @@ final class Kit
 
     final public static function ensureBoolean($variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_BOOLEAN, $can_be_null);
+        return self::ensureType($variable, self::TYPE_BOOLEAN, $can_be_null);
     }
 
     final public static function isObject(&$variable, $can_be_null = FALSE)
@@ -382,7 +416,7 @@ final class Kit
 
     final public static function ensureObject(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_OBJECT, $can_be_null);
+        return self::ensureType($variable, self::TYPE_OBJECT, $can_be_null);
     }
 
     final public static function isResource(&$variable, $can_be_null = FALSE)
@@ -392,7 +426,7 @@ final class Kit
 
     final public static function ensureResource(&$variable, $can_be_null = FALSE)
     {
-        self::ensureType($variable, self::TYPE_RESOURCE, $can_be_null);
+        return self::ensureType($variable, self::TYPE_RESOURCE, $can_be_null);
     }
 
     final public static function isNULL($variable)
@@ -402,7 +436,14 @@ final class Kit
 
     final public static function ensureNULL($variable)
     {
-        self::ensureType($variable, self::TYPE_NULL);
+        return self::ensureType($variable, self::TYPE_NULL);
+    }
+
+    final public static function ensureNotNULL($variable)
+    {
+        if (TRUE === is_null($variable))
+            throw new UserException('$variable should not be NULL.', $variable);
+        return $variable;
     }
 
     final public static function isVacancy(&$variable)
@@ -414,7 +455,7 @@ final class Kit
     {
         if (FALSE === self::isVacancy($variable))
             throw new UserException('$variable is not vacancy.', $variable);
-            
+        return $variable;
     }
 
     // ================================================== //
@@ -486,7 +527,8 @@ final class Kit
         if (self::len($match_list) > 0) {
             $result = [];
             // @todo: add comment to this logic?
-            if ($match_list[0][1] > 0) $result[] = substr($string, 0, $match_list[0][1]);
+            if ($match_list[0][1] > 0)
+                $result[] = substr($string, 0, $match_list[0][1]);
             foreach ($match_list as $match) $result[] = $match[0];
             return $result;
         } else return [ $string ];
@@ -510,6 +552,10 @@ final class Kit
 
     final public static function in($value, $array)
     {
+        // array_flip
+        // I find this function very useful when you have a big array and you want to know 
+        // if a given value is in the array. in_array in fact becomes quite slow in such a case, 
+        // but you can flip the big array and then use isset to obtain the same result in a much faster way.
         self::ensureArray($array);
         return TRUE === in_array($value, $array, TRUE);
     }
@@ -520,6 +566,7 @@ final class Kit
             $msg = "\$value(" . self::toString($value) . ") is not in \$array(" . self::toString($array) . ").";
             throw new UserException($msg, [ $value, $array ]);
         }
+        return $value;
     }
 
     final public static function hasKey()
@@ -596,6 +643,7 @@ final class Kit
         if (FALSE === is_array($key_list))
             $key_list = [ $key_list ];
         self::ensureListOfType($key_list, [ self::TYPE_STRING, self::TYPE_INT ]);
+        self::ensureBoolean($ensure_existence);
         $result = [];
         foreach ($key_list as $key) {
             if (TRUE === isset($array[$key])) {
@@ -623,6 +671,7 @@ final class Kit
         if (FALSE === is_array($key_list))
             $key_list = [ $key_list ];
         self::ensureListOfType($key_list, [ self::TYPE_STRING, self::TYPE_INT ]);
+        self::ensureBoolean($check_existence);
         $result = $array;
         foreach ($key_list as $key) {
             if (FALSE === isset($array[$key]) AND TRUE === $check_existence) {
@@ -648,23 +697,27 @@ final class Kit
     {
         if (FALSE === self::isAllSame($array, $value))
             throw new UserException('Values in $array are not same (or $value).', [ $array, $value ]);
+        return $array;
     }
 
     final public static function sum(&$array)
     {
         self::ensureListOfType($array, [ self::TYPE_INT, self::TYPE_FLOAT, self::TYPE_BOOLEAN ]);
-        return array_sum($array);
+        if (0 === self::len($array)) return 0;
+        else return array_sum($array);
     }
 
     // ================================================== //
     //                       List                         //
     // ================================================== //
 
-    final public static function slice(&$list, $offset, $length = NULL)
+    final public static function slice($list, $offset, $length = NULL)
     {
         self::ensureList($list);
         self::ensureInt($offset, FALSE, FALSE);
-        self::ensureInt($length, TRUE);
+        self::ensureNonNegativeInt($length, TRUE);
+        if (0 === $length) return [ ];
+        if ($offset >= self::len($list)) return [ ];
         // @TODO: check corner cases
         return array_slice($list, $offset, $length);
     }
@@ -692,8 +745,8 @@ final class Kit
         if (count($arg_list) > 2) $arg_list = Kit::slice($arg_list, 2); else $arg_list = [];
         $result = [];
         foreach ($list as $index => $item) {
-            $result_item = call_user_func_array($function, array_merge([ $item ], $arg_list, [ $index ]));
-            if (FALSE === self::isVacancy($result_item)) $result[] = $result_item;
+            $result[] = call_user_func_array($function, array_merge([ $item ], $arg_list, [ $index ]));
+            // if (FALSE === self::isVacancy($result_item)) $result[] = $result_item;
         }
         return $result;
     }
@@ -701,6 +754,25 @@ final class Kit
     final public static function map($function, &$list)
     {
         $list = call_user_func_array([ 'self', 'mapped' ], func_get_args());
+        return $list;
+    }
+
+    final public static function filtered($function, &$list)
+    {
+        self::ensureArray($list);
+        $arg_list = func_get_args();
+        if (count($arg_list) > 2) $arg_list = Kit::slice($arg_list, 2); else $arg_list = [];
+        $result = [];
+        foreach ($list as $index => $item) {
+            if (TRUE === call_user_func_array($function, array_merge([ $item ], $arg_list, [ $index ])))
+                $result[] = $item;
+        }
+        return $result;
+    }
+
+    final public static function filter($function, &$list)
+    {
+        $list = call_user_func_array([ 'self', 'filtered' ], func_get_args());
         return $list;
     }
 
@@ -770,22 +842,18 @@ final class Kit
         return $list;
     }
 
+    final public static function uniqued(&$list)
+    {
+        self::ensureArray($list);
+        return array_unique($list, SORT_REGULAR);
+    }
 
-    // final public static function uniqued($list)
-    // {
-    //     self::ensureArray($list);
-    //     if (FALSE === shuffle($list))
-    //         throw new UserException('Shuffle failed.');
-    //     return $list;
-    // }
-
-    // final public static function unique(&$list)
-    // {
-    //     self::ensureArray($list);
-    //     if (FALSE === shuffle($list))
-    //         throw new UserException('Shuffle failed.');
-    //     return $list;
-    // }
+    final public static function unique(&$list)
+    {
+        self::ensureArray($list);
+        $list = array_unique($list, SORT_REGULAR);
+        return $list;
+    }
 
     // ================================================== //
     //                       Dict                         //
@@ -936,19 +1004,118 @@ final class Kit
     }
 
     // ================================================== //
-    //                     Date & Time                    //
+    //                       DateTime                     //
     // ================================================== //
 
-    /**
-     * Converts time to date string and returns it.
-     * @param int|NULL $time
-     * @param string   $format
-     * @return string
-     */
-    final public static function time($time = NULL, $format = 'Y-m-d H:i:s')
+    final public static function todayStartTime()
     {
-        if (TRUE === Kit::isNULL($time)) $time = time();
-        return date($format, $time);
+        return new MongoDate(self::todayStartTimestamp());
+    }
+
+    final public static function todayStartTimestamp()
+    {
+        $time_tuple = self::getTimeTuple();
+        $date_time = new DateTime();
+        $date_time
+            ->setDate($time_tuple['Year'], $time_tuple['Month'], $time_tuple['Day'])
+            ->setTime(0, 0, 0); // @CAUTION: UTC
+        return $date_time->getTimestamp();
+    }
+
+    final public static function todayEndTime()
+    {
+        return new MongoDate(self::todayEndTimestamp());
+    }
+
+    final public static function todayEndTimestamp()
+    {
+        $time_tuple = self::getTimeTuple(self::timestampAtNow() + 60 * 60 * 24);
+        $date_time = new DateTime();
+        $date_time
+            ->setDate($time_tuple['Year'], $time_tuple['Month'], $time_tuple['Day'])
+            ->setTime(0, 0, 0); // @CAUTION: UTC
+        return $date_time->getTimestamp();
+    }
+
+    final public static function todayDateFormat()
+    {
+        return self::toFormat(NULL, 'Y-m-d');
+    }
+
+    final public static function daysAfterNowDateFormat($days)
+    {
+        self::ensureInt($days);
+        return self::toFormat(self::timestampAtNow() + 60 * 60 * 24 * $days, 'Y-m-d');
+    }
+
+    final public static function daysAfterNow($days)
+    {
+        self::ensureInt($days);
+        return new MongoDate(
+            (new DateTime())->add(new DateInterval("P${days}D"))->getTimestamp()
+        );
+    }
+
+    final public static function daysBeforeNowDateFormat($days)
+    {
+        self::ensureInt($days);
+        return self::toFormat(self::timestampAtNow() - 60 * 60 * 24 * $days, 'Y-m-d');
+    }
+
+    final public static function daysBeforeNow($days)
+    {
+        self::ensureInt($days);
+        return new MongoDate(
+            (new DateTime())->sub(new DateInterval("P${days}D"))->getTimestamp()
+        );
+    }
+
+    final public static function getTimeTuple($timestamp = NULL)
+    {
+        $tmp = self::split('-', self::toFormat($timestamp, 'Y-m-d-H-i-s'));
+        return [
+            'Year'   => $tmp[0],
+            'Month'  => $tmp[1],
+            'Day'    => $tmp[2],
+            'Hour'   => $tmp[3],
+            'Minute' => $tmp[4],
+            'Second' => $tmp[5],
+        ];  
+    }
+
+    final public static function toFormat($timestamp = NULL, $format = 'Y-m-d H:i:s')
+    {
+        if (TRUE === is_null($timestamp)) $timestamp = self::timestampAtNow();
+        $timestamp += 60 * 60 * 8; // @CAUTION
+        return date($format, $timestamp) . ' EST';
+    }
+
+    final public static function toTimestamp(MongoDate $mongo_date)
+    {
+        $result = self::split(' ', $mongo_date->__toString());
+        return (int)$result[1] + (float)$result[0];
+    }
+
+    // @TODO: validate range
+    final public static function fromTimestamp($timestamp)
+    {
+        self::ensureType($timestamp, [ Kit::TYPE_INT, Kit::TYPE_FLOAT ]);
+        return new MongoDate($timestamp);
+    }
+
+    final public static function now()
+    {
+        return new MongoDate();
+    }
+
+    final public static function timestampAtNow()
+    {
+        return time();
+    }
+
+    final public static function microTimestampAtNow()
+    {
+        return microtime(TRUE);
     }
 
     // ================================================== //
@@ -963,6 +1130,7 @@ final class Kit
      */
     final public static function getRealPath($path)
     {
+        self::ensureString($path);
         if (FALSE !== ($realpath = realpath($path)))
             $path = $realpath . '/';
         else $path = rtrim($path, '/') . '/'; // @todo: change function to Kit::rstrip()
@@ -1022,6 +1190,7 @@ final class Kit
     final public static function round($number, $precision = 0)
     {
         self::ensureType($number, [ self::TYPE_INT, self::TYPE_FLOAT ]);
+        self::ensureNonNegativeInt($precision);
         if (TURE === self::isInt($number)) $number = (float)$number;
         return round($number, $precision);
     }
@@ -1042,15 +1211,16 @@ final class Kit
         return range($min, $max, $step);
     }
 
+    // return $min <= result <= $max
     final public static function randomInt($min = 0, $max = NULL)
     {
         $randmax = mt_getrandmax();
         if (TRUE === is_null($max)) $max = $randmax;
         self::ensureInt($min, FALSE, FALSE);
-        self::ensureInt($max);
+        self::ensureInt($max, FALSE, FALSE);
         if ($min > $max) throw new UserException("Min($min) is larger than max($max).", [ $min, $max ]);
-        return $min + self::round(1.0 * mt_rand() / $randmax * ($max - $min));
-            
+        mt_srand();
+        return (int)($min + self::round(1.0 * mt_rand() / $randmax * ($max - $min)));
     }
 
     final public static function randomFloat($min = 0, $max = 1)
@@ -1058,6 +1228,7 @@ final class Kit
         self::ensureType($min, [ self::TYPE_INT, self::TYPE_FLOAT ]);
         self::ensureType($max, [ self::TYPE_INT, self::TYPE_FLOAT ]);
         if ($min > $max) throw new UserException("Min($min) is larger than max($max).", [ $min, $max ]);
+        mt_srand();
         return $min + 1.0 * mt_rand() / mt_getrandmax() * ($max - $min);
     }
 
@@ -1065,8 +1236,10 @@ final class Kit
     {
         self::ensureArray($list);
         self::ensureInt($num);
-        if ($num > self::len($list)) $num = self::len($list);
-        return self::slice(self::shuffle($list), 0, $num); // @TODO: check efficiency
+        if ($num > self::len($list)) return self::shuffle($list);
+        elseif (0 === $num) return [ ];
+        elseif (1 === $num) return [ $list[self::randomInt(0, self::len($list) - 1)] ];
+        else return self::slice(self::shuffle($list), 0, $num); // @TODO: check efficiency
         // $result = array_rand($list, $num);
         // if (1 === $num) $result = [ $result ];
         // $result = array_values(Kit::extract($list, $result));
@@ -1077,9 +1250,9 @@ final class Kit
      * Utility function for getting random values with weighting.
      * Pass in an associative array, such as
      * [
-     *     ['item' => 'A', 'weight' => 5],
-     *     ['item' => 'B', 'weight' => 45],
-     *     ['item' => 'C', 'weight' => 50]
+     *     [ 'item' => 'A', 'weight' => 5  ],
+     *     [ 'item' => 'B', 'weight' => 45 ],
+     *     [ 'item' => 'C', 'weight' => 50 ],
      * ]
      * An array like this means that "A" has a 5% chance of being selected, "B" 45%, and "C" 50%.
      * The return value is the array key, A, B, or C in this case.
@@ -1088,24 +1261,23 @@ final class Kit
      * If one value weight was 2, and the other weight of 1,
      * the value with the weight of 2 has about a 66% chance of being selected.
      * Also note that weights should be integers.
-     * @param array $list_of_dict
+     * @param array $item_weight_pair_list
      * @return array
      * @throws UserException if the sum of weights is 0.
      */
-    final public static function randomlySelectByWeight(&$list_of_dict)
+    final public static function randomlySelectByWeight($item_weight_pair_list)
     {
-        self::ensureListOfDict($list_of_dict);
-        $weight_list = self::columns($list_of_dict, 'weight', TRUE, NULL, TRUE);
-        self::ensureAllSame(self::mapped([ 'self', 'sign' ], $weight_list), 1);
+        // self::ensureListOfDict($item_weight_pair_list);
+        $weight_list = self::columns($item_weight_pair_list, 'weight', TRUE, NULL, TRUE);
+        // self::ensureAllSame(self::mapped([ 'self', 'sign' ], $weight_list), 1);
         $sum = self::sum($weight_list);
-        if (0 === $sum) throw new UserException('The sum of weights is 0.', $list_of_dict);
-        throw new UserException('randomByWeight TODO');
-        // $randmax = getrandmax();
-        // $rand = mt_rand(1, (int)$randmax);
-        // // @todo: use bisection method when length of $list_of_dict > 50!
-        // foreach ($list_of_dict as $object) {
-        //     $rand -= $object['weight'];
-        //     if ($rand <= 0) return $object['item'];
-        // }
+        if (0 === $sum) throw new UserException('The sum of weights is 0.', $item_weight_pair_list);
+        $rand = self::randomInt(1, $sum);
+        // // @todo: use bisection method when length of $item_weight_pair_list > 50!
+        foreach ($item_weight_pair_list as $object) {
+            $rand -= $object['weight'];
+            if ($rand <= 0) return $object['item'];
+        }
+        return $item_weight_pair_list[0]['item'];
     }
 }

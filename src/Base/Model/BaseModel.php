@@ -79,13 +79,8 @@ abstract class BaseModel extends Base
                 = $this->$data_model_name->sanitizeArgs(
                     $handler_suffix, $method_name, $arg_list, $args_validation_result);
 
-            // @TODO: check it, can be called with context info?
-            // so that XCollection will work correctly.
-            // $method = new ReflectionMethod($declaring_class_name, $method_name);
-            // $method->setAccessible(TRUE);
             $result
                 = $execution_record['result']
-                // = $method->invoke(new $declaring_class_name(), $args_sanitization_result);
                 = call_user_func_array(
                     [ $declaring_class_name, $method_name ], $args_sanitization_result);
             

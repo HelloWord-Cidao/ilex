@@ -19,6 +19,7 @@ final class EntityWrapper extends MongoDBCollection
 
     final public static function getInstance($collection_name, $entity_path)
     {
+        Kit::ensureString($collection_name);
         Kit::ensureString($entity_path);
         if (FALSE === isset(self::$entityWrapperContainer))
             self::$entityWrapperContainer = new Container();
@@ -35,7 +36,7 @@ final class EntityWrapper extends MongoDBCollection
     final public function addOneEntity(BaseEntity $entity)
     {
         $document = $entity->document();
-        $document = $this->addOne($document)['document'];
+        $document = $this->addOne($document, FALSE, $entity->canBeRollbacked())['document'];
         if (FALSE === isset($document['_id']) OR FALSE === $document['_id'] instanceof MongoId)
             throw new UserException('_id is not set or proper in $document.', $document);
         $document['_id'] = new MongoDBId($document['_id']);
@@ -50,9 +51,18 @@ final class EntityWrapper extends MongoDBCollection
         $criterion = [ '_id' => $id->toMongoId() ];
         $document = $entity->document();
         unset($document['_id']);
-        $document = $this->updateTheOnlyOne($criterion, $document);
+        $document = $this->updateTheOnlyOne($criterion, $document, FALSE, $entity->canBeRollbacked());
         $document['_id'] = $id;
         return $document;
     }
-    
+
+    final public function removeTheOnlyOneEntity(BaseEntity $entity)
+    {
+        $id = $entity->getId();
+        if (FALSE === $id instanceof MongoDBId)
+            throw new UserException('$id is not proper in $entity.', $entity);
+        $criterion = [ '_id' => $id->toMongoId() ];
+        $status = $this->removeTheOnlyOne($criterion, FALSE, $entity->canBeRollbacked());
+        return $status;
+    }
 }

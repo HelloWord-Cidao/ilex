@@ -2,8 +2,10 @@
 
 namespace Ilex\Base\Model\Core;
 
+use \Ilex\Core\Context;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Kit;
+use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\Entity\BaseEntity;
 
 /**
@@ -22,9 +24,7 @@ abstract class BaseCore
 
     final private function includeQuery()
     {
-        Kit::ensureString(static::ENTITY_PATH);
-        $this->queryClassName = Loader::includeQuery(static::ENTITY_PATH);
-        Kit::ensureString($this->queryClassName);
+        $this->queryClassName = Kit::ensureString(Loader::includeQuery(Kit::ensureString(static::ENTITY_PATH)));
     }
 
     final public function createQuery()
@@ -32,15 +32,13 @@ abstract class BaseCore
         if (TRUE === is_null($this->queryClassName))
             $this->includeQuery();
         $query_class_name = $this->queryClassName;
-        Kit::ensureString(static::COLLECTION_NAME, TRUE);
-        return new $query_class_name(static::COLLECTION_NAME, static::ENTITY_PATH);
+        return new $query_class_name(Kit::ensureString(static::COLLECTION_NAME, TRUE),
+            Kit::ensureString(static::ENTITY_PATH));
     }
 
     final private function includeEntity()
     {
-        Kit::ensureString(static::ENTITY_PATH);
-        $this->entityClassName = Loader::includeEntity(static::ENTITY_PATH);
-        Kit::ensureString($this->entityClassName);
+        $this->entityClassName = Kit::ensureString(Loader::includeEntity(Kit::ensureString(static::ENTITY_PATH)));
     }
 
     final public function createEntity()
@@ -48,8 +46,18 @@ abstract class BaseCore
         if (TRUE === is_null($this->entityClassName))
             $this->includeEntity();
         $entity_class_name = $this->entityClassName;
-        Kit::ensureString(static::COLLECTION_NAME, TRUE);
-        return new $entity_class_name(static::COLLECTION_NAME, static::ENTITY_PATH, FALSE);
+        return new $entity_class_name(Kit::ensureString(static::COLLECTION_NAME, TRUE),
+            Kit::ensureString(static::ENTITY_PATH), FALSE);
+    }
+
+    // ====================================================================================
+
+    final protected function ensureLogin()
+    {
+        $user_type_list = func_get_args();
+        if (TRUE === Kit::in('Administrator', $user_type_list)) return; // @TODO: CAUTION
+        if (FALSE === Context::isLogin($user_type_list))
+            throw new UserException('Login failed.');
     }
 
     final protected function loadCore($path)
@@ -65,14 +73,16 @@ abstract class BaseCore
         return $this->createQuery()->idIs($id)->checkExistsOnlyOneEntity();
     }
 
-    final public function checkExistsSignature($signature)
+    final public function checkExistsSignature($signature) // @TODO: move to HelloWord?
     {
         return $this->createQuery()->signatureIs($signature)->checkExistsOnlyOneEntity();
     }
+
     final public function countAll()
     {
         return $this->createQuery()->all()->countEntities();
     }
+    
     final public function getAllEntities()
     {
         return $this->createQuery()->all()->getMultiEntities();
@@ -83,6 +93,7 @@ abstract class BaseCore
         return $this->createQuery()->idIs($id)->getTheOnlyOneEntity();
     }
 
+    // If $id_list is empty, returns empty bulk.
     final public function getAllEntitiesByIdList($id_list)
     {
         return $this->createQuery()->idIn($id_list)->getMultiEntities();
@@ -93,14 +104,14 @@ abstract class BaseCore
         return $this->createQuery()->signatureIs($signature)->getTheOnlyOneEntity();
     }
     
-    final public function getAllEntitiesByMultiReference(BaseEntity $entity, $name = NULL)
+    final public function getAllEntitiesByMultiReference(BaseEntity $entity, $reference_name = NULL)
     {
-        return $this->createQuery()->hasMultiReferenceTo($entity)->getMultiEntities();
+        return $this->createQuery()->hasMultiReferenceTo($entity, $reference_name)->getMultiEntities();
     }
 
-    final public function getAllEntitiesByOneReference(BaseEntity $entity, $name = NULL)
+    final public function getAllEntitiesByOneReference(BaseEntity $entity, $reference_name = NULL)
     {
-        return $this->createQuery()->hasOneReferenceTo($entity)->getMultiEntities();
+        return $this->createQuery()->hasOneReferenceTo($entity, $reference_name)->getMultiEntities();
     }
 
     final public function getAllEntitiesByType($type)

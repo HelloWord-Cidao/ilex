@@ -5,7 +5,6 @@ namespace Ilex\Lib;
 use \Ilex\Lib\Kit;
 
 /**
- * @todo: method arg type validate
  * Class Container
  * Implementation of an abstract container.
  * @package Ilex\Lib
@@ -81,6 +80,7 @@ final class Container
      */
     final public function miss($key_list)
     {
+        Kit::ensureArray($key_list); // @CAUTION
         $missing_key_list = [];
         foreach ($key_list as $key) {
             if (FALSE === isset($this->data[$key])) $missing_key_list[] = $key;
@@ -94,6 +94,7 @@ final class Container
      */
     final public function merge($data)
     {
+        Kit::ensureArray($data); // @CAUTION
         $this->assign(array_merge($this->data, $data));
         return $this;
     }
@@ -104,6 +105,7 @@ final class Container
      */
     final public function assign($data = [])
     {
+        Kit::ensureArray($data); // @CAUTION
         $this->data = $data;
         return $this;
     }
@@ -128,6 +130,7 @@ final class Container
      */
     final public function get($key = NULL, $default = NULL)
     {
+        Kit::ensureType($key, [ Kit::TYPE_STRING, Kit::TYPE_INT, Kit::TYPE_NULL ]);
         if (TRUE === is_null($key))
             return $this->data;
         elseif (TRUE === isset($this->data[$key]))
@@ -142,6 +145,7 @@ final class Container
      */
     final public function set($key, $value)
     {
+        Kit::ensureType($key, [ Kit::TYPE_STRING, Kit::TYPE_INT ]);
         return ($this->data[$key] = $value);
     }
 
@@ -151,6 +155,7 @@ final class Container
      */
     final public function delete($key)
     {
+        Kit::ensureType($key, [ Kit::TYPE_STRING, Kit::TYPE_INT ]);
         if (FALSE === isset($this->data[$key])) return FALSE;
         unset($this->data[$key]);
         return TRUE;

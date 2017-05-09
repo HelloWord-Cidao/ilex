@@ -292,7 +292,6 @@ final class Loader
         foreach ($item_list as $item) {
             if (TRUE === file_exists($item['path'])) {
                 // Now include the app class here, then it can be used somewhere else!
-                // @todo: should only include once?
                 includeFile($item['path']);
                 return $item['name'];
             }

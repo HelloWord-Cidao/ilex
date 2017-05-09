@@ -3,9 +3,9 @@
 namespace Ilex\Base\Model\Entity\User;
 
 use \MongoDate;
-use \Ilex\Core\Context as c;
+use \Ilex\Core\Context;
 use \Ilex\Lib\Kit;
-use \Ilex\Lib\MongoDB\MongoDBDate;
+use \Ilex\Lib\UserException;
 use \Ilex\Base\Model\Entity\BaseEntity;
 
 /**
@@ -14,6 +14,16 @@ use \Ilex\Base\Model\Entity\BaseEntity;
  */
 class UserEntity extends BaseEntity
 {
+
+    public function getAbstract()
+    {
+        return $this->getIdentity() + [
+            'Username'              => $this->getUsername(),
+            'Type'                  => $this->getType(),
+            'RegistrationTimestamp' => $this->getCreationTimestamp() * 1000,
+            'LastLoginTimestamp'    => $this->getLastLoginTimestamp() * 1000,
+        ];
+    }
 
     public function setUsername($username)
     {
@@ -49,48 +59,18 @@ class UserEntity extends BaseEntity
 
     final public function getEmail()
     {
-        return $this->getInfo('Email');
+        return $this->getInfo('Email', FALSE, '');
     }
 
     final public function loginNow()
     {
-        return $this->setInfo('LastLoginTime', MongoDBDate::now());
+        return $this->setInfo('LastLoginTime', Kit::now());
     }
 
     final public function getLastLoginTimestamp()
     {
-        return MongoDBDate::toTimestamp($this->getInfo('LastLoginTime'));
+        $last_login_time = $this->getInfo('LastLoginTime', FALSE, NULL);
+        if (TRUE === is_null($last_login_time)) return 0;
+        else return Kit::toTimestamp($last_login_time);
     }
-
-    public function getAbstract()
-    {
-        return [
-            'Id'   => $this->getId(TRUE),
-            'Name' => $this->getName(),
-            'Type' => $this->getType(),
-        ];
-    }
-
-    final public function getDetail()
-    {
-        return $this->getAbstract() + [
-            'Username'              => $this->getUsername(),
-            'Email'                 => $this->getEmail(),
-            'RegistrationTimestamp' => $this->getCreationTimestamp() * 1000,
-            'LastLoginTimestamp'    => $this->getLastLoginTimestamp() * 1000,
-        ];
-    }
-
-    final public function isMe()
-    {
-        return $this->getId()->isEqualTo(c::user()->getId());
-    }
-
-    final public function ensureMe()
-    {
-        if (FALSE === $this->isMe())
-            throw new UserException('This user is not me.');
-        return $this;
-    }
-
 }

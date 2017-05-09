@@ -2,7 +2,6 @@
 
 namespace Ilex\Lib\MongoDB;
 
-use \Exception;
 use \MongoId;
 use \Ilex\Core\Loader;
 use \Ilex\Lib\Container;
@@ -84,8 +83,7 @@ final class QueryWrapper extends MongoDBCollection
     final public function getMultiEntities($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
     {
         $cursor = $this->getMulti($criterion, [ ], $sort_by, $skip, $limit);
-        $entity_bulk_class_name = $this->entityBulkClassName;
-        Kit::ensureString($entity_bulk_class_name);
+        $entity_bulk_class_name = Kit::ensureString($this->entityBulkClassName);
         return new $entity_bulk_class_name($cursor,
             $this->collectionName, $this->entityPath, $this->entityClassName);
     }
@@ -111,8 +109,7 @@ final class QueryWrapper extends MongoDBCollection
         if (FALSE === isset($document['_id']) OR FALSE === $document['_id'] instanceof MongoId)
             throw new UserException('_id is not set or proper in $document.', $document);
         $document['_id']   = new MongoDBId($document['_id']);
-        $entity_class_name = $this->entityClassName;
-        Kit::ensureString($entity_class_name);
+        $entity_class_name = Kit::ensureString($this->entityClassName);
         return new $entity_class_name($this->collectionName, $this->entityPath, TRUE, $document);
     }
 }

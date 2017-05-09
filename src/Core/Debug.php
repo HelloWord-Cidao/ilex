@@ -9,10 +9,9 @@ use \Ilex\Core\Loader;
 use \Ilex\Lib\Http;
 use \Ilex\Lib\Kit;
 use \Ilex\Lib\UserException;
-use \Ilex\Lib\MongoDB\MongoDBCollection as MDBC;
+use \Ilex\Lib\MongoDB\MongoDBCollection;
 
 /**
- * @todo: method arg type validate
  * Class Debug
  * A class handling debug operations.
  * @package Ilex\Core
@@ -76,12 +75,12 @@ final class Debug
 
     final public static function setErrorTypes($error_types)
     {
+        Kit::ensureInt($error_types, FALSE, FALSE);
         self::$errorTypes = $error_types;
     }
 
     final public static function initialize()
     {
-        $Input = Loader::loadInput();
         self::$config = [
             'trace' => [
                 '@-1' => self::D_NONE,
@@ -90,7 +89,7 @@ final class Debug
                 '@-1' => self::D_NONE,
             ],
         ];
-        $raw_config = $Input->input('Debug', NULL);
+        $raw_config = Loader::loadInput()->input('Debug', NULL);
         if (TRUE === Kit::isDict($raw_config)) $config = $raw_config;
         elseif (TRUE === is_null($raw_config)) $config = [ ];
         elseif (TRUE === Kit::isString($raw_config, FALSE, TRUE)) {
@@ -106,10 +105,14 @@ final class Debug
             Kit::update(self::$config['trace'], $config['t']);
         if (TRUE === isset($config['e']))
             Kit::update(self::$config['exception'], $config['e']);
-        $Input->deleteInput('Debug');
         self::$executionIdStack     = [];
         self::$executionRecordStack = [];
         self::$startTime            = $_SERVER['REQUEST_TIME_FLOAT'];
+    }
+
+    final public static function resetStartTime()
+    {
+        self::$startTime = Kit::microTimestampAtNow();
     }
 
     final private static function respondOnFail($exception_or_error, $is_error = FALSE)
@@ -117,41 +120,50 @@ final class Debug
         Kit::ensureBoolean($is_error);
         $result = [
             'database' => [
-                'rollbacked' => MDBC::rollback(),
-                'changed'    => MDBC::isChanged(),
+                'rollbacked' => MongoDBCollection::rollback(),
+                'changed'    => MongoDBCollection::isChanged(),
             ],
             'code'     => 0,
         ];
-        if (FALSE === self::isProduction()) {
-            if (FALSE === $is_error) {
-                try {
-                    $exception = self::extractException($exception_or_error);
-                } catch (Exception $e) {
-                    $exception = self::extractException($e);
-                    $result['last_exception'] = $exception_or_error;
-                }
-                $result['mainException'] = self::extractMainException($exception);
-                $result['monitor']       = self::getMonitor();
-                $result['exception']     = $exception;
-                if (TRUE === $this->result['mainException'])
-                    unset($this->result['mainException']);
-                if (TRUE === $this->result['monitor'])
-                    unset($this->result['monitor']);
-            } else {
-                $result['error'] = $exception_or_error;
+        if (FALSE === $is_error) {
+            try {
+                $exception = self::extractException($exception_or_error);
+            } catch (Exception $e) {
+                $exception = self::extractException($e);
+                $result['lastException'] = $exception_or_error;
             }
-            $result += self::getDebugInfo();
+            $result['mainException'] = self::extractMainException($exception);
+            $result['exception']     = $exception[0];
+            $result['monitor']       = self::getMonitor();
         } else {
-            unset($result['database']);
-            unset($result['mainException']);
-            unset($result['monitor']);
+            $result['error']   = $exception_or_error;
+            if (TRUE === $exception_or_error instanceof UserException)
+                $result['detail'] = $exception_or_error->getDetail();
+            $result['monitor'] = self::getMonitor();
         }
-        Http::json($result);
+        $result += self::getDebugInfo();
+        if (TRUE === is_null($result['mainException'])) unset($result['mainException']);
+        if (TRUE === is_null($result['monitor'])) unset($result['monitor']);
+        Loader::loadCore('Log/RequestLog')->addRequestLog(NULL, NULL, $result, 0);
+        if (TRUE === self::isProduction()) {
+            unset($result['error']);
+            unset($result['exception']);
+            unset($result['lastException']);
+            unset($result['mainException']);
+            unset($result['database']);
+            unset($result['monitor']);
+            unset($result['time']);
+            unset($result['memory']);
+            unset($result['size']);
+        } else {
+            Http::json($result);
+        }
+        Loader::loadCore('Queue/Queue')->pop();
     }
 
     final public static function isErrorCared($error)
     {
-        Kit::ensureDict($error, TRUE);
+        Kit::ensureDict($error);
         return (self::$errorTypes & $error['type']) === $error['type'];
     }
 
@@ -160,7 +172,8 @@ final class Debug
         if (TRUE === is_null($error)) $error = error_get_last();
         if (FALSE === self::$isErrorHandled
             AND FALSE === is_null($error)
-            AND (TRUE === self::isErrorCared($error))) {
+            AND (TRUE === self::isErrorCared($error))
+        ) {
             $error['type'] = self::polishErrorType($error['type']);
             self::respondOnFail($error, TRUE);
         }
@@ -175,12 +188,16 @@ final class Debug
         exit();
     }
 
-    final public static function monitor($field_name, $field_value)
+    final public static function monitor($field_name, $field_value, $is_list = FALSE)
     {
         Kit::ensureString($field_name);
         if (TRUE === is_null(self::$monitor))
             self::$monitor = [ ];
-        self::$monitor[$field_name] = $field_value;
+        if (TRUE === $is_list) {
+            if (FALSE === isset(self::$monitor[$field_name]))
+                self::$monitor[$field_name] = [ $field_value ];
+            else self::$monitor[$field_name][] = $field_value;
+        } else self::$monitor[$field_name] = $field_value;
     }
 
     final public static function getMonitor()
@@ -199,6 +216,8 @@ final class Debug
 
     final public static function getMemoryUsed($unit = self::M_MEGABYTE, $to_string = TRUE)
     {
+        Kit::ensureIn($unit, [ self::M_BYTE, self::M_KILOBYTE, self::M_MEGABYTE, self::M_GIGABYTE ]);
+        Kit::ensureBoolean($to_string);
         $result = memory_get_peak_usage(TRUE);
         $result *= [
             self::M_BYTE     => 1,
@@ -218,7 +237,9 @@ final class Debug
 
     final public static function getTimeUsed($unit = self::T_MILLISECOND, $to_string = TRUE)
     {
-        $result = microtime(TRUE) - self::$startTime;
+        Kit::ensureIn($unit, [ self::T_MICROSECOND, self::T_MILLISECOND, self::T_SECOND, self::T_MINUTE ]);
+        Kit::ensureBoolean($to_string);
+        $result = Kit::microTimestampAtNow() - self::$startTime;
         $result *= [
             self::T_MICROSECOND => 1000 * 1000,
             self::T_MILLISECOND => 1000,
@@ -267,6 +288,8 @@ final class Debug
 
     final private static function checkExceptionDisplay($index, $flag)
     {
+        Kit::ensureNonNegativeInt($index);
+        Kit::ensureNonNegativeInt($flag);
         if (TRUE === isset(self::$config['exception']["@$index"]))
             $exception_flag = self::$config['exception']["@$index"];
         else $exception_flag = self::$config['exception']["@-1"];
@@ -279,6 +302,7 @@ final class Debug
      */
     final public static function pushExecutionId($execution_id)
     {
+        Kit::ensureNonNegativeInt($execution_id);
         self::$executionIdStack[] = $execution_id;
     }
 
@@ -288,6 +312,7 @@ final class Debug
      */
     final public static function popExecutionId($execution_id)
     {
+        Kit::ensureNonNegativeInt($execution_id);
         if (0 === Kit::len(self::$executionIdStack))
             throw new UserException('$executionIdStack is empty.', 1);
         if (Kit::last(self::$executionIdStack) !== $execution_id) {
@@ -312,11 +337,12 @@ final class Debug
 
     /**
      * Adds execution record to the stack.
-     * @param mixed $execution_record
+     * @param array $execution_record
      * @return int Current id of the execution record.
      */
     final public static function addExecutionRecord($execution_record)
     {
+        Kit::ensureArray($execution_record);
         if (TRUE === isset($execution_record['args'])) {
             $class_name  = $execution_record['class'];
             $method_name = $execution_record['method'];
@@ -355,6 +381,8 @@ final class Debug
      */
     final public static function updateExecutionRecord($execution_id, $execution_record)
     {
+        Kit::ensureNonNegativeInt($execution_id);
+        Kit::ensureArray($execution_record);
         if ($execution_id >= Kit::len(self::$executionRecordStack))
             throw new UserException("\$execution_id($execution_id) overflows \$executionRecordStack.");
         // $execution_record = self::simplifyExecutionRecord($execution_record);
@@ -583,6 +611,7 @@ final class Debug
      */
     final private static function recoverBacktraceParameters($backtrace)
     {
+        Kit::ensureArray($backtrace);
         foreach ($backtrace as $index => $record) {
             try {
                 $backtrace[$index]['params'] = self::recoverFunctionParameters(
@@ -610,6 +639,8 @@ final class Debug
      */
     final private static function recoverFunctionParameters($class_name, $function_name, $arg_list)
     {
+        Kit::ensureString($class_name, TRUE);
+        Kit::ensureArray($arg_list);
         $param_mapping = [];
         try {
             if (TRUE === is_null($class_name))
@@ -656,6 +687,7 @@ final class Debug
      */
     final private static function extractInitiator($trace)
     {
+        Kit::ensureArray($trace);
         if (Kit::len($trace) <= 1) $index = NULL;
         else {
             // @todo: add comment to this
@@ -690,6 +722,7 @@ final class Debug
      */
     final private static function polishTrace($trace)
     {
+        Kit::ensureArray($trace);
         $result = [];
         foreach ($trace as $index => $record) {
             $record['index'] = Kit::len($trace) - $index - 1;
@@ -717,7 +750,7 @@ final class Debug
 
     final private static function polishErrorType($error_type) 
     {
-        Kit::ensureInt($error_type);
+        Kit::ensureNonNegativeInt($error_type);
         return [
             E_ERROR             => 'E_ERROR', 
             E_WARNING           => 'E_WARNING', 
@@ -735,6 +768,5 @@ final class Debug
             E_DEPRECATED        => 'E_DEPRECATED', 
             E_USER_DEPRECATED   => 'E_USER_DEPRECATED', 
         ][$error_type];
-    } 
-
+    }
 }
