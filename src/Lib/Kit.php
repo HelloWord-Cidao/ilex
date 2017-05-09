@@ -51,9 +51,9 @@ final class Kit
     const M_MIN = 'min';
     const M_MAX = 'max';
 
-    const T_MINUTE = 60;
-    const T_HOUR   = 60 * 60;
-    const T_DAY    = 60 * 60 * 24;
+    const SEC_MINUTE = 60;
+    const SEC_HOUR   = 60 * 60;
+    const SEC_DAY    = 60 * 60 * 24;
 
     // ================================================== //
     //                        Type                        //
@@ -1029,7 +1029,7 @@ final class Kit
 
     final public static function todayEndTimestamp()
     {
-        $time_tuple = self::getTimeTuple(self::timestampAtNow() + 60 * 60 * 24);
+        $time_tuple = self::getTimeTuple(self::timestampAtNow() + self::SEC_DAY);
         $date_time = new DateTime();
         $date_time
             ->setDate($time_tuple['Year'], $time_tuple['Month'], $time_tuple['Day'])
@@ -1045,7 +1045,7 @@ final class Kit
     final public static function daysAfterNowDateFormat($days)
     {
         self::ensureInt($days);
-        return self::toFormat(self::timestampAtNow() + 60 * 60 * 24 * $days, 'Y-m-d');
+        return self::toFormat(self::timestampAtNow() + self::SEC_DAY * $days, 'Y-m-d');
     }
 
     final public static function daysAfterNow($days)
@@ -1059,7 +1059,7 @@ final class Kit
     final public static function daysBeforeNowDateFormat($days)
     {
         self::ensureInt($days);
-        return self::toFormat(self::timestampAtNow() - 60 * 60 * 24 * $days, 'Y-m-d');
+        return self::toFormat(self::timestampAtNow() - self::SEC_DAY * $days, 'Y-m-d');
     }
 
     final public static function daysBeforeNow($days)
@@ -1086,7 +1086,7 @@ final class Kit
     final public static function toFormat($timestamp = NULL, $format = 'Y-m-d H:i:s')
     {
         if (TRUE === is_null($timestamp)) $timestamp = self::timestampAtNow();
-        $timestamp += 60 * 60 * 8; // @CAUTION
+        $timestamp += self::SEC_HOUR * 8; // @CAUTION
         return date($format, $timestamp) . ' EST';
     }
 
