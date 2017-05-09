@@ -51,6 +51,10 @@ final class Kit
     const M_MIN = 'min';
     const M_MAX = 'max';
 
+    const T_MINUTE = 60;
+    const T_HOUR   = 60 * 60;
+    const T_DAY    = 60 * 60 * 24;
+
     // ================================================== //
     //                        Type                        //
     // ================================================== //
