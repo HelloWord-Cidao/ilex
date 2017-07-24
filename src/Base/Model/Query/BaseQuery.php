@@ -171,11 +171,10 @@ class BaseQuery
         return $this->in('Meta.State', $state_list);
     }
 
-    // final public function isCreatedBefore($timestamp)
-    // {
-    //     // @TODO: $timestamp
-    //     return $this->isLessThan('Meta.CreationTime', $timestamp);
-    // }
+    final public function isCreatedBefore(MongoDate $date)
+    {
+        return $this->isLessThanOrEqualTo('Meta.CreationTime', $date);
+    }
 
     final public function isCreatedAfter(MongoDate $date)
     {
