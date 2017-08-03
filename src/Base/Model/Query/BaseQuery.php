@@ -166,6 +166,12 @@ class BaseQuery
         return $this->metaFieldIs('State', $state);
     }
 
+    final public function stateIsNot($state)
+    {
+        Kit::ensureType($state, [ Kit::TYPE_INT, Kit::TYPE_STRING ]);
+        return $this->metaFieldIsNot('State', $state);
+    }
+
     final public function stateIn($state_list)
     {
         return $this->in('Meta.State', $state_list);

@@ -262,6 +262,7 @@ class BaseEntity
     }
 
     // O(N) when $check_duplicate is TRUE
+    // @TODO: add $ensure_not_duplicate, raise Exception when duplicate
     final public function buildMultiReferenceTo(BaseEntity $entity, $reference_name = NULL, $check_duplicate = FALSE)
     {
         Kit::ensureString($reference_name, TRUE);

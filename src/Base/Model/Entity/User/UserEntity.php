@@ -28,8 +28,7 @@ class UserEntity extends BaseEntity
     public function setUsername($username)
     {
         Kit::ensureString($username);
-        $this->setInfo('Username', $username);
-        return $this;
+        return $this->setInfo('Username', $username);
     }
 
     final public function getUsername()
@@ -40,8 +39,7 @@ class UserEntity extends BaseEntity
     public function setPassword($password)
     {
         Kit::ensureString($password);
-        $this->setInfo('Password', $password);
-        return $this;
+        return $this->setInfo('Password', $password);
     }
 
     final public function getPassword()
@@ -53,8 +51,7 @@ class UserEntity extends BaseEntity
     {
         // @TODO: validate
         Kit::ensureString($email);
-        $this->setInfo('Email', $email);
-        return $this;
+        return $this->setInfo('Email', $email);
     }
 
     final public function getEmail()
