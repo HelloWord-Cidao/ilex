@@ -103,6 +103,12 @@ class BaseQuery
         return $this->isEqualTo("Data.${field_name}", $field_value);
     }
 
+    final public function dataFieldIsNot($field_name, $field_value)
+    {
+        Kit::ensureString($field_name);
+        return $this->isNotEqualTo("Data.${field_name}", $field_value);
+    }
+
     final public function dataIs($field_value)
     {
         Kit::ensureArray($field_value);
@@ -125,6 +131,12 @@ class BaseQuery
     {
         Kit::ensureString($field_name);
         return $this->isEqualTo("Info.${field_name}", $field_value);
+    }
+
+    final public function infoFieldIsNot($field_name, $field_value)
+    {
+        Kit::ensureString($field_name);
+        return $this->isNotEqualTo("Info.${field_name}", $field_value);
     }
 
     final public function infoIs($field_value)
