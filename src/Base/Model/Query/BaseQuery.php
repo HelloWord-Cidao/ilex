@@ -48,8 +48,8 @@ class BaseQuery
         if (FALSE === isset($this->queryWrapper)
             OR FALSE === $this->queryWrapper instanceof QueryWrapper)
             throw new UserException('This query has not been initialized.');
-        if (TRUE === is_null($this->criterion))
-            throw new UserException('Criterion has not been initialized.');
+        // if (TRUE === is_null($this->criterion))
+            // throw new UserException('Criterion has not been initialized.');
     }
 
 
