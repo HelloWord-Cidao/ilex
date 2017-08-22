@@ -1007,6 +1007,18 @@ final class Kit
     //                       DateTime                     //
     // ================================================== //
 
+    final public static function generateTimePackage($field_name, $timestamp = NULL, $to_frontend = FALSE, $to_mongodb = FALSE)
+    {
+        if (TRUE === is_null($timestamp)) $timestamp = self::now();
+        $result = [
+            "${field_name}Timestamp" => $timestamp,
+            "${field_name}DateTime" => self::toFormat($timestamp),
+        ];
+        if (TRUE === $to_frontend) $result["${field_name}Timestamp"] *= 1000;
+        if (TRUE === $to_mongodb) $result["${field_name}Time"] = self::fromTimestamp($timestamp);
+        return $result;
+    }
+
     final public static function todayStartTime()
     {
         return new MongoDate(self::todayStartTimestamp());
@@ -1083,11 +1095,17 @@ final class Kit
         ];  
     }
 
-    final public static function toFormat($timestamp = NULL, $format = 'Y-m-d H:i:s')
+    final public static function toDateFormat($timestamp = NULL, $format = 'Y-m-d')
+    {
+        return self::toFormat($timestamp, $format, FALSE);
+    }
+
+    final public static function toFormat($timestamp = NULL, $format = 'Y-m-d H:i:s', $add_time_zone_suffix = TRUE)
     {
         if (TRUE === is_null($timestamp)) $timestamp = self::timestampAtNow();
         $timestamp += self::SEC_HOUR * 8; // @CAUTION
-        return date($format, $timestamp) . ' EST';
+        if (TRUE === $add_time_zone_suffix) return date($format, $timestamp) . ' EST';
+        else return date($format, $timestamp);
     }
 
     final public static function toTimestamp(MongoDate $mongo_date)
