@@ -245,8 +245,7 @@ class BaseEntity
     }
 
 
-    // ======================================= Reference =============================================
-    // ======================================= multi =============================================
+    // ======================================= Reference Multi =============================================
     
     final public function hasMultiReference($reference_name)
     {
@@ -381,7 +380,7 @@ class BaseEntity
         } else return $reference;
     }
 
-    // ======================================= one =============================================
+    // ======================================= Reference One =============================================
     
     final public function hasOneReference($reference_name)
     {
@@ -488,7 +487,7 @@ class BaseEntity
         } else return new MongoDBId($reference);
     }
 
-    // ======================================= basic =============================================
+    // ======================================= Reference Basic =============================================
 
     final private function getReference($reference_name, $ensure_existence = TRUE, $default = NULL)
     {
@@ -605,7 +604,7 @@ class BaseEntity
             ->notInCollection();
     }
 
-    // ====================================================================================
+    // ===================================== Private ===============================================
 
 
     final private function inCollection()
