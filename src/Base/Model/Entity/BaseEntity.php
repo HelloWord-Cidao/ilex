@@ -162,10 +162,11 @@ class BaseEntity
         return $this;
     }
 
-    final public function getId($to_string = FALSE)
+    final public function getId($to_string = FALSE, $to_mongo_id = FALSE)
     {
         $id = $this->ensureInCollection()->getPath('_id');
         if (TRUE === $to_string) return $id->toString();
+        elseif (TRUE === $to_mongo_id) return $id->toMongoId();
         else return $id;
     }
 

@@ -79,7 +79,7 @@ class BaseQuery
         if (TRUE === $to_mongo_id) {
             $tmp = [];
             foreach ($id_list as $id) {
-                $tmp[] = new MongoDBId($id);
+                $tmp[] = (new MongoDBId($id))->toMongoId();
             }
             $id_list = $tmp;
         }
