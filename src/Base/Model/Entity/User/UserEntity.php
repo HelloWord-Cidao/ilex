@@ -45,16 +45,19 @@ class UserEntity extends BaseEntity
         return $this->getInfo('Password');
     }
 
-    public function setEmail($email)
+    final public function disable()
     {
-        // @TODO: validate
-        Kit::ensureString($email);
-        return $this->setInfo('Email', $email);
+        return $this->setMeta('IsDisabled', TRUE);
     }
 
-    final public function getEmail()
+    final public function enable()
     {
-        return $this->getInfo('Email', FALSE, '');
+        return $this->setMeta('IsDisabled', FALSE);
+    }
+
+    final public function isDisabled()
+    {
+        return $this->getMeta('IsDisabled', FALSE, FALSE);
     }
 
     final public function loginNow()
