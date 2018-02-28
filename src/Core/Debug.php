@@ -313,8 +313,11 @@ final class Debug
     final public static function popExecutionId($execution_id)
     {
         Kit::ensureNonNegativeInt($execution_id);
-        if (0 === Kit::len(self::$executionIdStack))
-            throw new UserException('$executionIdStack is empty.', 1);
+        if (0 === Kit::len(self::$executionIdStack)) {
+            // throw new UserException('$executionIdStack is empty.', 1);
+            self::monitor('exception_msg', '$executionIdStack is empty.', TRUE);
+            break;
+        }
         if (Kit::last(self::$executionIdStack) !== $execution_id) {
             $msg = "\$execution_id($execution_id) does not match the top of \$executionIdStack.";
             throw new UserException($msg, self::$executionIdStack);
