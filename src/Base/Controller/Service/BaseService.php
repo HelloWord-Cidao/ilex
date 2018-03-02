@@ -63,7 +63,7 @@ abstract class BaseService extends BaseController
         if (FALSE === Context::isLogin($user_type_list))
             throw new UserException('Login failed.');
         if (0 < Kit::len($user_type_list)) { // 非游客、已登录情形
-            if (TRUE === $this->needLock) $this->QueueCore->push();
+            $this->QueueCore->push($this->needLock);
             while (TRUE === $this->QueueCore->hasItemsAhead()) {
                 Debug::monitor('Waited', [
                     'now'   => Kit::microTimestampAtNow(),

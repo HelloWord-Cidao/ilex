@@ -22,22 +22,28 @@ final class QueueCore extends BaseCore
     const T_LOCK  = 20; // 秒 should be larger than PHP timeout limit?
     const T_SLEEP = 100000; // 0.1秒
 
+    private static $needLock         = NULL;
     private static $isPushed         = FALSE;
     private static $queueId          = NULL;
     private static $pushingTimestamp = NULL;
     private static $isPopped         = FALSE;
 
-    final public function push()
+    final public function push($need_lock = FALSE)
     {
-        self::$queueId = $this
-            ->ensureNotPushed()
-            ->createEntity()
-            ->doNotRollback()
-            ->setRequestInfo()
-            ->setUserInfo()
-            ->push(self::$pushingTimestamp = Kit::microTimestampAtNow())
-            ->addToCollection()
-            ->getId();
+        self::$needLock = $need_lock;
+        $this->ensureNotPushed();
+        if (TRUE === $need_lock) {
+            self::$queueId = $this
+                ->createEntity()
+                ->doNotRollback()
+                ->setRequestInfo()
+                ->setUserInfo()
+                ->push(self::$pushingTimestamp = Kit::microTimestampAtNow())
+                ->addToCollection()
+                ->getId();
+        } else {
+            self::$pushingTimestamp = Kit::microTimestampAtNow();
+        }
         self::$isPushed = TRUE;
     }
 
@@ -76,7 +82,7 @@ final class QueueCore extends BaseCore
 
     final public function pop()
     {
-        if (FALSE === self::$isPushed) return;
+        if (FALSE === self::$isPushed OR FALSE === self::$needLock) return;
         $this
             ->ensureNotPopped()
             ->getTheOnlyOneEntityById(self::$queueId)
