@@ -78,7 +78,7 @@ final class Router
      * @param boolean     $is_time_consuming
      * @return boolean
      */
-    final private function fitGeneral($description, $handler, $function = NULL, $is_time_consuming = FALSE)
+    final private function fitGeneral($description, $handler, $function = NULL, $is_time_consuming = FALSE, $need_lock = FALSE)
     {
         /**
          * eg. $description : '/project/(id:num)' => '/project/([0-9]+?)'
@@ -111,11 +111,11 @@ final class Router
                         // The service controller is loaded HERE!
                         TRUE === Kit::isString($handler) ? Loader::loadService($handler) : $handler,
                         $function
-                    ], [ $is_time_consuming ])
+                    ], [ $is_time_consuming, $need_lock ])
                 );
             } elseif (TRUE === is_callable($handler)) {
                 // $handler is an anonymous function.
-                $this->end(call_user_func_array($handler, [ $is_time_consuming ]));
+                $this->end(call_user_func_array($handler, [ $is_time_consuming, $need_lock ]));
             }
             // CAN FIT!
             return TRUE;

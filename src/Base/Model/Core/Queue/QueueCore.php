@@ -19,8 +19,8 @@ final class QueueCore extends BaseCore
     const COLLECTION_NAME = 'Queue';
     const ENTITY_PATH     = 'Queue/Queue';
 
-    const T_LOCK  = 10; // should be larger than PHP timeout limit?
-    const T_SLEEP = 100000;
+    const T_LOCK  = 20; // 秒 should be larger than PHP timeout limit?
+    const T_SLEEP = 100000; // 0.1秒
 
     private static $isPushed         = FALSE;
     private static $queueId          = NULL;

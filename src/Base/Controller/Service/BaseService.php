@@ -45,6 +45,7 @@ abstract class BaseService extends BaseController
 
     private $hasCalledCoreModel = FALSE;
     private $isProcessed        = FALSE;
+    private $needLock           = NULL;
 
     public function __construct()
     {
@@ -62,7 +63,7 @@ abstract class BaseService extends BaseController
         if (FALSE === Context::isLogin($user_type_list))
             throw new UserException('Login failed.');
         if (0 < Kit::len($user_type_list)) { // 非游客、已登录情形
-            $this->QueueCore->push();
+            if (TRUE === $this->needLock) $this->QueueCore->push();
             while (TRUE === $this->QueueCore->hasItemsAhead()) {
                 Debug::monitor('Waited', [
                     'now'   => Kit::microTimestampAtNow(),
@@ -129,6 +130,8 @@ abstract class BaseService extends BaseController
             
             $execution_record['is_time_consuming'] = $is_time_consuming = $arg_list[0];
             if (TRUE === $is_time_consuming) $this->succeedRequest(NULL, NULL, TRUE);
+            
+            $execution_record['need_lock'] = $this->needLock = $arg_list[1];
 
             // Method sanitizeInput should load the config model and fetch the config info itself.
             $input_sanitization_result // a list
@@ -412,7 +415,7 @@ abstract class BaseService extends BaseController
             fastcgi_finish_request();
             // DO NOT exit in order to run the subsequent scripts.
         } else {
-            $this->QueueCore->pop();
+            if (TRUE === $this->needLock) $this->QueueCore->pop();
             exit();
         }
     }
