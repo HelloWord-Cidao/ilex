@@ -76,7 +76,7 @@ final class QueueCore extends BaseCore
             ->isInLock()
             ->pushedBefore(self::$pushingTimestamp)
             ->sortByPushingTime();
-        if (TRUE === self::$isPushed) $query->idIsNot(self::$queueId);
+        if (TRUE === self::$needLock) $query->idIsNot(self::$queueId);
         return $query;
     }
 
