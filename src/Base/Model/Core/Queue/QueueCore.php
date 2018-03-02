@@ -63,15 +63,15 @@ final class QueueCore extends BaseCore
 
     final private function queryItemsAhead()
     {
-        return $this
-            // ->ensurePushed()
+        $query = $this
             ->createQuery()
             ->isInQueue()
             ->isMe()
-            ->idIsNot(self::$queueId)
             ->isInLock()
             ->pushedBefore(self::$pushingTimestamp)
             ->sortByPushingTime();
+        if (TRUE === self::$isPushed) $query->idIsNot(self::$queueId);
+        return $query;
     }
 
     final public function pop()
