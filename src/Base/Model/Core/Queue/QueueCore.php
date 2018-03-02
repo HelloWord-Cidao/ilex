@@ -64,7 +64,7 @@ final class QueueCore extends BaseCore
     final private function queryItemsAhead()
     {
         return $this
-            ->ensurePushed()
+            // ->ensurePushed()
             ->createQuery()
             ->isInQueue()
             ->isMe()
