@@ -211,6 +211,11 @@ class BaseQuery
     //     return $this->isGreaterThan('Meta.ModificationTime', $timestamp);
     // }
 
+    final public function isNotDeleted()
+    {
+        return $this->metaFieldIsNot('IsDeleted', TRUE);
+    }
+
     final public function isNotRemoved()
     {
         return $this->metaFieldIsNot('IsRemoved', TRUE);
