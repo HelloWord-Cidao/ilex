@@ -292,10 +292,12 @@ class BaseEntity
     }
 
     // O(N)
-    final public function deleteMultiReferenceTo(BaseEntity $entity, $reference_name)
+    final public function deleteMultiReferenceTo(BaseEntity $entity, $reference_name = NULL)
     {
-        Kit::ensureString($reference_name);
-        $field_name  = $reference_name . 'IdList';
+        Kit::ensureString($reference_name, TRUE);
+        if (TRUE === is_null($reference_name))
+            $field_name  = $entity->getEntityName() . 'IdList';
+        else $field_name = $reference_name . 'IdList';
         $entity_id   = $entity->getId();
         $field_value = $this->getDocument('Reference', $field_name);
         foreach ($field_value as $index => $id) {
