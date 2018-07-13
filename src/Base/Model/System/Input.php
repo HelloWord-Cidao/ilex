@@ -47,12 +47,24 @@ final class Input
         self::merge('get', $_GET);
         self::merge('post', $_POST);
         // self::merge('cookie', $_COOKIE);
-        $opts = [ 'http' => [ 'timeout' => 60 ] ];
-        $context = stream_context_create($opts);
-        $input = file_get_contents('php://input', FALSE, $context);
-        $data  = json_decode($input, TRUE);
-        if (TRUE === is_null($data) AND Kit::len($input) > 0)
-            throw new UserException(json_last_error_msg(), $input);
+        if (Kit::len($_FILES) > 0) {
+            $data = [ 'FILES' => [] ];
+            foreach ($_FILES as $field_name => $package) {
+                $package['field_name'] = $field_name;
+                $name = $field_name . '_' . $package['name'];
+                if(!move_uploaded_file($package["tmp_name"], '/home/taleopard/Upload/' . $name)){
+                    $package['fail_to_move'] = TRUE;
+                }
+                $data['FILES'][] = $package;
+            }
+        } else {
+            $opts = [ 'http' => [ 'timeout' => 60 ] ];
+            $context = stream_context_create($opts);
+            $input = file_get_contents('php://input', FALSE, $context);
+            $data  = json_decode($input, TRUE);
+            if (TRUE === is_null($data) AND Kit::len($input) > 0)
+                throw new UserException(json_last_error_msg(), $input);
+        }
         if (FALSE === is_null($data)) self::merge('post', $data);
         $limit = 100000;
         if (Kit::len(json_encode(self::input())) > $limit) 
