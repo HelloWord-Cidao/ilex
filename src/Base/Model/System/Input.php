@@ -51,8 +51,8 @@ final class Input
             $data = [ 'FILES' => [] ];
             foreach ($_FILES as $field_name => $package) {
                 $package['field_name'] = $field_name;
-                $name = $field_name . '_' . $package['name'];
-                if(!move_uploaded_file($package["tmp_name"], '/home/taleopard/Upload/' . $name)){
+                $name = $package['name'];
+                if(!move_uploaded_file($package["tmp_name"], '/home/taleopard/Taleopard-CDN/Upload/' . $name)){
                     $package['fail_to_move'] = TRUE;
                 }
                 $data['FILES'][] = $package;
