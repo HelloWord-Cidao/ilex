@@ -58,8 +58,9 @@ final class Input
                     }
                 } else {
                     $folder_name = Kit::split('_', $name)[0];
+                    $package['folder_name'] = $folder_name;
                     mkdir("/data/Taleopard-CDN/Upload/$folder_name", 0644);
-                    if(!move_uploaded_file($package['tmp_name'], "/data/Taleopard-CDN/Upload/$folder_name" . $name)){
+                    if(!move_uploaded_file($package['tmp_name'], "/data/Taleopard-CDN/Upload/$folder_name/" . $name)){
                         $package['fail_to_move'] = TRUE;
                     }
                 }
