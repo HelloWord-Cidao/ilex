@@ -52,8 +52,16 @@ final class Input
             foreach ($_FILES as $field_name => $package) {
                 $package['field_name'] = $field_name;
                 $name = $package['name'];
-                if(!move_uploaded_file($package["tmp_name"], '/data/Taleopard-CDN/Upload/' . $name)){
-                    $package['fail_to_move'] = TRUE;
+                if (FALSE === strpos($name, '_')) {
+                    if(!move_uploaded_file($package['tmp_name'], '/data/Taleopard-CDN/Upload/' . $name)){
+                        $package['fail_to_move'] = TRUE;
+                    }
+                } else {
+                    $folder_name = Kit::split('_', $name)[0];
+                    mkdir("/data/Taleopard-CDN/Upload/$folder_name", 0644);
+                    if(!move_uploaded_file($package['tmp_name'], "/data/Taleopard-CDN/Upload/$folder_name" . $name)){
+                        $package['fail_to_move'] = TRUE;
+                    }
                 }
                 $data['FILES'][] = $package;
             }
