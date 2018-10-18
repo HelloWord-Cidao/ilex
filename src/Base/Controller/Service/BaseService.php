@@ -387,7 +387,6 @@ abstract class BaseService extends BaseController
             Debug::handleFatalError($error);
         }
         // header('Content-Type : application/json; charset=utf-8', TRUE, $status_code);
-        header('Content-Type : charset=utf-8', TRUE, $status_code);
         $this->result['monitor'] = Debug::getMonitor();
         $this->result += Debug::getDebugInfo();
         $this->result += [ 'size' => sprintf('%.2fKB', Kit::len(json_encode($this->result)) / 1024) ];
