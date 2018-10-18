@@ -93,6 +93,11 @@ abstract class BaseCore
         return $this->createQuery()->idIs($id)->getTheOnlyOneEntity();
     }
 
+    final public function getTheOnlyOneEntityByNo($no)
+    {
+        return $this->createQuery()->noIs($no)->getTheOnlyOneEntity();
+    }
+
     // If $id_list is empty, returns empty bulk.
     final public function getAllEntitiesByIdList($id_list)
     {
