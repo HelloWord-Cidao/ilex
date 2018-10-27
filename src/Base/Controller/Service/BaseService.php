@@ -359,6 +359,7 @@ abstract class BaseService extends BaseController
         // Now code must be NULL or 1 or 2.
         $this->setCode(0);
         if (FALSE === Debug::isProduction()) {
+            $this->result['input']         = $this->loadInput()->cleanInput();
             $this->result['exception']     = Debug::extractException($exception);
             $this->result['mainException'] = Debug::extractMainException($this->result['exception']);
         }
