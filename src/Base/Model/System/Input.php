@@ -60,18 +60,18 @@ final class Input
                     $folder_name = Kit::split('_', $name)[0];
                     $package['folder_name'] = $folder_name;
                     $import_file_folder = "/data/Taleopard-CDN/Upload/$folder_name/";
-                    mkdir($import_file_folder, 0755);
+                    if (!file_exists($import_file_folder)) mkdir($import_file_folder, 0755);
                     $import_file_path = $import_file_folder . $name;
                     if(!move_uploaded_file($package['tmp_name'], $import_file_path)){
                         $package['fail_to_move'] = TRUE;
                     }
-                    $export_file_folder = "/data/Taleopard-CDN/Result/$folder_name/";
-                    mkdir($export_file_folder, 0755);
+                    // $export_file_folder = "/data/Taleopard-CDN/Result/$folder_name/";
+                    // if (!file_exists($import_file_folder)) mkdir($export_file_folder, 0755);
                     // $convert_result = shell_exec("python3 /home/taleopard/script/wav2mp3.py $import_file_path $export_file_folder");
-                    $convert_result = [];
-                    exec("python3 /home/taleopard/script/wav2mp3.py $import_file_path $export_file_folder", $convert_result, $return_code);
-                    $package['convert_result'] = $convert_result;
-                    $package['return_code'] = $return_code;
+                    // $convert_result = [];
+                    // exec("python3 /home/taleopard/script/wav2mp3.py $import_file_path $export_file_folder", $convert_result, $return_code);
+                    // $package['convert_result'] = $convert_result;
+                    // $package['return_code'] = $return_code;
                 }
                 $data['FILES'][] = $package;
             }
