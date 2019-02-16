@@ -328,6 +328,17 @@ class BaseQuery
         return $this->mergeCriterion($criterion);
     }
 
+    // If $field_value_list is empty, returns no result.
+    final protected function notIn($field_name, $field_value_list)
+    {
+        Kit::ensureString($field_name);
+        Kit::ensureArray($field_value_list); // @CAUTION
+        $criterion = [
+            $field_name => [ '$nin' => $field_value_list ],
+        ];
+        return $this->mergeCriterion($criterion);
+    }
+
     final protected function addOr($criterion)
     {
         Kit::ensureArray($criterion);
