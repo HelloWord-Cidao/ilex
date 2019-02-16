@@ -139,6 +139,16 @@ class BaseQuery
         return $this->isNotEqualTo("Info.${field_name}", $field_value);
     }
 
+    final public function infoFieldIn($field_name, $field_value_list)
+    {
+        return $this->in("Info.${field_name}", $field_value_list);
+    }
+
+    final public function infoFieldNotIn($field_name, $field_value_list)
+    {
+        return $this->notIn("Info.${field_name}", $field_value_list);
+    }
+
     final public function infoIs($field_value)
     {
         Kit::ensureArray($field_value);
