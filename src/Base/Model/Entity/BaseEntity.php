@@ -532,7 +532,9 @@ class BaseEntity
 
     final public function getModificationTimestamp()
     {
-        return Kit::toTimestamp($this->getMeta('ModificationTime', FALSE, Kit::now()));
+        if (TRUE === is_null($this->getMeta('ModificationTime', FALSE, NULL))) {
+            return 0;
+        } else return Kit::toTimestamp($this->getMeta('ModificationTime'));
     }
 
     final public function remove()
