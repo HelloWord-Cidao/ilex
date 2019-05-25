@@ -121,7 +121,7 @@ class BaseQuery
         return $this->infoFieldIs('Name', $name);
     }
 
-    final public function noIs($no)
+    public function noIs($no)
     {
         Kit::ensureString($no);
         return $this->infoFieldIs('No', $no);
@@ -490,6 +490,19 @@ class BaseQuery
     {
         $this->ensureInitialized();
         $result = $this->queryWrapper->getOneEntity(
+            $this->criterion,
+            $this->sortBy,
+            $this->skip,
+            $this->limit
+        );
+        // $this->clear();
+        return $result;
+    }
+
+    final public function removeMultiEntities()
+    {
+        $this->ensureInitialized();
+        $result = $this->queryWrapper->getMultiEntities(
             $this->criterion,
             $this->sortBy,
             $this->skip,
