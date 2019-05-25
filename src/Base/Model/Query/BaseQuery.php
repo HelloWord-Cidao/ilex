@@ -121,6 +121,12 @@ class BaseQuery
         return $this->infoFieldIs('Name', $name);
     }
 
+    final public function noIs($no)
+    {
+        Kit::ensureString($no);
+        return $this->infoFieldIs('No', $no);
+    }
+
     final public function hasInfoField($field_name)
     {
         Kit::ensureString($field_name);
