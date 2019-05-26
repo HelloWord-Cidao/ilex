@@ -232,7 +232,7 @@ class BaseEntity
 
     final public function getName()
     {
-        return $this->getInfo('Name');
+        return $this->getInfo('Name', FALSE, NULL);
     }
 
     final public function setInfo($arg1 = NULL, $arg2 = Kit::TYPE_VACANCY)
