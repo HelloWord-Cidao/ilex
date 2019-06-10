@@ -226,7 +226,7 @@ class BaseEntity
 
     final public function setName($name)
     {
-        Kit::ensureString($name);
+        Kit::ensureString($name, FALSE);
         return $this->setInfo('Name', $name);
     }
 

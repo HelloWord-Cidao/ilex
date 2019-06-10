@@ -405,7 +405,7 @@ class BaseQuery
     final public function skip($skip = NULL)
     {
         Kit::ensureNonNegativeInt($skip, TRUE);
-        if (TRUE === is_null($skip)) return $this->skip;
+        if (TRUE === is_null($skip)) return $this;
         $this->skip = $skip;
         return $this;
     }
@@ -413,7 +413,7 @@ class BaseQuery
     final public function limit($limit = NULL)
     {
         Kit::ensureInt($limit, TRUE);
-        if (TRUE === is_null($limit)) return $this->limit;
+        if (TRUE === is_null($limit)) return $this;
         $this->limit = $limit;
         return $this;
     }
