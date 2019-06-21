@@ -776,8 +776,27 @@ final class Kit
         return $list;
     }
 
-    // final public static function sort(&$list)
-    // final public static function sorted(&$list)
+    final public static function sorted($function, &$list, $direction = 1)
+    {
+        self::ensureList($list);
+        $result = [];
+        $keys = [];
+        foreach($list as $index => $item) {
+            $keys[]   = $function($item);
+            $result[] = $item;
+        }
+        array_multisort($keys, $result);
+        if ($direction === -1) $result = self::reversed($result);
+        return $result;
+    }
+    
+    final public static function sort($function, &$list, $direction = 1)
+    {
+        self::ensureList($list);
+        $list = self::sorted($function, $list, $direction);
+        return $list;
+    }
+
     // final public static function remove(&$list)
     // final public static function removed(&$list)
     

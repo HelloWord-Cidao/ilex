@@ -143,9 +143,15 @@ class Bulk implements Iterator
         return $this->setItemList(Kit::shuffled($this->getItemList()));
     }
 
-    final public function sort(Closure $function)
+    final public function sort(Closure $function, $direction = 1)
     {
-        return $this;
+        
+        return $this->setItemList(Kit::sorted($function, $this->getItemList(), $direction));
+    }
+
+    final public function reverse()
+    {
+        return $this->setItemList(Kit::reversed($this->getItemList()));
     }
 
     final public function slice($start, $length)
