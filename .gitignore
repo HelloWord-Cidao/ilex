@@ -2,6 +2,7 @@
 *.sublime-project
 *.sublime-workspace
 sftp-config.json
+sftp-config-alt.json
 
 vendor/
 

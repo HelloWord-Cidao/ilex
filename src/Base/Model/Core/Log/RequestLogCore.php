@@ -27,10 +27,8 @@ final class RequestLogCore extends BaseCore
             ->setRequest(self::generateRequestInfo())
             ->setInput()
             ->setHandlerInfo($class_name, $method_name);
-        if (TRUE === Kit::in($code, [ 0, 1 ]))
-            $request_log->setResponse($response);
-        if (TRUE === Context::isLogin([ ]))
-            $request_log->setUserInfo();
+        if (TRUE === Kit::in($code, [ 0, 1 ])) $request_log->setResponse($response);
+        if (TRUE === Context::isLogin([ ])) $request_log->setUserInfo();
         $response = json_encode($response);
         if (FALSE === $response) $len = 0;
         else $len = Kit::len($response);
@@ -38,6 +36,45 @@ final class RequestLogCore extends BaseCore
             ->setOperationInfo($len)
             ->doNotRollback()
             ->addToCollection();
+        // self::updateUserData();
+    }
+
+    final private function updateUserData()
+    {
+        if (TRUE === Context::isLogin([ ])) {
+            $existence = $this->loadCore('User/UserData')->createQuery()
+                ->hasOneReferenceTo($me, 'User')
+                ->checkExistsOnlyOneEntity();
+            if (FALSE === $existence) {
+                $this->loadCore('User/UserData')->createEntity()
+                    ->buildOneReferenceTo($me, 'User')
+                    ->addToCollection();
+            }
+            $user_data = $this->loadCore('User/UserData')->createQuery()
+                ->hasOneReferenceTo($me, 'User')
+                ->getTheOnlyOneEntity();
+
+            $me           = Context::me();
+            $today        = Kit::todayDateFormat();
+            $now          = Kit::now();
+            $timestamp    = Kit::timestampAtNow();
+            $ip           = $_SERVER['REMOTE_ADDR'];
+            $request_data = $user_data->getRequestData();
+
+            if (FALSE === isset($request_data[$today])) $request_data[$today] = [];
+            if (FALSE === isset($request_data[$today][$ip])) $request_data[$today][$ip] = [];
+            if (0 === Kit::len($request_data[$today][$ip])) {
+                $request_data[$today][$ip][] = [
+                    'StartTime'      => $now,
+                    'StartTimestamp' => $timestamp,
+                    'Count'          => 1,
+                    'LastTime'       => $now,
+                    'LastTimestamp'  => $timestamp,
+                ];
+            }
+            if ($request_data[$today][$ip][-1])
+            $user_data->setRequestData($request_data)->updateToCollection();
+        }
     }
 
     final public static function generateRequestInfo()
