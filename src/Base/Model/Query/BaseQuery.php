@@ -363,7 +363,13 @@ class BaseQuery
 
     final public function getCriterion()
     {
-        return $this->criterion;
+        return [
+            'criterion' => $this->criterion,
+            'sortBy'    => $this->sortBy,
+            'skip'      => $this->skip,
+            'limit'     => $this->limit,
+        ];
+
     }
 
     final private function mergeCriterion($criterion)
