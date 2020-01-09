@@ -355,7 +355,7 @@ class BaseQuery
         return $this->mergeCriterion($criterion);
     }
 
-    final protected function addOr($criterion)
+    final public function addOr($criterion)
     {
         Kit::ensureArray($criterion);
         return $this->mergeCriterion([ '$or' => $criterion ]);
