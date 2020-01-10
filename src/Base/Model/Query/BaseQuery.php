@@ -372,7 +372,7 @@ class BaseQuery
 
     }
 
-    final private function mergeCriterion($criterion)
+    final public function mergeCriterion($criterion)
     {
         Kit::ensureDict($criterion);
         if (TRUE === is_null($this->criterion))
