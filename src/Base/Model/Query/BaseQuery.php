@@ -270,7 +270,7 @@ class BaseQuery
 
     //==============================================================================
     
-    final protected function hasField($field_name)
+    final public function hasField($field_name)
     {
         Kit::ensureString($field_name);
         $criterion = [
@@ -279,7 +279,7 @@ class BaseQuery
         return $this->mergeCriterion($criterion);
     }
 
-    final protected function isEqualTo($field_name, $field_value)
+    final public function isEqualTo($field_name, $field_value)
     {
         Kit::ensureString($field_name);
         $criterion = [
@@ -288,7 +288,7 @@ class BaseQuery
         return $this->mergeCriterion($criterion);
     }
 
-    final protected function isNotEqualTo($field_name, $field_value)
+    final public function isNotEqualTo($field_name, $field_value)
     {
         Kit::ensureString($field_name);
         $criterion = [
@@ -297,7 +297,7 @@ class BaseQuery
         return $this->mergeCriterion($criterion);
     }
 
-    final protected function isGreaterThan($field_name, $field_value)
+    final public function isGreaterThan($field_name, $field_value)
     {
         Kit::ensureString($field_name);
         $criterion = [
@@ -306,7 +306,7 @@ class BaseQuery
         return $this->mergeCriterion($criterion);
     }
 
-    final protected function isGreaterThanOrEqualTo($field_name, $field_value)
+    final public function isGreaterThanOrEqualTo($field_name, $field_value)
     {
         Kit::ensureString($field_name);
         $criterion = [
@@ -315,7 +315,7 @@ class BaseQuery
         return $this->mergeCriterion($criterion);
     }
 
-    final protected function isLessThan($field_name, $field_value)
+    final public function isLessThan($field_name, $field_value)
     {
         Kit::ensureString($field_name);
         $criterion = [
@@ -324,7 +324,7 @@ class BaseQuery
         return $this->mergeCriterion($criterion);
     }
 
-    final protected function isLessThanOrEqualTo($field_name, $field_value)
+    final public function isLessThanOrEqualTo($field_name, $field_value)
     {
         Kit::ensureString($field_name);
         $criterion = [
@@ -334,7 +334,7 @@ class BaseQuery
     }
 
     // If $field_value_list is empty, returns no result.
-    final protected function in($field_name, $field_value_list)
+    final public function in($field_name, $field_value_list)
     {
         Kit::ensureString($field_name);
         Kit::ensureArray($field_value_list); // @CAUTION
@@ -345,7 +345,7 @@ class BaseQuery
     }
 
     // If $field_value_list is empty, returns no result.
-    final protected function notIn($field_name, $field_value_list)
+    final public function notIn($field_name, $field_value_list)
     {
         Kit::ensureString($field_name);
         Kit::ensureArray($field_value_list); // @CAUTION
@@ -393,7 +393,7 @@ class BaseQuery
         return $this->sortBy('Meta.CreationTime', $direction);
     }
 
-    final protected function sortBy($field_name, $direction)
+    final public function sortBy($field_name, $direction)
     {
         Kit::ensureIn($direction, [ -1, 1 ]);
         return $this->mergeSortBy([ $field_name => $direction ]);
