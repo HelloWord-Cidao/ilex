@@ -59,8 +59,14 @@ final class Input
                 } else {
                     $folder_name = Kit::split('_', $name)[0];
                     $package['folder_name'] = $folder_name;
-                    $import_file_folder = "/data/Taleopard-CDN/Upload/$folder_name/";
+                    if ('V' === $folder_name) {
+                        $student_no =  Kit::split('_', $name)[2];
+                        $import_file_folder = "/data/Taleopard-CDN/Upload/$folder_name/$student_no/";
+                    } else {
+                        $import_file_folder = "/data/Taleopard-CDN/Upload/$folder_name/";
+                    }
                     if (!file_exists($import_file_folder)) mkdir($import_file_folder, 0755);
+
                     $import_file_path = $import_file_folder . $name;
                     if(!move_uploaded_file($package['tmp_name'], $import_file_path)){
                         $package['fail_to_move'] = TRUE;
