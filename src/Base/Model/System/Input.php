@@ -61,6 +61,7 @@ final class Input
                     $package['folder_name'] = $folder_name;
                     if ('V' === $folder_name) {
                         $student_no =  Kit::split('_', $name)[2];
+                        $package['student_no'] = $student_no;
                         $import_file_folder = "/data/Taleopard-CDN/Upload/$folder_name/$student_no/";
                     } else {
                         $import_file_folder = "/data/Taleopard-CDN/Upload/$folder_name/";
