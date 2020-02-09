@@ -80,9 +80,9 @@ final class QueryWrapper extends MongoDBCollection
         return $this->count($criterion, $skip, $limit);
     }
 
-    final public function getMultiEntities($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL)
+    final public function getMultiEntities($criterion, $sort_by = NULL, $skip = NULL, $limit = NULL, $timeout = NULL)
     {
-        $cursor = $this->getMulti($criterion, [ ], $sort_by, $skip, $limit);
+        $cursor = $this->getMulti($criterion, [ ], $sort_by, $skip, $limit, FALSE, $timeout);
         $entity_bulk_class_name = Kit::ensureString($this->entityBulkClassName);
         return new $entity_bulk_class_name($cursor,
             $this->collectionName, $this->entityPath, $this->entityClassName);

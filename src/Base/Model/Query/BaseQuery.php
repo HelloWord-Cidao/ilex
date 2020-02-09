@@ -424,6 +424,14 @@ class BaseQuery
         return $this;
     }
 
+    final public function timeout($timeout = NULL)
+    {
+        Kit::ensureInt($timeout, TRUE);
+        if (TRUE === is_null($timeout)) return $this;
+        $this->timeout = $timeout;
+        return $this;
+    }
+
     //==============================================================================
 
 
@@ -478,7 +486,8 @@ class BaseQuery
             $this->criterion,
             $this->sortBy,
             $this->skip,
-            $this->limit
+            $this->limit,
+            $this->timeout
         );
         // $this->clear();
         return $result;
@@ -512,7 +521,8 @@ class BaseQuery
             $this->criterion,
             $this->sortBy,
             $this->skip,
-            $this->limit
+            $this->limit,
+            $this->timeout
         );
         // $this->clear();
         return $result;

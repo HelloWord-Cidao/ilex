@@ -304,7 +304,7 @@ class MongoDBCollection
      *                             matching the criterion.
      */
     final protected function getMulti($criterion = [], $projection = [], $sort_by = NULL
-        , $skip = NULL, $limit = NULL, $to_array = FALSE)
+        , $skip = NULL, $limit = NULL, $to_array = FALSE, $timeout = NULL)
     {
         // Kit::ensureDict($criterion); // @CAUTION
         Kit::ensureArray($criterion);
@@ -316,7 +316,7 @@ class MongoDBCollection
         Kit::ensureInt($limit, TRUE);
         Kit::ensureBoolean($to_array);
         $this->ensureCriterionHasProperId($criterion);
-        return $this->mongoFind($criterion, $projection, $sort_by, $skip, $limit, $to_array);
+        return $this->mongoFind($criterion, $projection, $sort_by, $skip, $limit, $to_array, $timeout);
     }
 
     /**
@@ -356,7 +356,7 @@ class MongoDBCollection
      * @throws MongoConnectionException if it cannot reach the database.
      * @throws UserException            if there is no document matching the criterion.
      */
-    final protected function getOne($criterion = [], $projection = [], $sort_by = NULL, $skip = NULL)
+    final protected function getOne($criterion = [], $projection = [], $sort_by = NULL, $skip = NULL, $timeout = NULL)
     {
         // Kit::ensureDict($criterion); // @CAUTION
         Kit::ensureArray($criterion);
@@ -370,7 +370,7 @@ class MongoDBCollection
         // Now there must be at least one document matching the criterion.
         if (TRUE === is_null($sort_by) AND TRUE === is_null($skip))
             return $this->mongoFindOne($criterion, $projection);
-        else return $this->mongoFind($criterion, $projection, $sort_by, $skip, 1, TRUE)[0];
+        else return $this->mongoFind($criterion, $projection, $sort_by, $skip, 1, TRUE, $timeout)[0];
     }
 
     /**
@@ -620,7 +620,7 @@ class MongoDBCollection
      *                             matching the criterion.
      */
     final private function mongoFind($criterion = [], $projection = [], $sort_by = NULL
-        , $skip = NULL, $limit = NULL, $to_array = FALSE)
+        , $skip = NULL, $limit = NULL, $to_array = FALSE, $timeout = NULL)
     {
         $this->ensureInitialized();
         // Kit::ensureDict($criterion); // @CAUTION
@@ -643,6 +643,7 @@ class MongoDBCollection
         if (FALSE === is_null($sort_by)) $cursor = $cursor->sort($sort_by);
         if (FALSE === is_null($skip))    $cursor = $cursor->skip($skip);
         if (FALSE === is_null($limit))   $cursor = $cursor->limit($limit);
+        if (FALSE === is_null($timeout)) $cursor = $cursor->timeout($timeout);
         if (TRUE === $to_array) return iterator_to_array($cursor, FALSE);
         else return new MongoDBCursor($cursor);
     }
