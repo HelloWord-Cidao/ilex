@@ -481,7 +481,7 @@ final class Kit
 
     final public static function toInt($string)
     {
-        self::ensureMatchRegex($string, '^\d{1,30}$');
+        self::ensureMatchRegex($string, '^-?\d{1,30}$');
         return intval($string);
     }
 
