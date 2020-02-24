@@ -24,7 +24,7 @@ class BaseQuery
     private $sortBy    = NULL;
     private $skip      = NULL;
     private $limit     = NULL;
-    private $timeout   = NULL;
+    // private $timeout   = NULL;
 
     final public function __construct($collection_name, $entity_path)
     {
