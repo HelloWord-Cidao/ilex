@@ -100,6 +100,13 @@ final class QueryWrapper extends MongoDBCollection
         return $this->createEntityWithDocument($document);
     }
 
+    final public function removeMultiEntities($criterion, $timeout = NULL)
+    {
+        // $cursor = $this->getMulti($criterion, [ '_id' => 1 ], $timeout);
+        $status = $this->removeMulti($criterion, $timeout);
+        return $status;
+    }
+
     //===============================================================================================
 
     final private function createEntityWithDocument($document)

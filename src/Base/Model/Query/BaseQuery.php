@@ -24,6 +24,7 @@ class BaseQuery
     private $sortBy    = NULL;
     private $skip      = NULL;
     private $limit     = NULL;
+    private $timeout   = NULL;
 
     final public function __construct($collection_name, $entity_path)
     {
@@ -517,11 +518,8 @@ class BaseQuery
     final public function removeMultiEntities()
     {
         $this->ensureInitialized();
-        $result = $this->queryWrapper->getMultiEntities(
+        $result = $this->queryWrapper->removeMultiEntities(
             $this->criterion,
-            $this->sortBy,
-            $this->skip,
-            $this->limit,
             $this->timeout
         );
         // $this->clear();

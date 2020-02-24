@@ -482,6 +482,16 @@ class MongoDBCollection
         return $status;
     }
 
+    final protected function removeMulti($criterion, $timeout = NULL)
+    {
+        $this->ensureInitialized();
+        Kit::ensureArray($criterion);
+        Kit::ensureInt($timeout);
+        $this->ensureCriterionHasProperId($criterion);
+        $status = $this->mongoRemove($criterion, TRUE, $timeout);
+        return $status;
+    }
+
 
     // ================================================================================
 
@@ -743,15 +753,18 @@ class MongoDBCollection
      *                                     The operation in MongoCollection::$wtimeout
      *                                     is milliseconds.
      */
-    final private function mongoRemove($criterion, $multiple = TRUE)
+    final private function mongoRemove($criterion, $multiple = TRUE, $timeout = NULL)
     {
         $this->ensureInitialized();
         // Kit::ensureDict($criterion); // @CAUTION
         Kit::ensureArray($criterion);
         Kit::ensureBoolean($multiple);
+        Kit::ensureInt($timeout, TRUE);
         $options = [
-            'w'       => 1,
-            'justOne' => (FALSE === $multiple),
+            'w'               => 1,
+            'justOne'         => (FALSE === $multiple),
+            'socketTimeoutMS' => $timeout,
+            'wTimeoutMS'      => $timeout
         ];
         try {
             $status = $this->collection->remove($criterion, $options);
